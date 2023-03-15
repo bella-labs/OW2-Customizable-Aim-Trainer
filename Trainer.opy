@@ -88,6 +88,9 @@ globalvar PressureDiff
 ## Bot Spawn Variables
 globalvar BotSlot
 globalvar SpawnPt
+globalvar SpawnX
+globalvar SpawnY
+globalvar SpawnZ
 globalvar SpawnSize
 globalvar NumberOfBots
 globalvar LeastHeroInPlay
@@ -96,17 +99,23 @@ globalvar NextHero
 ## Player Setting Variables
 globalvar DamageNumbers
 globalvar Playerlist
+globalvar ElimRefresh
+globalvar ShowDebugInfo
 
 ## Global Menu Variables
 globalvar MenuSizeHost
 globalvar MenuSizePlayer
 globalvar MenuToggleBotSpawn
 globalvar MenuTogglePressureType
+globalvar MenuTogglePressure
+globalvar MenuToggleBotDiff
+globalvar MenuToggleBotSpeed
 
 #Player variables
 ## Player Stat Tracking Variables
 playervar Timer
 playervar Kills
+playervar Deaths
 playervar RecentDamageDealtToSlot
 playervar PlayerHeroList
 playervar DmgDealt
@@ -141,8 +150,6 @@ playervar MenuToggleMercy
 playervar MenuToggleAna
 playervar MenuToggleKiriko
 playervar MenuToggleSelfSpeed
-playervar MenuToggleBotSpeed
-playervar MenuToggleBotDiff
 playervar BotMenuIndex
 playervar MenuToggleProjectile
 playervar MenuToggleInfAmmo
@@ -222,9 +229,12 @@ rule "Initalize: Workshop Settings":
     ## UI Settings
     DamageNumbers = createWorkshopSetting(bool, "0. UI Settings", "Show Damage Numbers", false, 0)
     CustomNames = createWorkshopSetting(bool,   "0. UI Settings", "Custom Names for bots", true, 1)
+    ShowDebugInfo = createWorkshopSetting(bool, "0. UI Settings", "Show Server Load and Coordinates", false, 2)
     ## General Bot Settings
-    BotAbilitiesEnabled = createWorkshopSetting(bool, "1. General Bot Settings (Overridden by in-game changes to setting)", "Bots will use abilities", true, 0)
-    NumberOfBots = createWorkshopSetting(int[1:12],   "1. General Bot Settings (Overridden by in-game changes to setting)", "Number of Bots", 6, 0)
+    MenuToggleBotDiff = createWorkshopSetting(enum["long strafes", "very easy", "easy", "medium", "hard", "very hard", "extreme"], "1. General Bot Settings (Overridden by in-game changes to setting)", "Difficulty", 4, 0)
+    BotAbilitiesEnabled = createWorkshopSetting(bool, "1. General Bot Settings (Overridden by in-game changes to setting)", "Bots will use abilities", true, 1)
+    NumberOfBots = createWorkshopSetting(int[1:12],   "1. General Bot Settings (Overridden by in-game changes to setting)", "Number of Bots", 6, 2)
+    MenuToggleBotSpeed = createWorkshopSetting(enum["default", "lucio passive", "kitsune / shout", "lucio amp"],   "1. General Bot Settings (Overridden by in-game changes to setting)", "Bot Movement Speed", 0, 3)
     ## Bot Movement Settings
     MoveMinWait = createWorkshopSetting(float[0.1:5], "2. Bot Movement (Overridden by in-game changes to movement)", "Bot Movement  -  Minimum wait time before changing direction", 0.25, 0)
     MoveMaxWait = createWorkshopSetting(float[0.2:8], "2. Bot Movement (Overridden by in-game changes to movement)", "Bot Movement  -  Maximum wait time before changing direction", 0.45, 1)
@@ -233,59 +243,68 @@ rule "Initalize: Workshop Settings":
     DefaultJumpMax = createWorkshopSetting(float[1.5:20], "2. Bot Movement (Overridden by in-game changes to movement)", "Bot Jumping  -  Maximum wait time before Jumping", 10, 4)
     DefaultRandCrouch = createWorkshopSetting(bool, "2. Bot Movement (Overridden by in-game changes to movement)", "Bot Crouching", true, 5)
     DefaultCrouchMax = createWorkshopSetting(float[0.25:10], "2. Bot Movement (Overridden by in-game changes to movement)", "Bot Crouching  -  How often the bot will crouch", 3, 6)
+    AdvancedStrafes = createWorkshopSetting(bool, "2. Bot Movement (Overridden by in-game changes to movement)", "Advanced Strafe Patterns", false, 7)
     ## Bot Tank Heroes
     DefaultHeroList = createWorkshopSetting(bool, "3. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "D.va", false, 0)
-    DefaultHeroList.append(createWorkshopSetting(bool, "3. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Doomfist", false, 0))
-    DefaultHeroList.append(createWorkshopSetting(bool, "3. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Junker Queen", false, 0))
-    DefaultHeroList.append(createWorkshopSetting(bool, "3. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Orisa", false, 0))
-    DefaultHeroList.append(createWorkshopSetting(bool, "3. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Ramattra", false, 0))
-    DefaultHeroList.append(createWorkshopSetting(bool, "3. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Reinhardt (Rein bot, code - XEEAE)", false, 0))
-    DefaultHeroList.append(createWorkshopSetting(bool, "3. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Roadhog", false, 0))
-	DefaultHeroList.append(createWorkshopSetting(bool, "3. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Sigma", false, 0))
-    DefaultHeroList.append(createWorkshopSetting(bool, "3. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Winston", false, 0))
-    DefaultHeroList.append(createWorkshopSetting(bool, "3. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Wrecking Ball", false, 0))
-    DefaultHeroList.append(createWorkshopSetting(bool, "3. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Zarya", false, 0))
+    DefaultHeroList.append(createWorkshopSetting(bool, "3. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Doomfist", false, 1))
+    DefaultHeroList.append(createWorkshopSetting(bool, "3. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Junker Queen", false, 2))
+    DefaultHeroList.append(createWorkshopSetting(bool, "3. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Orisa", false, 3))
+    DefaultHeroList.append(createWorkshopSetting(bool, "3. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Ramattra", false, 4))
+    DefaultHeroList.append(createWorkshopSetting(bool, "3. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Reinhardt (Rein bot, code - XEEAE)", false, 5))
+    DefaultHeroList.append(createWorkshopSetting(bool, "3. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Roadhog", false, 6))
+	DefaultHeroList.append(createWorkshopSetting(bool, "3. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Sigma", false, 7))
+    DefaultHeroList.append(createWorkshopSetting(bool, "3. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Winston", false, 8))
+    DefaultHeroList.append(createWorkshopSetting(bool, "3. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Wrecking Ball", false, 9))
+    DefaultHeroList.append(createWorkshopSetting(bool, "3. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Zarya", false, 10))
     ## Bot Damage Heroes
     DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Ashe", true, 0))
-    DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Bastion", false, 0))
-    DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "McCree", true, 0))
-	DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Echo", true, 0))
-    DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Genji", true, 0))
-    DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Hanzo", true, 0))
-    DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Junkrat", true, 0))
-    DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Mei", true, 0))
-    DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Pharah (Pharah bot, Code - DKKKD)", true, 0))
-    DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Reaper", true, 0))
-	DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Sojourn", true, 0))
-    DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Soldier 76", true, 0))
-    DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Sombra", true, 0))
-    DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Symmetra", true, 0))
-    DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Torbjörn", true, 0))
-	DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Tracer", true, 0))
-    DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Widowmaker (Widow Bot, Code - PYDEY)", true, 0))
+    DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Bastion", false, 1))
+    DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Cassidy", true, 2))
+	DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Echo", true, 3))
+    DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Genji", true, 4))
+    DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Hanzo", true, 5))
+    DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Junkrat", true, 6))
+    DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Mei", true, 7))
+    DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Pharah (Pharah bot, Code - DKKKD)", true, 8))
+    DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Reaper", true, 9))
+	DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Sojourn", true, 10))
+    DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Soldier 76", true, 11))
+    DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Sombra", true, 12))
+    DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Symmetra", true, 13))
+    DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Torbjörn", true, 14))
+	DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Tracer", true, 15))
+    DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Widowmaker (Widow Bot, Code - PYDEY)", true, 16))
     ## Bot Support Heroes
     DefaultHeroList.append(createWorkshopSetting(bool, "5. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Ana", true, 0))
-    DefaultHeroList.append(createWorkshopSetting(bool, "5. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Baptiste", true, 0))
-	DefaultHeroList.append(createWorkshopSetting(bool, "5. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Brigitte", true, 0))
-    DefaultHeroList.append(createWorkshopSetting(bool, "5. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Kiriko (Kiriko Bot, Code - GGSYK)", true, 0))
-    DefaultHeroList.append(createWorkshopSetting(bool, "5. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Lúcio", true, 0))
-    DefaultHeroList.append(createWorkshopSetting(bool, "5. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Mercy", true, 0))
-    DefaultHeroList.append(createWorkshopSetting(bool, "5. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Moira", true, 0))
-    DefaultHeroList.append(createWorkshopSetting(bool, "5. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Zenyatta", true, 0))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Baptiste", true, 1))
+	DefaultHeroList.append(createWorkshopSetting(bool, "5. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Brigitte", true, 2))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Kiriko (Kiriko Bot, Code - GGSYK)", true, 3))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Lúcio", true, 4))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Mercy", true, 5))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Moira", true, 6))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Zenyatta", true, 7))
+    # Bot Spawn
+    MenuToggleBotSpawn = createWorkshopSetting(bool, "6. Custom Bot Spawn (Overridden by in-game changes to setting)", "Use Custom Spawn Point", false, 0)
+    SpawnSize = createWorkshopSetting(int[0:100], "6. Custom Bot Spawn (Overridden by in-game changes to setting)", "Spawn Size", 5, 1)
+    SpawnX = createWorkshopSetting(float[-999:999], "6. Custom Bot Spawn (Overridden by in-game changes to setting)", "Spawn x coord", 0, 1)
+    SpawnY = createWorkshopSetting(float[-999:999], "6. Custom Bot Spawn (Overridden by in-game changes to setting)", "Spawn y coord", 0, 1)
+    SpawnZ = createWorkshopSetting(float[-999:999], "6. Custom Bot Spawn (Overridden by in-game changes to setting)", "Spawn z coord", 0, 1)
+    # Pressure Mode
+    MenuTogglePressureType = createWorkshopSetting(enum["off", "killable", "unkillable"], "7. Bot Pressure (Overridden by in-game changes to setting)", "Bots Apply Pressure", 0, 0)
+    MenuTogglePressure = createWorkshopSetting(enum["easy", "medium", "hard", "aimbot"],  "7. Bot Pressure (Overridden by in-game changes to setting)", "Bots Pressure Difficulty", 0, 1)
+    # Player Settings
+    ElimRefresh = createWorkshopSetting(bool, "8. Player Settings", "Eliminations Reset Cooldowns", false, 0)
+
 
 
 rule "Initialize: Global Variables":
     # Map Default Spawns
-    SetMapSpawnPt()
     MvmtRad1 = 19
     MvmtRad2 = 8.5
     MenuSizeHost = 12
     MenuSizePlayer = 6
-    MenuToggleBotSpawn = "default"
-    MenuTogglePressureType = "off"
     Playerlist = []
     NextHero = null
-    SpawnSize = 5
     RandomJumping = DefaultRandJump
     RandomCrouching = DefaultRandCrouch
     CrouchMaxWait = DefaultCrouchMax
@@ -294,7 +313,45 @@ rule "Initialize: Global Variables":
     BotUncrouchMin = 0.25
     BotUncrouchMax = 0.65
     DefaultTurnRate = 600
+
+    if MenuTogglePressureType == 0:
+        MenuTogglePressureType = "off"
+    elif MenuTogglePressureType == 1:
+        MenuTogglePressureType = "killable"
+    elif MenuTogglePressureType == 2:
+        MenuTogglePressureType = "unkillable"
+
+    if MenuTogglePressure == 0:
+        MenuTogglePressure = "easy"
+        PressureDiff = 1.00
+    elif MenuTogglePressure == 1:
+        MenuTogglePressure = "medium"
+        PressureDiff = 0.75
+    elif MenuTogglePressure == 2:
+        MenuTogglePressure = "hard"
+        PressureDiff = 0.50
+    elif MenuTogglePressure == 3:
+        MenuTogglePressure = "aimbot"
+        PressureDiff = 0.00
+
+    if MenuToggleBotSpawn == false:
+        MenuToggleBotSpawn = "default"
+    else:
+        MenuToggleBotSpawn = "custom"
+
+    if MenuToggleBotSpeed == 0:
+        MenuToggleBotSpeed = 100
+    elif MenuToggleBotSpeed == 1:
+        MenuToggleBotSpeed = 125
+    elif MenuToggleBotSpeed == 2:
+        MenuToggleBotSpeed = 130
+    elif MenuToggleBotSpeed == 3:
+        MenuToggleBotSpeed = 160
     
+    if MenuToggleBotSpawn == "default":
+        SetMapSpawnPt()
+    else:
+        SpawnPt = vect(SpawnX, SpawnY, SpawnZ)
     
     HeroList = Hero.DVA
     HeroList.append(Hero.DOOMFIST)
@@ -367,9 +424,9 @@ rule "Player Spawned":
     eventPlayer.allowButton(Button.ABILITY_2)
     eventPlayer.allowButton(Button.ULTIMATE)
     eventPlayer.setStatusEffect(eventPlayer, Status.UNKILLABLE, 9999)
-    eventPlayer.startHoT(eventPlayer, 9999, 200)
     eventPlayer.DmgDealt = 0
     eventPlayer.DmgTaken = 0
+    eventPlayer.startHoT(eventPlayer, 9999, 9999)
 
 rule "Player Left":
     @Event playerLeft
@@ -384,18 +441,17 @@ rule "Player Left":
 def GlobalHud():
     @Name "SUB: GlobalHud"
     
-    hudSubtext(eventPlayer, "Elims:  {0}".format(ceil(eventPlayer.Kills)), HudPosition.LEFT, -1, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubtext(eventPlayer, "Elims:  {0}".format(ceil(eventPlayer.Kills)), HudPosition.LEFT, -1, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     hudSubtext(eventPlayer, "Elims/min:  {0}".format(ceil(eventPlayer.Kills / (eventPlayer.Timer / 60))), HudPosition.LEFT, -0.9, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     hudSubtext(eventPlayer, "Accuracy:  {0}  %".format(ceil(100 * eventPlayer.getHeroStatistic(eventPlayer.getCurrentHero(), HeroStat.WEAPON_ACCURACY))), HudPosition.LEFT, -0.8, Color.LIME_GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-    hudSubtext(eventPlayer, "Crit Accuracy:  {0}  %".format(ceil(100 * eventPlayer.getHeroStatistic(eventPlayer.getCurrentHero(), HeroStat.CRITICAL_HIT_ACCURACY))), HudPosition.LEFT, -0.7, Color.SKY_BLUE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-    hudSubtext(eventPlayer, "Target Distance:  {0} m".format(round(distance(eventPlayer.getPlayerClosestToReticle(Team.2).getEyePosition(), eventPlayer.getEyePosition()))), HudPosition.LEFT, -0.6, Color.PURPLE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubtext(eventPlayer, "Crit Accuracy:  {0}  %".format(ceil(100 * eventPlayer.getHeroStatistic(eventPlayer.getCurrentHero(), HeroStat.CRITICAL_HIT_ACCURACY))), HudPosition.LEFT, -0.7, Color.TURQUOISE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubtext(eventPlayer, "Target Distance:  {0} m".format(round(distance(eventPlayer.getPlayerClosestToReticle(Team.2).getEyePosition(), eventPlayer.getEyePosition()))), HudPosition.LEFT, -0.6, Color.BLUE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
 
     hudSubheader(eventPlayer, "CODE: VXEAT", HudPosition.RIGHT, -1, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-    hudSubheader(hostPlayer, "Load (Curr/Avg/Peak):  {0}  /  {1}  /  {2}".format(getServerLoad(),getAverageServerLoad(),getPeakServerLoad()), HudPosition.RIGHT, -0.9, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-    #Debug Hud Section
-    #hudSubtext(eventPlayer,
-    #"{0}  {1}  {2}  {3}".format(eventPlayer.getPosition().x,eventPlayer.getPosition().y, eventPlayer.getPosition().z, eventPlayer.getAltitude()), 
-    #HudPosition.LEFT, 0.6, Color.TURQUOISE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    
+    if ShowDebugInfo:
+        hudSubheader(hostPlayer, "Load (Curr/Avg/Peak):  {0}  /  {1}  /  {2}".format(getServerLoad(),getAverageServerLoad(),getPeakServerLoad()), HudPosition.RIGHT, -0.9, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+        hudSubheader(eventPlayer, "Coord: ({0},{1},{2})".format(eventPlayer.getPosition().x,eventPlayer.getPosition().y, eventPlayer.getPosition().z), HudPosition.RIGHT, -0.89, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
 
 
 # Stat Trackers
@@ -412,12 +468,12 @@ rule "Stats: Elimination":
     @Team 1
     
     eventPlayer.Kills += 1
-    
+
 
 rule "Stats: Pressure Mode Damage Dealt":
     @Event playerDealtDamage
     @Team 1
-    @Condition eventPlayer.MenuTogglePressure != "off"
+    @Condition MenuTogglePressureType != "off"
     
     eventPlayer.DmgDealt += eventDamage
 
@@ -425,10 +481,13 @@ rule "Stats: Pressure Mode Damage Dealt":
 rule "Stats: Pressure Mode Damage Recieved":
     @Event playerTookDamage
     @Team 1
-    @Condition eventPlayer.MenuTogglePressure != "off"
+    @Condition MenuTogglePressureType != "off"
     
     eventPlayer.DmgTaken += eventDamage
-    eventPlayer.setHealth(eventPlayer.getMaxHealth())
+    if eventPlayer.getHealth() <= 1:
+        eventPlayer.setHealth(eventPlayer.getMaxHealth())
+        eventPlayer.Deaths += 1
+        bigMessage(eventPlayer, "you died.")
 
 
 rule "Show Player Damage by BluJay (https://workshop.codes/7CZFC)":
@@ -525,6 +584,7 @@ def CreateAllBots():
         BotSlot = 11
         CreateBot()
         wait(1)
+    getPlayers(Team.2).setMoveSpeed(MenuToggleBotSpeed)
         
 
 def DestroyAllBots():
@@ -553,12 +613,36 @@ rule "Player Ability: Ultimate Refresh 2":
     eventPlayer.setUltCharge(100)
 
 
+rule "Player Ability: Heal if no damage":
+    @Event playerTookDamage
+    @Team 1
+    @Condition MenuTogglePressureType != "unkillable"
+
+    eventPlayer.stopAllHoT()
+    wait(4, Wait.RESTART_WHEN_TRUE)
+    eventPlayer.startHoT(eventPlayer, 9999, 9999)
+
+    
+rule "Player Ability: Elimination Actions":
+    @Event playerDealtFinalBlow
+    @Team 1
+
+    eventPlayer.startHoT(eventPlayer, 9999, 9999)
+    if ElimRefresh == true:
+        wait(1)
+        eventPlayer.setAbilityCooldown(Button.PRIMARY_FIRE,0)
+        eventPlayer.setAbilityCooldown(Button.SECONDARY_FIRE,0)
+        eventPlayer.setAbilityCooldown(Button.ABILITY_1,0)
+        eventPlayer.setAbilityCooldown(Button.ABILITY_2,0)
+
+
+
 rule "Player Ability: Grant Zarya Charge":
     @Event eachPlayer
     @Team 1
     @Hero zarya
     @Condition eventPlayer.isUsingAbility1() == true
-    @Condition eventPlayer.MenuTogglePressure == "off"
+    @Condition MenuTogglePressureType == "off"
     
     damage(eventPlayer, null, 200)
     eventPlayer.setHealth(eventPlayer.getMaxHealth())
@@ -569,7 +653,7 @@ rule "Player Ability: Grant Doom Power Punch":
     @Team 1
     @Hero doomfist
     @Condition eventPlayer.isUsingAbility2() == true
-    @Condition eventPlayer.MenuTogglePressure == "off"
+    @Condition MenuTogglePressureType == "off"
     
     wait(0.75, Wait.ABORT_WHEN_FALSE)
     eventPlayer.startDoT(eventPlayer.getPlayerClosestToReticle(Team.2), 0.25, 800)
@@ -1132,8 +1216,8 @@ rule "Bot Abilities: Winston Jump":
         eventPlayer.startFacing(vect(random.uniform(-20,20) + eventPlayer.getEyePosition().x , random.uniform(-20,20) + eventPlayer.getEyePosition().y ,random.uniform(-20,20) + eventPlayer.getEyePosition().z), DefaultTurnRate, Relativity.TO_WORLD, FacingReeval.NONE)
         wait(0.5)
     eventPlayer.forceButtonPress(Button.ABILITY_1)
-    if eventPlayer.Randomizer == 0:
-        SetDefaultFacing()
+    wait(0.1)
+    SetDefaultFacing()
     wait(6)
     if RULE_CONDITION:
         goto RULE_START
@@ -1997,7 +2081,7 @@ rule "Bot Abilities: Zen Charge":
         goto RULE_START
 
 
-rule "Zen Proximity Kick":
+rule "Bot Abilities: Zen Proximity Kick":
     @Event eachPlayer
     @Team 2
     @Hero zenyatta
@@ -2457,19 +2541,19 @@ rule "Menu Controls: Right":
             eventPlayer.ProjType = "ultimate"
         elif eventPlayer.ProjType == "ultimate":
             eventPlayer.ProjType = "primary"
-    elif eventPlayer.MenuIndex == 7 and eventPlayer.MenuToggleBotSpeed != 100:
-        if eventPlayer.MenuToggleBotSpeed == 125:
-            eventPlayer.MenuToggleBotSpeed = 130
-        elif eventPlayer.MenuToggleBotSpeed == 130:
-            eventPlayer.MenuToggleBotSpeed = 160
-        elif eventPlayer.MenuToggleBotSpeed == 160:
-            eventPlayer.MenuToggleBotSpeed = 125
+    elif eventPlayer.MenuIndex == 7 and MenuToggleBotSpeed != 100:
+        if MenuToggleBotSpeed == 125:
+            MenuToggleBotSpeed = 130
+        elif MenuToggleBotSpeed == 130:
+            MenuToggleBotSpeed = 160
+        elif MenuToggleBotSpeed == 160:
+            MenuToggleBotSpeed = 125
         MenuAction7()
     elif eventPlayer.MenuIndex == 8:
-        if eventPlayer.MenuToggleBotDiff == 6:
-            eventPlayer.MenuToggleBotDiff = 0
+        if MenuToggleBotDiff == 6:
+            MenuToggleBotDiff = 0
         else:
-            eventPlayer.MenuToggleBotDiff += 1
+            MenuToggleBotDiff += 1
         MenuAction8Diff()
     elif eventPlayer.MenuIndex == 9 and MenuToggleBotSpawn == "custom":
         SpawnSize += 1
@@ -2485,19 +2569,19 @@ rule "Menu Controls: Right":
             eventPlayer.BotMenuIndex = 0
         else:
             eventPlayer.BotMenuIndex += 1 
-    elif eventPlayer.MenuIndex == 12 and eventPlayer.MenuTogglePressure != "off":
-        if eventPlayer.MenuTogglePressure == "easy":
-            eventPlayer.MenuTogglePressure = "medium"
-            PressureDiff = 1.00
-        elif eventPlayer.MenuTogglePressure == "medium":
-            eventPlayer.MenuTogglePressure = "hard"
+    elif eventPlayer.MenuIndex == 12 and MenuTogglePressureType != "off":
+        if MenuTogglePressure == "easy":
+            MenuTogglePressure = "medium"
+            PressureDiff = 0.75
+        elif MenuTogglePressure == "medium":
+            MenuTogglePressure = "hard"
             PressureDiff = 0.50
-        elif eventPlayer.MenuTogglePressure == "hard":
-            eventPlayer.MenuTogglePressure = "aimbot"
+        elif MenuTogglePressure == "hard":
+            MenuTogglePressure = "aimbot"
             PressureDiff = 0.00
-        elif eventPlayer.MenuTogglePressure == "aimbot":
-            eventPlayer.MenuTogglePressure = "easy"
-            PressureDiff = 2.00
+        elif MenuTogglePressure == "aimbot":
+            MenuTogglePressure = "easy"
+            PressureDiff = 1.00
 
 
 rule "Menu Controls: Left":
@@ -2524,19 +2608,19 @@ rule "Menu Controls: Left":
             eventPlayer.ProjType = "primary"
         elif eventPlayer.ProjType == "primary":
             eventPlayer.ProjType = "ultimate"
-    elif eventPlayer.MenuIndex == 7 and eventPlayer.MenuToggleBotSpeed != 100:
-        if eventPlayer.MenuToggleBotSpeed == 160:
-            eventPlayer.MenuToggleBotSpeed = 130
-        elif eventPlayer.MenuToggleBotSpeed == 130:
-            eventPlayer.MenuToggleBotSpeed = 125
-        elif eventPlayer.MenuToggleBotSpeed == 125:
-            eventPlayer.MenuToggleBotSpeed = 160
+    elif eventPlayer.MenuIndex == 7 and MenuToggleBotSpeed != 100:
+        if MenuToggleBotSpeed == 160:
+            MenuToggleBotSpeed = 130
+        elif MenuToggleBotSpeed == 130:
+            MenuToggleBotSpeed = 125
+        elif MenuToggleBotSpeed == 125:
+            MenuToggleBotSpeed = 160
         MenuAction7()
     elif eventPlayer.MenuIndex == 8:
-        if eventPlayer.MenuToggleBotDiff == 0:
-            eventPlayer.MenuToggleBotDiff = 6
+        if MenuToggleBotDiff == 0:
+            MenuToggleBotDiff = 6
         else:
-            eventPlayer.MenuToggleBotDiff -= 1
+            MenuToggleBotDiff -= 1
         MenuAction8Diff()
     elif eventPlayer.MenuIndex == 9 and MenuToggleBotSpawn == "custom" and SpawnSize > 0:
         SpawnSize -= 1
@@ -2552,18 +2636,18 @@ rule "Menu Controls: Left":
             eventPlayer.BotMenuIndex = 35
         else:
             eventPlayer.BotMenuIndex -= 1
-    elif eventPlayer.MenuIndex == 12 and eventPlayer.MenuTogglePressure != "off":
-        if eventPlayer.MenuTogglePressure == "aimbot":
-            eventPlayer.MenuTogglePressure = "hard"
+    elif eventPlayer.MenuIndex == 12 and MenuTogglePressureType != "off":
+        if MenuTogglePressure == "aimbot":
+            MenuTogglePressure = "hard"
             PressureDiff = 0.50
-        elif eventPlayer.MenuTogglePressure == "hard":
-            eventPlayer.MenuTogglePressure = "medium"
+        elif MenuTogglePressure == "hard":
+            MenuTogglePressure = "medium"
+            PressureDiff = 0.75
+        elif MenuTogglePressure == "medium":
+            MenuTogglePressure = "easy"
             PressureDiff = 1.00
-        elif eventPlayer.MenuTogglePressure == "medium":
-            eventPlayer.MenuTogglePressure = "easy"
-            PressureDiff = 2.00
-        elif eventPlayer.MenuTogglePressure == "easy":
-            eventPlayer.MenuTogglePressure = "aimbot"
+        elif MenuTogglePressure == "easy":
+            MenuTogglePressure = "aimbot"
             PressureDiff = 0.00
 
 rule "Menu Control: Ability 2 / Primary Toggle":
@@ -2597,10 +2681,10 @@ rule "Menu Control: Ability 2 / Primary Toggle":
     elif eventPlayer.MenuIndex == 6:
         MenuAction6()
     elif eventPlayer.MenuIndex == 7:
-        if eventPlayer.MenuToggleBotSpeed == 100:
-            eventPlayer.MenuToggleBotSpeed = 125
+        if MenuToggleBotSpeed == 100:
+            MenuToggleBotSpeed = 125
         else:
-            eventPlayer.MenuToggleBotSpeed = 100
+            MenuToggleBotSpeed = 100
         MenuAction7()
     elif eventPlayer.MenuIndex == 8:
         MenuAction8Abilities()
@@ -2658,9 +2742,9 @@ rule "Menu Control: Ability 1 / Secondary":
         smallMessage(eventPlayer, "Toggle to enable/disable bot ability usage.")
         wait(1)
         smallMessage(eventPlayer, "Use left/right movement to select different strafe patterns.")
-        if eventPlayer.MenuToggleBotDiff == "extreme":
+        if MenuToggleBotDiff == "extreme":
             smallMessage(eventPlayer, "'Extreme' setting includes more variance in strafe pattern and more complex ability usage.")
-        elif eventPlayer.MenuToggleBotDiff == "long strafes":
+        elif MenuToggleBotDiff == "long strafes":
             smallMessage(eventPlayer, "'Long Strafes' setting has no jumping or crouching. Useful for learning to lead projectiles.")
     elif eventPlayer.MenuIndex == 9:
         smallMessage(eventPlayer, "Toggles bots to spawn at your current position.")
@@ -2697,19 +2781,20 @@ def MenuHud():
     eventPlayer.MenuToggleAna = "off"
     eventPlayer.MenuToggleKiriko = "off"
     eventPlayer.MenuToggleSelfSpeed = 100
-    eventPlayer.MenuToggleBotSpeed = 100
-    eventPlayer.MenuToggleBotDiff = 4
     eventPlayer.MenuToggleProjectile = "off"
     eventPlayer.MenuToggleInfAmmo = false
-    eventPlayer.MenuTogglePressure = "off"
     
     eventPlayer.ProjType = "off"
     eventPlayer.ProjBeam = null
     eventPlayer.ProjType = null
 
     # Pressure Damage Data
-    hudSubtext([i for i in eventPlayer if eventPlayer.MenuTogglePressure != "off"], 
-    "Score:  {0}".format(eventPlayer.DmgDealt - eventPlayer.DmgTaken), HudPosition.LEFT, -0.4, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubtext([i for i in eventPlayer if MenuTogglePressureType != "off"], 
+    "KDR:  {0}".format(eventPlayer.Kills / eventPlayer.Deaths), HudPosition.LEFT, -1.01, Color.ROSE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubtext([i for i in eventPlayer if MenuTogglePressureType != "off"], 
+    "Deaths:  {0}".format(eventPlayer.Deaths), HudPosition.LEFT, -0.98, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubtext([i for i in eventPlayer if MenuTogglePressureType != "off"], 
+    "Net Damage:  {0}".format(eventPlayer.DmgDealt - eventPlayer.DmgTaken), HudPosition.LEFT, -0.5, Color.PURPLE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     # Settings Headers
     hudSubheader([i for i in eventPlayer if not eventPlayer.Menu_On], 
     "Press  {0}  to change settings".format(buttonString(Button.INTERACT)), HudPosition.LEFT, -0.3, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
@@ -2817,42 +2902,42 @@ def MenuHud():
     hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex != 7 and eventPlayer == hostPlayer], 
     "Bot Movement Speed", HudPosition.TOP, 9, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
         ## Case: index on / option 100
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and  eventPlayer.MenuIndex == 7 and eventPlayer.MenuToggleBotSpeed == 100], 
-    "■  Default Movement Speed".format(eventPlayer.MenuToggleBotSpeed), HudPosition.TOP, 9, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and  eventPlayer.MenuIndex == 7 and MenuToggleBotSpeed == 100], 
+    "■  Default Movement Speed".format(MenuToggleBotSpeed), HudPosition.TOP, 9, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
         ## Case: index on / option 125
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 7 and eventPlayer.MenuToggleBotSpeed == 125], 
-    "■  ←  Lucio Passive Speed  →".format(eventPlayer.MenuToggleBotSpeed), HudPosition.TOP, 9, Color.LIME_GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 7 and MenuToggleBotSpeed == 125], 
+    "■  ←  Lucio Passive Speed  →".format(MenuToggleBotSpeed), HudPosition.TOP, 9, Color.LIME_GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
         ## Case: index on / option 130
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 7 and eventPlayer.MenuToggleBotSpeed == 130], 
-    "■  ←  Kitsune Rush Speed  →".format(eventPlayer.MenuToggleBotSpeed), HudPosition.TOP, 9, Color.ROSE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 7 and MenuToggleBotSpeed == 130], 
+    "■  ←  Kitsune / Shout Speed  →".format(MenuToggleBotSpeed), HudPosition.TOP, 9, Color.ROSE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
         ## Case: index on / option 125
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 7 and eventPlayer.MenuToggleBotSpeed == 160], 
-    "■  ←  Lucio Amp Speed  →".format(eventPlayer.MenuToggleBotSpeed), HudPosition.TOP, 9, Color.GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 7 and MenuToggleBotSpeed == 160], 
+    "■  ←  Lucio Amp Speed  →".format(MenuToggleBotSpeed), HudPosition.TOP, 9, Color.GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
        
     # 6th Option - Bot Difficulty
         ## Case: index off / option off
     hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex != 8 and eventPlayer == hostPlayer], 
     "Bot Movement", HudPosition.TOP, 10, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
         ## Case: index on / option long strafes
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 8 and eventPlayer.MenuToggleBotDiff == 0], 
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 8 and MenuToggleBotDiff == 0], 
     "■  Use Abilities:  {0}  |  ←  wide strafes  → ".format(BotAbilitiesEnabled), HudPosition.TOP, 10, Color.SKY_BLUE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
         ## Case: index on / option very easy
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 8 and eventPlayer.MenuToggleBotDiff == 1], 
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 8 and MenuToggleBotDiff == 1], 
     "■  Use Abilities:  {0}  |  ←  very easy  → ".format(BotAbilitiesEnabled), HudPosition.TOP, 10, Color.GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
         ## Case: index on / option easy
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 8 and eventPlayer.MenuToggleBotDiff == 2], 
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 8 and MenuToggleBotDiff == 2], 
     "■  Use Abilities:  {0}  |  ←  easy  → ".format(BotAbilitiesEnabled), HudPosition.TOP, 10, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
         ## Case: index on / option medium
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 8 and eventPlayer.MenuToggleBotDiff == 3], 
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 8 and MenuToggleBotDiff == 3], 
     "■  Use Abilities:  {0}  |  ←  medium  → ".format(BotAbilitiesEnabled), HudPosition.TOP, 10, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
         ## Case: index on / option hard
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 8 and eventPlayer.MenuToggleBotDiff == 4], 
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 8 and MenuToggleBotDiff == 4], 
     "■  Use Abilities:  {0}  |  ←  hard  → ".format(BotAbilitiesEnabled), HudPosition.TOP, 10, Color.ROSE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
         ## Case: index on / option very hard
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 8 and eventPlayer.MenuToggleBotDiff == 5], 
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 8 and MenuToggleBotDiff == 5], 
     "■  Use Abilities:  {0}  |  ←  very hard  → ".format(BotAbilitiesEnabled), HudPosition.TOP, 10, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
         ## Case: index on / option extreme
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 8 and eventPlayer.MenuToggleBotDiff == 6], 
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 8 and MenuToggleBotDiff == 6], 
     "■  Use Abilities:  {0}  |  ←  extreme  → ".format(BotAbilitiesEnabled), HudPosition.TOP, 10, Color.BLACK, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
 
 
@@ -2898,10 +2983,10 @@ def MenuHud():
     "Pressure mode", HudPosition.TOP, 16, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
         ## Case: index on / mode off
     hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 12 and MenuTogglePressureType == "off"], 
-    "■  Pressure Mode: Off".format(eventPlayer.MenuTogglePressure), HudPosition.TOP, 16, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    "■  Pressure Mode: Off", HudPosition.TOP, 16, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
         ## Case: index on / mode on
     hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 12 and MenuTogglePressureType != "off"], 
-    "■  Bots  {0}  : ←  {1}  →".format(MenuTogglePressureType, eventPlayer.MenuTogglePressure), HudPosition.TOP, 16, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    "■  Bots  {0}  : ←  {1}  →".format(MenuTogglePressureType, MenuTogglePressure), HudPosition.TOP, 16, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
 
 
 def MenuAction0():
@@ -2926,6 +3011,9 @@ def MenuAction0():
     stopChasingVariable(eventPlayer.Timer)
     eventPlayer.Timer = 0
     eventPlayer.Kills = 0
+    eventPlayer.Deaths = 0
+    eventPlayer.DmgDealt = 0
+    eventPlayer.DmgTaken = 0
     eventPlayer.PlayerHeroList = getAllHeroes()
     eventPlayer.PlayerHeroList.remove(eventPlayer.getCurrentHero())
     eventPlayer.setAllowedHeroes(eventPlayer.PlayerHeroList)
@@ -3024,8 +3112,9 @@ rule "Infinite Ammo: Ammo Refresh":
 def MenuAction7():
     @Name "SUB: MenuAction7 - Bot Speed Toggle"
     
-    smallMessage(eventPlayer, "{0}% bot speed".format(eventPlayer.MenuToggleBotSpeed))
-    getPlayers(Team.2).setMoveSpeed(eventPlayer.MenuToggleBotSpeed)
+    wait(0.1)
+    smallMessage(eventPlayer, "{0}% bot speed".format(MenuToggleBotSpeed))
+    getPlayers(Team.2).setMoveSpeed(MenuToggleBotSpeed)
 
 
 def MenuAction8Diff():
@@ -3039,7 +3128,7 @@ def MenuAction8Diff():
     BotUncrouchMax = 0.65
     AdvancedStrafes = false
 
-    if eventPlayer.MenuToggleBotDiff == 0:
+    if MenuToggleBotDiff == 0:
         smallMessage(getAllPlayers(), "Long strafe pattern: Bots change direction 5 - 8s")
         MoveMinWait = 5
         MoveMaxWait = 8
@@ -3051,27 +3140,27 @@ def MenuAction8Diff():
         BotUncrouchMin = 0.25
         BotUncrouchMax = 0.65
         AdvancedStrafes = false
-    elif eventPlayer.MenuToggleBotDiff == 1:
+    elif MenuToggleBotDiff == 1:
         smallMessage(getAllPlayers(), "Very easy movement pattern: Bots change direction 1.5 - 3.5s")
         MoveMinWait = 1.5
         MoveMaxWait = 3.5
-    elif eventPlayer.MenuToggleBotDiff == 2:
+    elif MenuToggleBotDiff == 2:
         smallMessage(getAllPlayers(), "Easy movement pattern: Bots change direction 0.75 - 1.75s")
         MoveMinWait = 0.75
         MoveMaxWait = 1.75
-    elif eventPlayer.MenuToggleBotDiff == 3:
+    elif MenuToggleBotDiff == 3:
         smallMessage(getAllPlayers(), "Normal movement pattern: Bots change direction 0.4 - 0.8s")
         MoveMinWait = 0.4
         MoveMaxWait = 0.8
-    elif eventPlayer.MenuToggleBotDiff == 4:
+    elif MenuToggleBotDiff == 4:
         smallMessage(getAllPlayers(), "Hard movement pattern: Bots change direction 0.25 - 0.45s")
         MoveMinWait = 0.25
         MoveMaxWait = 0.45
-    elif eventPlayer.MenuToggleBotDiff == 5:
+    elif MenuToggleBotDiff == 5:
         smallMessage(getAllPlayers(), "Hard movement pattern: Bots change direction 0.1 - 0.2")
         MoveMinWait = 0.10
         MoveMaxWait = 0.35
-    elif eventPlayer.MenuToggleBotDiff == 6:
+    elif MenuToggleBotDiff == 6:
         smallMessage(getAllPlayers(), "Extreme movement pattern: glhf ♥")
         MoveMinWait = 0.05
         MoveMaxWait = 0.35
@@ -3149,23 +3238,24 @@ def MenuAction11():
 def MenuAction12():
     @Name "SUB: MenuAction12 Pressure Mode Toggle"
 
+    eventPlayer.Timer = 0
+    eventPlayer.Kills = 0
+    eventPlayer.Deaths = 0
     eventPlayer.DmgDealt = 0
     eventPlayer.DmgTaken = 0
     if MenuTogglePressureType == "off":
-        MenuTogglePressureType = "Killable"
-        eventPlayer.MenuTogglePressure = "easy"
+        MenuTogglePressureType = "killable"
         PressureDiff = 2
-    elif MenuTogglePressureType == "Killable":
-        MenuTogglePressureType = "Unkillable"
+    elif MenuTogglePressureType == "killable":
+        MenuTogglePressureType = "unkillable"
     else:
         MenuTogglePressureType = "off"
-        eventPlayer.MenuTogglePressure = "off"
 
 
 rule "Unkillable Bot Enable":
     @Event eachPlayer
     @Team 2
-    @Condition MenuTogglePressureType == "Unkillable"
+    @Condition MenuTogglePressureType == "unkillable"
     
     eventPlayer.setStatusEffect(eventPlayer, Status.UNKILLABLE, 9999)
 
@@ -3173,7 +3263,7 @@ rule "Unkillable Bot Enable":
 rule "Unkillable Bot Disable":
     @Event eachPlayer
     @Team 2
-    @Condition MenuTogglePressureType != "Unkillable"
+    @Condition MenuTogglePressureType != "unkillable"
     
     eventPlayer.clearStatusEffect(Status.UNKILLABLE)
 
@@ -3181,7 +3271,7 @@ rule "Unkillable Bot Disable":
 rule "Unkillable Bot Took Damage":
     @Event playerTookDamage
     @Team 2
-    @Condition MenuTogglePressureType == "Unkillable"
+    @Condition MenuTogglePressureType == "unkillable"
     
     wait(0.25)
     eventPlayer.setHealth(eventPlayer.getMaxHealth())
@@ -3346,9 +3436,9 @@ rule "Set Proj Speed - Ability 2":
     else:
         eventPlayer.ProjSpeed = 0
 
-rule "Set Proj Speed - ult":
+rule "Set Proj Speed - ultimate":
     @Event eachPlayer
-    @Condition eventPlayer.ProjType == "ult"
+    @Condition eventPlayer.ProjType == "ultimate"
 
     eventPlayer.CurrHero = eventPlayer.getCurrentHero()
 
@@ -3500,6 +3590,15 @@ def SetMapSpawnPt():
             SpawnPt = vect(0, 96, 140)
         #Control Center
         elif getCurrentObjective() == 2:
+    elif getCurrentMap() == Map.LIJIANG_TOWER_LNY:
+        #Night Market
+        if getCurrentObjective() == 0:
+            SpawnPt = vect(1.06, 1, -29.88)
+        #Gardens
+        elif getCurrentObjective() == 1:
+            SpawnPt = vect(0, 96, 140)
+        #Control Center
+        elif getCurrentObjective() == 2:    
             SpawnPt = vect(0, 273, 280)
     elif getCurrentMap() == Map.NEPAL:
         #Village
@@ -3560,7 +3659,7 @@ def SetProjectileFacing():
 rule "Bot Pressure: Set Pressure Bot":
     @Event eachPlayer
     @Team 1
-    @Condition eventPlayer.MenuTogglePressure != "off"
+    @Condition MenuTogglePressureType != "off"
     @Condition eventPlayer.Menu_On == false
 
     PressureBot = eventPlayer.getPlayerClosestToReticle(Team.2)
@@ -3574,7 +3673,7 @@ rule "Bot Pressure: Set Pressure Bot":
 rule "Bot Pressure: Toggle Off":
     @Event eachPlayer
     @Team 1
-    @Condition eventPlayer.MenuTogglePressure == "off"
+    @Condition MenuTogglePressureType == "off"
 
     PressureBot.ApplyPressure = false
     PressureBot = null
@@ -4002,6 +4101,7 @@ rule "Bot Pressure: Winston Primary":
     @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 9
 
     eventPlayer.AbilityAcc = 2
+    SetDefaultFacing()
     eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
     eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
     wait(9999, Wait.ABORT_WHEN_FALSE)
@@ -4019,6 +4119,7 @@ rule "Bot Pressure: Winston Secondary":
     @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) >= 9
 
     eventPlayer.AbilityAcc = 2
+    SetDefaultFacing()
     eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
     eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
     wait(random.uniform(0.1, 2))
@@ -4232,13 +4333,12 @@ rule "Bot Abilities: Cassidy Ability 2":
     @Condition eventPlayer.ApplyPressure == true
     @Condition BotAbilitiesEnabled == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.getNormalizedHealth() != 1
-    @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 10
+    @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 13
     @Condition eventPlayer.hasSpawned() == true
     
-    wait(random.uniform(0, 5), Wait.ABORT_WHEN_FALSE)
+    wait(random.uniform(0, 2), Wait.ABORT_WHEN_FALSE)
     eventPlayer.forceButtonPress(Button.ABILITY_2)
-    wait(10, Wait.ABORT_WHEN_FALSE)
+    wait(10)
     if RULE_CONDITION:
         goto RULE_START
 
@@ -4287,9 +4387,9 @@ rule "Bot Pressure: Echo Beam":
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.hasSpawned() == true
     @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 16
+    @Condition getClosestPlayer(eventPlayer.getEyePosition(), Team.1).getNormalizedHealth() <= 0.6
     @Condition BotAbilitiesEnabled == true
                                 
-    wait(random.uniform(5,15), Wait.ABORT_WHEN_FALSE)
     SetDefaultFacing()
     eventPlayer.startForcingButton(Button.ABILITY_2)
     wait(2)
