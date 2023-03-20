@@ -107,7 +107,7 @@ globalvar MenuSizeHost
 globalvar MenuSizePlayer
 globalvar MenuToggleBotSpawn
 globalvar MenuTogglePressureType
-globalvar MenuTogglePressure
+globalvar MenuTogglePressureDiff
 globalvar MenuToggleBotDiff
 globalvar MenuToggleBotSpeed
 
@@ -116,11 +116,10 @@ globalvar MenuToggleBotSpeed
 playervar Timer
 playervar Kills
 playervar Deaths
-playervar RecentDamageDealtToSlot
-playervar PlayerHeroList
 playervar DmgDealt
 playervar DmgTaken
-
+playervar PlayerHeroList
+playervar RecentDamageDealtToSlot
 
 ## Bot Pathing Variables
 playervar PathLoc
@@ -143,7 +142,6 @@ playervar DefaultAmmo
 
 ## Menu Variables
 playervar Menu_On
-playervar PlayerClosedMenu
 playervar BotSettingsChanged
 playervar MenuIndex
 playervar MenuToggleMercy
@@ -250,7 +248,7 @@ rule "Initalize: Workshop Settings":
     DefaultHeroList.append(createWorkshopSetting(bool, "3. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Junker Queen", false, 2))
     DefaultHeroList.append(createWorkshopSetting(bool, "3. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Orisa", false, 3))
     DefaultHeroList.append(createWorkshopSetting(bool, "3. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Ramattra", false, 4))
-    DefaultHeroList.append(createWorkshopSetting(bool, "3. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Reinhardt (Rein bot, code - XEEAE)", false, 5))
+    DefaultHeroList.append(createWorkshopSetting(bool, "3. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Reinhardt", false, 5))
     DefaultHeroList.append(createWorkshopSetting(bool, "3. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Roadhog", false, 6))
 	DefaultHeroList.append(createWorkshopSetting(bool, "3. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Sigma", false, 7))
     DefaultHeroList.append(createWorkshopSetting(bool, "3. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Winston", false, 8))
@@ -265,7 +263,7 @@ rule "Initalize: Workshop Settings":
     DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Hanzo", true, 5))
     DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Junkrat", true, 6))
     DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Mei", true, 7))
-    DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Pharah (Pharah bot, Code - DKKKD)", true, 8))
+    DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Pharah", true, 8))
     DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Reaper", true, 9))
 	DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Sojourn", true, 10))
     DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Soldier 76", true, 11))
@@ -273,12 +271,12 @@ rule "Initalize: Workshop Settings":
     DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Symmetra", true, 13))
     DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Torbjörn", true, 14))
 	DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Tracer", true, 15))
-    DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Widowmaker (Widow Bot, Code - PYDEY)", true, 16))
+    DefaultHeroList.append(createWorkshopSetting(bool, "4. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Widowmaker", true, 16))
     ## Bot Support Heroes
     DefaultHeroList.append(createWorkshopSetting(bool, "5. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Ana", true, 0))
     DefaultHeroList.append(createWorkshopSetting(bool, "5. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Baptiste", true, 1))
 	DefaultHeroList.append(createWorkshopSetting(bool, "5. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Brigitte", true, 2))
-    DefaultHeroList.append(createWorkshopSetting(bool, "5. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Kiriko (Kiriko Bot, Code - GGSYK)", true, 3))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Kiriko", true, 3))
     DefaultHeroList.append(createWorkshopSetting(bool, "5. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Lúcio", true, 4))
     DefaultHeroList.append(createWorkshopSetting(bool, "5. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Mercy", true, 5))
     DefaultHeroList.append(createWorkshopSetting(bool, "5. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Moira", true, 6))
@@ -291,7 +289,7 @@ rule "Initalize: Workshop Settings":
     SpawnZ = createWorkshopSetting(float[-999:999], "6. Custom Bot Spawn (Overridden by in-game changes to setting)", "Spawn z coord", 0, 1)
     # Pressure Mode
     MenuTogglePressureType = createWorkshopSetting(enum["off", "killable", "unkillable"], "7. Bot Pressure (Overridden by in-game changes to setting)", "Bots Apply Pressure", 0, 0)
-    MenuTogglePressure = createWorkshopSetting(enum["easy", "medium", "hard", "aimbot"],  "7. Bot Pressure (Overridden by in-game changes to setting)", "Bots Pressure Difficulty", 0, 1)
+    MenuTogglePressureDiff = createWorkshopSetting(enum["easy", "medium", "hard", "aimbot"],  "7. Bot Pressure (Overridden by in-game changes to setting)", "Bots Pressure Difficulty", 0, 1)
     # Player Settings
     ElimRefresh = createWorkshopSetting(bool, "8. Player Settings", "Eliminations Reset Cooldowns", false, 0)
 
@@ -321,23 +319,25 @@ rule "Initialize: Global Variables":
     elif MenuTogglePressureType == 2:
         MenuTogglePressureType = "unkillable"
 
-    if MenuTogglePressure == 0:
-        MenuTogglePressure = "easy"
+    if MenuTogglePressureDiff == 0:
+        MenuTogglePressureDiff = "easy"
         PressureDiff = 1.00
-    elif MenuTogglePressure == 1:
-        MenuTogglePressure = "medium"
+    elif MenuTogglePressureDiff == 1:
+        MenuTogglePressureDiff = "medium"
         PressureDiff = 0.75
-    elif MenuTogglePressure == 2:
-        MenuTogglePressure = "hard"
+    elif MenuTogglePressureDiff == 2:
+        MenuTogglePressureDiff = "hard"
         PressureDiff = 0.50
-    elif MenuTogglePressure == 3:
-        MenuTogglePressure = "aimbot"
+    elif MenuTogglePressureDiff == 3:
+        MenuTogglePressureDiff = "aimbot"
         PressureDiff = 0.00
 
     if MenuToggleBotSpawn == false:
         MenuToggleBotSpawn = "default"
     else:
         MenuToggleBotSpawn = "custom"
+        MvmtRad1 = SpawnSize
+        MvmtRad2 = SpawnSize/2
 
     if MenuToggleBotSpeed == 0:
         MenuToggleBotSpeed = 100
@@ -348,10 +348,10 @@ rule "Initialize: Global Variables":
     elif MenuToggleBotSpeed == 3:
         MenuToggleBotSpeed = 160
     
+    SpawnPt = vect(SpawnX, SpawnY, SpawnZ)
     if MenuToggleBotSpawn == "default":
         SetMapSpawnPt()
-    else:
-        SpawnPt = vect(SpawnX, SpawnY, SpawnZ)
+
     
     HeroList = Hero.DVA
     HeroList.append(Hero.DOOMFIST)
@@ -426,7 +426,6 @@ rule "Player Spawned":
     eventPlayer.setStatusEffect(eventPlayer, Status.UNKILLABLE, 9999)
     eventPlayer.DmgDealt = 0
     eventPlayer.DmgTaken = 0
-    eventPlayer.startHoT(eventPlayer, 9999, 9999)
 
 rule "Player Left":
     @Event playerLeft
@@ -481,13 +480,20 @@ rule "Stats: Pressure Mode Damage Dealt":
 rule "Stats: Pressure Mode Damage Recieved":
     @Event playerTookDamage
     @Team 1
-    @Condition MenuTogglePressureType != "off"
+    @Condition MenuTogglePressureType == "killable"
+    @Condition eventPlayer.getHealth() <= 1
+    
+    eventPlayer.Deaths += 1
+    bigMessage(eventPlayer, "you died.")
+    eventPlayer.setHealth(eventPlayer.getMaxHealth())
+
+
+rule "Stats: Pressure Mode Damage Recieved":
+    @Event playerTookDamage
+    @Team 1
+    @Condition MenuTogglePressureType!= "off"
     
     eventPlayer.DmgTaken += eventDamage
-    if eventPlayer.getHealth() <= 1:
-        eventPlayer.setHealth(eventPlayer.getMaxHealth())
-        eventPlayer.Deaths += 1
-        bigMessage(eventPlayer, "you died.")
 
 
 rule "Show Player Damage by BluJay (https://workshop.codes/7CZFC)":
@@ -616,24 +622,32 @@ rule "Player Ability: Ultimate Refresh 2":
 rule "Player Ability: Heal if no damage":
     @Event playerTookDamage
     @Team 1
-    @Condition MenuTogglePressureType != "unkillable"
-
-    eventPlayer.stopAllHoT()
-    wait(4, Wait.RESTART_WHEN_TRUE)
-    eventPlayer.startHoT(eventPlayer, 9999, 9999)
-
+    @Condition MenuTogglePressureType == "killable"
     
+    wait(4, Wait.RESTART_WHEN_TRUE)
+    eventPlayer.setHealth(eventPlayer.getMaxHealth())
+
+
+rule "Player Ability: Heal if no damage":
+    @Event playerTookDamage
+    @Team 1
+    @Condition MenuTogglePressureType != "killable"
+    
+    wait(0.25)
+    eventPlayer.setHealth(eventPlayer.getMaxHealth())
+
+
 rule "Player Ability: Elimination Actions":
     @Event playerDealtFinalBlow
     @Team 1
+    @Condition ElimRefresh == true
 
-    eventPlayer.startHoT(eventPlayer, 9999, 9999)
-    if ElimRefresh == true:
-        wait(1)
-        eventPlayer.setAbilityCooldown(Button.PRIMARY_FIRE,0)
-        eventPlayer.setAbilityCooldown(Button.SECONDARY_FIRE,0)
-        eventPlayer.setAbilityCooldown(Button.ABILITY_1,0)
-        eventPlayer.setAbilityCooldown(Button.ABILITY_2,0)
+    wait(1)
+    eventPlayer.setAbilityCooldown(Button.PRIMARY_FIRE,0)
+    eventPlayer.setAbilityCooldown(Button.SECONDARY_FIRE,0)
+    eventPlayer.setAbilityCooldown(Button.ABILITY_1,0)
+    eventPlayer.setAbilityCooldown(Button.ABILITY_2,0)
+    eventPlayer.setHealth(eventPlayer.getMaxHealth())
 
 
 
@@ -1408,6 +1422,7 @@ rule "Bot Abilities: Genji Dash":
         eventPlayer.forceButtonPress(Button.ABILITY_1)
         wait(0.5)
     if eventPlayer.ApplyPressure == true:
+        eventPlayer.ProjType = "primary"
         SetProjectileFacing()
     else:
         SetDefaultFacing()    
@@ -1446,9 +1461,9 @@ rule "Bot Abilities: Genji Dragonblade":
     wait(random.uniform(0, 10), Wait.ABORT_WHEN_FALSE)
     eventPlayer.Randomizer = random.randint(0, 2)
     if eventPlayer.Randomizer == 0:
-    eventPlayer.forceButtonPress(Button.ULTIMATE)
+        eventPlayer.forceButtonPress(Button.ULTIMATE)
     while eventPlayer.isUsingUltimate():
-        if eventPlayer.ApplyPressure == false or eventPlayer.Randomizer > 0:
+        if eventPlayer.ApplyPressure == false:
             eventPlayer.startFacing(vect(random.uniform(-20,20) + eventPlayer.getEyePosition().x ,random.uniform(-5,20) + eventPlayer.getEyePosition().y ,random.uniform(-20,20) + eventPlayer.getEyePosition().z), DefaultTurnRate, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
         else:
             eventPlayer.ProjType = "ability 1"
@@ -1687,6 +1702,40 @@ rule "Bot Abilities: Sombra Cloak":
     if RULE_CONDITION:
         goto RULE_START
 
+### Symmetra Bot Abilities
+/*
+#rule "Bot Pressure: Symmetra TP - Causes Server Overload":
+    @Event eachPlayer
+    @Team 2
+    @Hero symmetra
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.hasSpawned() == true
+    @Condition BotAbilitiesEnabled == true
+
+    wait(random.uniform(5,10), Wait.ABORT_WHEN_FALSE)
+    eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
+    eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
+    eventPlayer.ProjType = "off"
+    eventPlayer.startFacing(eventPlayer.getPosition() + vect(random.uniform(-20,20), 0, random.uniform(-20,20)), 1000, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
+    wait(0.1)
+    eventPlayer.forceButtonPress(Button.ABILITY_2)
+    wait(0.1)
+    eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
+    eventPlayer.startForcingButton(Button.INTERACT)
+    SetDefaultFacing()
+    if eventPlayer.ApplyPressure == true:
+        if distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 12:
+            eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
+        else:
+            eventPlayer.ProjType = "secondary"
+            SetProjectileFacing()
+            eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
+    wait(3)
+    eventPlayer.stopForcingButton(Button.INTERACT)
+    wait(7, Wait.ABORT_WHEN_FALSE)
+    if RULE_CONDITION:
+        goto RULE_START
+*/
 
 ### Torbjorn Bot Abilities
 rule "Bot Abilities: Overload":
@@ -2570,17 +2619,17 @@ rule "Menu Controls: Right":
         else:
             eventPlayer.BotMenuIndex += 1 
     elif eventPlayer.MenuIndex == 12 and MenuTogglePressureType != "off":
-        if MenuTogglePressure == "easy":
-            MenuTogglePressure = "medium"
+        if MenuTogglePressureDiff == "easy":
+            MenuTogglePressureDiff = "medium"
             PressureDiff = 0.75
-        elif MenuTogglePressure == "medium":
-            MenuTogglePressure = "hard"
+        elif MenuTogglePressureDiff == "medium":
+            MenuTogglePressureDiff = "hard"
             PressureDiff = 0.50
-        elif MenuTogglePressure == "hard":
-            MenuTogglePressure = "aimbot"
+        elif MenuTogglePressureDiff == "hard":
+            MenuTogglePressureDiff = "aimbot"
             PressureDiff = 0.00
-        elif MenuTogglePressure == "aimbot":
-            MenuTogglePressure = "easy"
+        elif MenuTogglePressureDiff == "aimbot":
+            MenuTogglePressureDiff = "easy"
             PressureDiff = 1.00
 
 
@@ -2637,17 +2686,17 @@ rule "Menu Controls: Left":
         else:
             eventPlayer.BotMenuIndex -= 1
     elif eventPlayer.MenuIndex == 12 and MenuTogglePressureType != "off":
-        if MenuTogglePressure == "aimbot":
-            MenuTogglePressure = "hard"
+        if MenuTogglePressureDiff == "aimbot":
+            MenuTogglePressureDiff = "hard"
             PressureDiff = 0.50
-        elif MenuTogglePressure == "hard":
-            MenuTogglePressure = "medium"
+        elif MenuTogglePressureDiff == "hard":
+            MenuTogglePressureDiff = "medium"
             PressureDiff = 0.75
-        elif MenuTogglePressure == "medium":
-            MenuTogglePressure = "easy"
+        elif MenuTogglePressureDiff == "medium":
+            MenuTogglePressureDiff = "easy"
             PressureDiff = 1.00
-        elif MenuTogglePressure == "easy":
-            MenuTogglePressure = "aimbot"
+        elif MenuTogglePressureDiff == "easy":
+            MenuTogglePressureDiff = "aimbot"
             PressureDiff = 0.00
 
 rule "Menu Control: Ability 2 / Primary Toggle":
@@ -2985,8 +3034,17 @@ def MenuHud():
     hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 12 and MenuTogglePressureType == "off"], 
     "■  Pressure Mode: Off", HudPosition.TOP, 16, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
         ## Case: index on / mode on
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 12 and MenuTogglePressureType != "off"], 
-    "■  Bots  {0}  : ←  {1}  →".format(MenuTogglePressureType, MenuTogglePressure), HudPosition.TOP, 16, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 12 and MenuTogglePressureType != "off" and MenuTogglePressureDiff == "easy"], 
+    "■  Bots  {0}  : ←  {1}  →".format(MenuTogglePressureType, MenuTogglePressureDiff), HudPosition.TOP, 16, Color.GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    ## Case: index on / mode on
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 12 and MenuTogglePressureType != "off" and MenuTogglePressureDiff == "medium"], 
+    "■  Bots  {0}  : ←  {1}  →".format(MenuTogglePressureType, MenuTogglePressureDiff), HudPosition.TOP, 16, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    ## Case: index on / mode on
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 12 and MenuTogglePressureType != "off" and MenuTogglePressureDiff == "hard"], 
+    "■  Bots  {0}  : ←  {1}  →".format(MenuTogglePressureType, MenuTogglePressureDiff), HudPosition.TOP, 16, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    ## Case: index on / mode on
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 12 and MenuTogglePressureType != "off" and MenuTogglePressureDiff == "aimbot"], 
+    "■  Bots  {0}  : ←  {1}  →".format(MenuTogglePressureType, MenuTogglePressureDiff), HudPosition.TOP, 16, Color.BLACK, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
 
 
 def MenuAction0():
@@ -3245,7 +3303,6 @@ def MenuAction12():
     eventPlayer.DmgTaken = 0
     if MenuTogglePressureType == "off":
         MenuTogglePressureType = "killable"
-        PressureDiff = 2
     elif MenuTogglePressureType == "killable":
         MenuTogglePressureType = "unkillable"
     else:
@@ -3731,7 +3788,7 @@ rule "Bot Pressure: Dva primary":
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.hasSpawned() == true
 
-    eventPlayer.AbilityAcc = 2
+    eventPlayer.AbilityAcc = 3
     eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
     wait(9999, Wait.ABORT_WHEN_FALSE)
     if RULE_CONDITION:
@@ -3833,7 +3890,7 @@ rule "Bot Pressure: junkerQueen Primary":
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.hasSpawned() == true
 
-    eventPlayer.AbilityAcc = 2
+    eventPlayer.AbilityAcc = 3
     eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
     wait(9999, Wait.ABORT_WHEN_FALSE)
     if RULE_CONDITION:
@@ -4138,7 +4195,7 @@ rule "Bot Pressure: Wreaking Ball Primary":
     @Condition eventPlayer.hasSpawned() == true
     @Condition eventPlayer.isInAlternateForm() == false
 
-    eventPlayer.AbilityAcc = 2
+    eventPlayer.AbilityAcc = 3
     eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
     wait(9999, Wait.ABORT_WHEN_FALSE)
     if RULE_CONDITION:
@@ -4154,7 +4211,7 @@ rule "Bot Pressure: Zarya Primary":
     @Condition eventPlayer.hasSpawned() == true
     @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 15
 
-    eventPlayer.AbilityAcc = 2
+    eventPlayer.AbilityAcc = 3
     SetDefaultFacing()
     eventPlayer.ProjType = "off"
     eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
@@ -4163,7 +4220,7 @@ rule "Bot Pressure: Zarya Primary":
         goto RULE_START
 
 
-rule "Bot Pressure: Zarya Secondary Random":
+rule "Bot Pressure: Zarya Secondary Close":
     @Event eachPlayer
     @Team 2
     @Hero zarya
@@ -4185,12 +4242,13 @@ rule "Bot Pressure: Zarya Secondary Random":
         wait(1.1)
     eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
     SetDefaultFacing()
+    eventPlayer.AbilityAcc = 3
     wait(5)
     if RULE_CONDITION:
         goto RULE_START
 
 
-rule "Bot Pressure: Zarya Secondary Distance":
+rule "Bot Pressure: Zarya Secondary Far":
     @Event eachPlayer
     @Team 2
     @Hero zarya
@@ -4219,7 +4277,7 @@ rule "Bot Pressure: Ashe Primary Close":
     @Condition eventPlayer.hasSpawned() == true
     @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 10
 
-    eventPlayer.AbilityAcc = 2
+    eventPlayer.AbilityAcc = 3
     SetDefaultFacing()
     eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
     eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
@@ -4249,7 +4307,7 @@ rule "Bot Pressure: Ashe Primary Far":
     @Condition eventPlayer.hasSpawned() == true
     @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) >= 10
 
-    eventPlayer.AbilityAcc = 2
+    eventPlayer.AbilityAcc = 3
     SetDefaultFacing()
     eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
     eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
@@ -4318,7 +4376,7 @@ rule "Bot Pressure: Cassidy Primary":
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.hasSpawned() == true
 
-    eventPlayer.AbilityAcc = 2
+    eventPlayer.AbilityAcc = 3
     SetDefaultFacing()
     eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
     wait(9999,Wait.ABORT_WHEN_FALSE)
@@ -4548,7 +4606,38 @@ rule "Bot Pressure: Mei Secondary":
     wait(9999, Wait.ABORT_WHEN_FALSE)
     if RULE_CONDITION:
         goto RULE_START
+/*
+rule "Bot Pressure: Mei Ability 2 - Works but annoying":
+    @Event eachPlayer
+    @Team 2
+    @Hero mei
+    @Condition eventPlayer.ApplyPressure == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.hasSpawned() == true
+    @Condition BotAbilitiesEnabled == true
+    @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 12
 
+    wait(random.uniform(1,5), Wait.ABORT_WHEN_FALSE)
+    eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
+    eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
+    eventPlayer.ProjType = "off"
+    eventPlayer.startFacing(directionTowards(eventPlayer.getEyePosition(), sorted(Playerlist, lambda player: distance(eventPlayer.getEyePosition(), player.getEyePosition()))[0].getPosition() + vect(0,0.17,0)), 1000, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
+    wait(0.1)
+    eventPlayer.forceButtonPress(Button.ABILITY_2)
+    wait(0.1)
+    eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
+    wait(0.1)
+    if distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 10:
+        eventPlayer.ProjType = "primary"
+        eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
+    else:
+        eventPlayer.ProjType = "secondary"
+        eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
+    SetProjectileFacing()
+    wait(12)
+    if RULE_CONDITION:
+        goto RULE_START
+*/
 
 rule "Bot Pressure: Pharah Primary":
     @Event eachPlayer
@@ -4575,13 +4664,36 @@ rule "Bot Pressure: Reaper Primary":
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.hasSpawned() == true
 
-    eventPlayer.AbilityAcc = 2
+    eventPlayer.AbilityAcc = 3
     SetDefaultFacing()
     eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
     wait(9999,Wait.ABORT_WHEN_FALSE)
     if RULE_CONDITION:
         goto RULE_START
 
+rule "Bot Pressure: Reaper Ability 2":
+    @Event eachPlayer
+    @Team 2
+    @Hero reaper
+    @Condition eventPlayer.ApplyPressure == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.hasSpawned() == true
+    @Condition BotAbilitiesEnabled == true
+    @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) > 15
+
+    wait(random.uniform(1,3), Wait.ABORT_WHEN_FALSE)
+    eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
+    eventPlayer.startFacing(directionTowards(eventPlayer.getEyePosition(), sorted(Playerlist, lambda player: distance(eventPlayer.getEyePosition(), player.getEyePosition()))[0].getPosition() + vect(random.uniform(-1,1),-0.15,random.uniform(-1,1))), 1000, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
+    wait(0.1)
+    eventPlayer.forceButtonPress(Button.ABILITY_2)
+    wait(0.1)
+    eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
+    wait(0.1)
+    SetDefaultFacing()
+    eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
+    wait(10)
+    if RULE_CONDITION:
+        goto RULE_START
 
 rule "Bot Pressure: Sojourn Primary":
     @Event eachPlayer
@@ -4608,8 +4720,8 @@ rule "Bot Pressure: Sojourn Secondary":
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.hasSpawned() == true
 
-    eventPlayer.AbilityAcc = 2
 
+    eventPlayer.AbilityAcc = 3
     wait(random.uniform(1,5), Wait.ABORT_WHEN_FALSE)
     eventPlayer.ProjType = "off"
     SetDefaultFacing()
@@ -4617,6 +4729,7 @@ rule "Bot Pressure: Sojourn Secondary":
     eventPlayer.forceButtonPress(Button.SECONDARY_FIRE)
     eventPlayer.ProjType = "primary"
     SetProjectileFacing()
+    eventPlayer.AbilityAcc = 2
     wait(5,Wait.ABORT_WHEN_FALSE)
     if RULE_CONDITION:
         goto RULE_START
@@ -4638,6 +4751,7 @@ rule "Bot Pressure: Sojourn Orb":
     eventPlayer.startForcingButton(Button.ABILITY_2)
     wait(0.1)
     SetProjectileFacing()
+    eventPlayer.AbilityAcc = 3
     wait(10)
     if RULE_CONDITION:
         goto RULE_START
@@ -4651,7 +4765,7 @@ rule "Bot Pressure: Soldier Primary":
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.hasSpawned() == true
 
-    eventPlayer.AbilityAcc = 2
+    eventPlayer.AbilityAcc = 3
     SetDefaultFacing()
     eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
     wait(9999, Wait.ABORT_WHEN_FALSE)
@@ -4666,6 +4780,7 @@ rule "Bot Pressure: Soldier Secondary":
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.hasSpawned() == true
+    @Condition BotAbilitiesEnabled == true
 
     eventPlayer.AbilityAcc = 2
     wait(random.uniform(2,5),Wait.ABORT_WHEN_FALSE)
@@ -4673,6 +4788,7 @@ rule "Bot Pressure: Soldier Secondary":
     wait(0.1)
     eventPlayer.forceButtonPress(Button.SECONDARY_FIRE)
     SetDefaultFacing()
+    eventPlayer.AbilityAcc = 3
     wait(5)
     if RULE_CONDITION:
         goto RULE_START
@@ -4686,7 +4802,7 @@ rule "Bot Pressure: Sombra Primary":
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.hasSpawned() == true
 
-    eventPlayer.AbilityAcc = 2
+    eventPlayer.AbilityAcc = 3
     SetDefaultFacing()
     eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
     wait(10)
@@ -4701,12 +4817,14 @@ rule "Bot Pressure: Sombra Secondary":
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.hasSpawned() == true
+    @Condition BotAbilitiesEnabled == true
     @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 12
 
     eventPlayer.AbilityAcc = 2
     eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
     wait(1)
     eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
+    eventPlayer.AbilityAcc = 3
     wait(10)
     if RULE_CONDITION:
         goto RULE_START
@@ -4721,7 +4839,7 @@ rule "Bot Pressure: Symmetra Primary":
     @Condition eventPlayer.hasSpawned() == true
     @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 12
 
-    eventPlayer.AbilityAcc = 2
+    eventPlayer.AbilityAcc = 3
     SetDefaultFacing()
     eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
     eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
@@ -4749,6 +4867,7 @@ rule "Bot Pressure: Symmetra Secondary":
     wait(0.1, Wait.ABORT_WHEN_FALSE)
     if RULE_CONDITION:
         goto RULE_START
+
 
 rule "Bot Pressure: Torbjorn Primary":
     @Event eachPlayer
@@ -4813,7 +4932,7 @@ rule "Bot Pressure: Widowmaker Primary Close":
     @Condition eventPlayer.hasSpawned() == true
     @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 7.5
 
-    eventPlayer.AbilityAcc = 2
+    eventPlayer.AbilityAcc = 3
     eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
     eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
     wait(9999, Wait.ABORT_WHEN_FALSE)
@@ -4830,7 +4949,7 @@ rule "Bot Pressure: Widowmaker Primary + Secondary Far":
     @Condition eventPlayer.hasSpawned() == true
     @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1))  >= 7.5
 
-    eventPlayer.AbilityAcc = 2
+    eventPlayer.AbilityAcc = 3
     eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
     eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
     wait(random.uniform(0.75,1.5), Wait.ABORT_WHEN_FALSE)
@@ -4869,7 +4988,7 @@ rule "Bot Pressure: Ana Primary + Secondary Far":
     @Condition eventPlayer.hasSpawned() == true
     @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1))  >= 15
 
-    eventPlayer.AbilityAcc = 2
+    eventPlayer.AbilityAcc = 3
     eventPlayer.ProjType = "off"
     SetDefaultFacing()
     eventPlayer.Randomizer = random.randint(0,2)
@@ -4896,8 +5015,10 @@ rule "Bot Abilities: Ana Sleep":
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.hasSpawned() == true
+    @Condition BotAbilitiesEnabled == true
     
     wait(random.uniform(5,15), Wait.ABORT_WHEN_FALSE)
+    eventPlayer.AbilityAcc = 2 
     eventPlayer.ProjType = "ability 1"
     SetProjectileFacing()
     wait(0.5)
@@ -4921,8 +5042,10 @@ rule "Bot Abilities: Ana Nade":
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.hasSpawned() == true
+    @Condition BotAbilitiesEnabled == true
     
     wait(random.uniform(5,15), Wait.ABORT_WHEN_FALSE)
+    eventPlayer.AbilityAcc = 2 
     eventPlayer.ProjType = "ability 2"
     SetProjectileFacing()
     eventPlayer.forceButtonPress(Button.ABILITY_2)
@@ -4945,7 +5068,7 @@ rule "Bot Pressure: Baptiste Primary":
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.hasSpawned() == true
 
-    eventPlayer.AbilityAcc = 2
+    eventPlayer.AbilityAcc = 3
     SetDefaultFacing()
     eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
     wait(9999,Wait.ABORT_WHEN_FALSE)
@@ -4977,6 +5100,7 @@ rule "Bot Pressure: Bash":
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.hasSpawned() == true
+    @Condition BotAbilitiesEnabled == true
     
     wait(random.uniform(0,5), Wait.ABORT_WHEN_FALSE)
     eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
@@ -5000,6 +5124,7 @@ rule "Bot Pressure: Brigitte Ability 1":
     @Condition eventPlayer.isAlive() == true
     @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 20
     @Condition eventPlayer.hasSpawned() == true
+    @Condition BotAbilitiesEnabled == true
     
     wait(random.uniform(0, 8), Wait.ABORT_WHEN_FALSE)
     eventPlayer.ProjType = "ability 1"
@@ -5063,13 +5188,15 @@ rule "Bot Pressure: Moira Secondary":
         goto RULE_START
 
 
-rule "Bot Pressure: Moira Skill Orb":
+rule "Bot Pressure: Moira Ability 2 Damage":
     @Event eachPlayer
     @Team 2
     @Hero moira
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.hasSpawned() == true
+    @Condition BotAbilitiesEnabled == true
+
 
     eventPlayer.AbilityAcc = 2
     wait(random.uniform(4,8),Wait.ABORT_WHEN_FALSE)
@@ -5120,3 +5247,23 @@ rule "Player Status Cleanse: Sleep":
     @Condition eventPlayer.hasStatusEffect(Status.ASLEEP)
 
     eventPlayer.startDoT(eventPlayer,5,1)
+
+/*
+rule "Impulse - Testing":
+    @Event eachPlayer
+    @Team 2
+    @Condition eventPlayer.isOnGround()
+
+    eventPlayer.setStatusEffect(eventPlayer, Status.ROOTED, 9999)
+    if eventPlayer.getPosition().x > SpawnPt.x and eventPlayer.getPosition().z > SpawnPt.z:
+        eventPlayer.applyImpulse(vect(random.uniform(-1.0,-0.5),1,random.uniform(-1.0,-0.5)), random.uniform(15,30), Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
+    elif eventPlayer.getPosition().x > SpawnPt.x and eventPlayer.getPosition().z < SpawnPt.z:    
+        eventPlayer.applyImpulse(vect(random.uniform(-1.0,-0.5),1,random.uniform(0.5,1.0)), random.uniform(15,30), Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
+    elif eventPlayer.getPosition().x < SpawnPt.x and eventPlayer.getPosition().z > SpawnPt.z:
+        eventPlayer.applyImpulse(vect(random.uniform(0.5,1.0),1,random.uniform(-1.0,-0.5)), random.uniform(15,30), Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
+    else:
+        eventPlayer.applyImpulse(vect(random.uniform(0.5,1.0),1,random.uniform(0.5,1.0)), random.uniform(15,30), Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
+    wait(1)
+    if RULE_CONDITION:
+        goto RULE_START
+*/
