@@ -69,7 +69,9 @@ globalvar DefaultJumpMax
 globalvar DefaultCrouchMax
 globalvar BotUncrouchMin
 globalvar BotUncrouchMax
+globalvar IDKIGUESSTHEWORKSHOPHATESTHISVAR
 globalvar AdvancedStrafes
+globalvar AdvancedStrafesDefault
 globalvar DefaultTurnRate
 
 ## Bot Hero Lists 
@@ -222,26 +224,28 @@ rule "Player Joined: Team 2 Defaults":
 
     eventPlayer.MovementSpeed = 100
 
-rule "Initalize: Workshop Settings":
+rule "Initialize: Workshop Settings":
 
     ## UI Settings
     DamageNumbers = createWorkshopSetting(bool, "0. UI Settings", "Show Damage Numbers", false, 0)
     CustomNames = createWorkshopSetting(bool,   "0. UI Settings", "Custom Names for bots", true, 1)
     ShowDebugInfo = createWorkshopSetting(bool, "0. UI Settings", "Show Server Load and Coordinates", false, 2)
     ## General Bot Settings
-    MenuToggleBotDiff = createWorkshopSetting(enum["long strafes", "very easy", "easy", "medium", "hard", "very hard", "extreme"], "1. General Bot Settings (Overridden by in-game changes to setting)", "Difficulty", 4, 0)
-    BotAbilitiesEnabled = createWorkshopSetting(bool, "1. General Bot Settings (Overridden by in-game changes to setting)", "Bots will use abilities", true, 1)
-    NumberOfBots = createWorkshopSetting(int[1:12],   "1. General Bot Settings (Overridden by in-game changes to setting)", "Number of Bots", 6, 2)
-    MenuToggleBotSpeed = createWorkshopSetting(enum["default", "lucio passive", "kitsune / shout", "lucio amp"],   "1. General Bot Settings (Overridden by in-game changes to setting)", "Bot Movement Speed", 0, 3)
+    
+    BotAbilitiesEnabled = createWorkshopSetting(bool, "1. General Bot Settings (Overridden by in-game changes to setting)", "Bots will use abilities", true, 0)
+    NumberOfBots = createWorkshopSetting(int[1:12],   "1. General Bot Settings (Overridden by in-game changes to setting)", "Number of Bots", 6, 1)
+
     ## Bot Movement Settings
-    MoveMinWait = createWorkshopSetting(float[0.1:5], "2. Bot Movement (Overridden by in-game changes to movement)", "Bot Movement  -  Minimum wait time before changing direction", 0.25, 0)
-    MoveMaxWait = createWorkshopSetting(float[0.2:8], "2. Bot Movement (Overridden by in-game changes to movement)", "Bot Movement  -  Maximum wait time before changing direction", 0.45, 1)
+    ##MoveMinWait = createWorkshopSetting(float[0.1:5], "2. Bot Movement (Overridden by in-game changes to movement)", "Bot Movement  -  Minimum wait time before changing direction", 0.25, 0)
+    ##MoveMaxWait = createWorkshopSetting(float[0.2:8], "2. Bot Movement (Overridden by in-game changes to movement)", "Bot Movement  -  Maximum wait time before changing direction", 0.45, 1)
+    MenuToggleBotDiff = createWorkshopSetting(enum["long strafes", "very easy", "easy", "medium", "hard", "very hard", "extreme"], "2. Bot Movement (Overridden by in-game changes to movement)", "Difficulty", 4, 0)
+    MenuToggleBotSpeed = createWorkshopSetting(enum["default", "lucio passive", "kitsune / shout", "lucio amp"],   "2. Bot Movement (Overridden by in-game changes to movement)", "Bot Movement Speed", 0, 1)
     DefaultRandJump = createWorkshopSetting(bool, "2. Bot Movement (Overridden by in-game changes to movement)", "Bot Jumping", true, 2)
-    DefaultJumpMin = createWorkshopSetting(float[1:10], "2. Bot Movement (Overridden by in-game changes to movement)", "Bot Jumping  -  Minimum wait time before Jumping again", 4.5, 3)
-    DefaultJumpMax = createWorkshopSetting(float[1.5:20], "2. Bot Movement (Overridden by in-game changes to movement)", "Bot Jumping  -  Maximum wait time before Jumping", 10, 4)
+    DefaultJumpMin = createWorkshopSetting(float[1:10], "2. Bot Movement (Overridden by in-game changes to movement)", "Bot Jumping - Minimum wait", 4.5, 3)
+    DefaultJumpMax = createWorkshopSetting(float[1.5:20], "2. Bot Movement (Overridden by in-game changes to movement)", "Bot Jumping - Maximum wait", 10, 4)
     DefaultRandCrouch = createWorkshopSetting(bool, "2. Bot Movement (Overridden by in-game changes to movement)", "Bot Crouching", true, 5)
-    DefaultCrouchMax = createWorkshopSetting(float[0.25:10], "2. Bot Movement (Overridden by in-game changes to movement)", "Bot Crouching  -  How often the bot will crouch", 3, 6)
-    AdvancedStrafes = createWorkshopSetting(bool, "2. Bot Movement (Overridden by in-game changes to movement)", "Advanced Strafe Patterns", false, 7)
+    DefaultCrouchMax = createWorkshopSetting(float[0.25:10], "2. Bot Movement (Overridden by in-game changes to movement)", "Bot Crouching - Maximum wait", 3, 6)
+    AdvancedStrafesDefault = createWorkshopSetting(bool, "2. Bot Movement (Overridden by in-game changes to movement)", "Advanced Strafe Patterns", false, 7)
     ## Bot Tank Heroes
     DefaultHeroList = createWorkshopSetting(bool, "3. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "D.va", false, 0)
     DefaultHeroList.append(createWorkshopSetting(bool, "3. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Doomfist", false, 1))
@@ -291,27 +295,11 @@ rule "Initalize: Workshop Settings":
     MenuTogglePressureType = createWorkshopSetting(enum["off", "killable", "unkillable"], "7. Bot Pressure (Overridden by in-game changes to setting)", "Bots Apply Pressure", 0, 0)
     MenuTogglePressureDiff = createWorkshopSetting(enum["easy", "medium", "hard", "aimbot"],  "7. Bot Pressure (Overridden by in-game changes to setting)", "Bots Pressure Difficulty", 0, 1)
     # Player Settings
-    ElimRefresh = createWorkshopSetting(bool, "8. Player Settings", "Eliminations Reset Cooldowns", false, 0)
-
-
+    ElimRefresh = createWorkshopSetting(bool, "8. Player Settings", "Eliminations Reset Cooldowns", true, 0)
 
 rule "Initialize: Global Variables":
-    # Map Default Spawns
-    MvmtRad1 = 19
-    MvmtRad2 = 8.5
-    MenuSizeHost = 12
-    MenuSizePlayer = 6
-    Playerlist = []
-    NextHero = null
-    RandomJumping = DefaultRandJump
-    RandomCrouching = DefaultRandCrouch
-    CrouchMaxWait = DefaultCrouchMax
-    JumpMinWait = DefaultJumpMin
-    JumpMaxWait = DefaultJumpMax
-    BotUncrouchMin = 0.25
-    BotUncrouchMax = 0.65
-    DefaultTurnRate = 600
 
+    ## Reassign Workshop Variables
     if MenuTogglePressureType == 0:
         MenuTogglePressureType = "off"
     elif MenuTogglePressureType == 1:
@@ -334,6 +322,8 @@ rule "Initialize: Global Variables":
 
     if MenuToggleBotSpawn == false:
         MenuToggleBotSpawn = "default"
+        MvmtRad1 = 19
+        MvmtRad2 = 8.5
     else:
         MenuToggleBotSpawn = "custom"
         MvmtRad1 = SpawnSize
@@ -347,12 +337,22 @@ rule "Initialize: Global Variables":
         MenuToggleBotSpeed = 130
     elif MenuToggleBotSpeed == 3:
         MenuToggleBotSpeed = 160
-    
+
+    ## Map Default Spawns
     SpawnPt = vect(SpawnX, SpawnY, SpawnZ)
     if MenuToggleBotSpawn == "default":
         SetMapSpawnPt()
 
-    
+    ## Default Variables
+    MenuSizeHost = 12
+    MenuSizePlayer = 6
+    Playerlist = []
+    NextHero = null
+    BotUncrouchMin = 0.25
+    BotUncrouchMax = 0.65
+    DefaultTurnRate = 600
+
+    ## Hero List Initialization
     HeroList = Hero.DVA
     HeroList.append(Hero.DOOMFIST)
     HeroList.append(Hero.JUNKER_QUEEN)
@@ -393,6 +393,7 @@ rule "Initialize: Global Variables":
 
 rule "Initialize: Bot Hero Variables":
 
+    wait(2)
     for Index in range(len(HeroList)):
         if DefaultHeroList[Index] ==  true:
             ActiveHeroList.append(HeroList[Index])
@@ -403,6 +404,7 @@ rule "Initialize: Bot Hero Variables":
 
     del ActiveHeroList[0]
     ActiveHeroList = random.shuffle(ActiveHeroList)
+    MenuAction8Diff()
     CreateAllBots()
 
 
@@ -449,8 +451,10 @@ def GlobalHud():
     hudSubheader(eventPlayer, "CODE: VXEAT", HudPosition.RIGHT, -1, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     
     if ShowDebugInfo:
+
         hudSubheader(hostPlayer, "Load (Curr/Avg/Peak):  {0}  /  {1}  /  {2}".format(getServerLoad(),getAverageServerLoad(),getPeakServerLoad()), HudPosition.RIGHT, -0.9, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-        hudSubheader(eventPlayer, "Coord: ({0},{1},{2})".format(eventPlayer.getPosition().x,eventPlayer.getPosition().y, eventPlayer.getPosition().z), HudPosition.RIGHT, -0.89, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+        hudSubheader(eventPlayer, "Coord: ({0},{1},{2})".format(eventPlayer.getPosition().x,eventPlayer.getPosition().y ,eventPlayer.getPosition().z), HudPosition.RIGHT, -0.89, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+        #hudSubheader(eventPlayer, "Debug Values: ({0},{1},{2})".format(AdvancedStrafesDefault,AdvancedStrafes, MenuToggleBotSpawn), HudPosition.RIGHT, -0.89, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
 
 
 # Stat Trackers
@@ -816,11 +820,7 @@ rule "Bot Spawn: Teleport":
 
     
     eventPlayer.AltMvmt = false
-    if MenuToggleBotSpawn == 'default':
-        eventPlayer.teleport(random.choice(eventPlayer.PathLoc))
-        
-    else:
-        eventPlayer.teleport(random.choice(eventPlayer.PathLoc))
+    eventPlayer.teleport(random.choice(eventPlayer.PathLoc))
     if eventPlayer.getCurrentHero() != Hero.MERCY:
         SetDefaultFacing()
 
@@ -2791,9 +2791,9 @@ rule "Menu Control: Ability 1 / Secondary":
         smallMessage(eventPlayer, "Toggle to enable/disable bot ability usage.")
         wait(1)
         smallMessage(eventPlayer, "Use left/right movement to select different strafe patterns.")
-        if MenuToggleBotDiff == "extreme":
+        if MenuToggleBotDiff == 6:
             smallMessage(eventPlayer, "'Extreme' setting includes more variance in strafe pattern and more complex ability usage.")
-        elif MenuToggleBotDiff == "long strafes":
+        elif MenuToggleBotDiff == 0:
             smallMessage(eventPlayer, "'Long Strafes' setting has no jumping or crouching. Useful for learning to lead projectiles.")
     elif eventPlayer.MenuIndex == 9:
         smallMessage(eventPlayer, "Toggles bots to spawn at your current position.")
@@ -3184,8 +3184,7 @@ def MenuAction8Diff():
     JumpMaxWait = DefaultJumpMax
     BotUncrouchMin = 0.25
     BotUncrouchMax = 0.65
-    AdvancedStrafes = false
-
+    AdvancedStrafes = AdvancedStrafesDefault
     if MenuToggleBotDiff == 0:
         smallMessage(getAllPlayers(), "Long strafe pattern: Bots change direction 5 - 8s")
         MoveMinWait = 5
@@ -3197,7 +3196,6 @@ def MenuAction8Diff():
         JumpMaxWait = DefaultJumpMax
         BotUncrouchMin = 0.25
         BotUncrouchMax = 0.65
-        AdvancedStrafes = false
     elif MenuToggleBotDiff == 1:
         smallMessage(getAllPlayers(), "Very easy movement pattern: Bots change direction 1.5 - 3.5s")
         MoveMinWait = 1.5
@@ -3575,13 +3573,13 @@ def SetMapSpawnPt():
     @Name "SUB: SetMapSpawnPt"
 
     if getCurrentMap() == Map.ANTARCTIC_PENINSULA:
-        #Labs
+        ## Labs
         if getCurrentObjective() == 0:
             SpawnPt = vect(270,45,156)
-        #Icebreaker
+        ## Icebreaker
         elif getCurrentObjective() == 1:
             SpawnPt = vect(284,-12,-219)
-        #Sublevel
+        ## Sublevel
         elif getCurrentObjective() == 2:
             SpawnPt = vect(-78,-153,60)
     elif getCurrentMap() == Map.BLIZZ_WORLD:
@@ -3589,13 +3587,13 @@ def SetMapSpawnPt():
     elif getCurrentMap() == Map.BLIZZ_WORLD_WINTER:
         SpawnPt = vect(2.71,1.90,72.68)
     elif getCurrentMap() == Map.BUSAN:
-        #Downtown
+        ## Downtown
         if getCurrentObjective() == 0:
             SpawnPt = vect(51.19, 11.00, -111.20)
-        #Sanctuary
+        ## Sanctuary
         elif getCurrentObjective() == 1:
             SpawnPt = vect(-328.56, 12, 131)
-        #MEKA Base
+        ## MEKA Base
         elif getCurrentObjective() == 2:
             SpawnPt = vect(217.81, 17.09, 230.12)
     elif getCurrentMap() == Map.CIRCUIT_ROYAL:
@@ -3623,13 +3621,13 @@ def SetMapSpawnPt():
     elif getCurrentMap() == Map.HORIZON_LUNAR_COLONY:
         SpawnPt = vect(53.25,15,-74)
     elif getCurrentMap() == Map.ILIOS:
-        #Lighthouse
+        ## Lighthouse
         if getCurrentObjective() == 0:
             SpawnPt = vect(336,-22,-42)
-        #Well
+        ## Well
         elif getCurrentObjective() == 1:
             SpawnPt = vect(-203.95,1,-12)
-        #Ruins
+        ## Ruins
         elif getCurrentObjective() == 2:
             SpawnPt = vect(28.50, 70, -157)
     elif getCurrentMap() == Map.JUNKERTOWN:
@@ -3639,46 +3637,46 @@ def SetMapSpawnPt():
     elif getCurrentMap() == Map.KINGS_ROW_WINTER:
         SpawnPt = vect(-4.50, 5, -26)
     elif getCurrentMap() == Map.LIJIANG_TOWER:
-        #Night Market
+        ## Night Market
         if getCurrentObjective() == 0:
             SpawnPt = vect(1.06, 1, -29.88)
-        #Gardens
+        ## Gardens
         elif getCurrentObjective() == 1:
             SpawnPt = vect(0, 96, 140)
-        #Control Center
+        ## Control Center
         elif getCurrentObjective() == 2:
     elif getCurrentMap() == Map.LIJIANG_TOWER_LNY:
-        #Night Market
+        ## Night Market
         if getCurrentObjective() == 0:
             SpawnPt = vect(1.06, 1, -29.88)
-        #Gardens
+        ## Gardens
         elif getCurrentObjective() == 1:
             SpawnPt = vect(0, 96, 140)
-        #Control Center
+        ## Control Center
         elif getCurrentObjective() == 2:    
             SpawnPt = vect(0, 273, 280)
     elif getCurrentMap() == Map.NEPAL:
-        #Village
+        ## Village
         if getCurrentObjective() == 0:
             SpawnPt = vect(-180, -86, 0)
-        #Shrine
+        ## Shrine
         elif getCurrentObjective() == 1:
             SpawnPt = vect(-43.50, 13, 0)
-        #Sanctum
+        ## Sanctum
         elif getCurrentObjective() == 2:
             SpawnPt = vect(83, 130, 0)
     elif getCurrentMap() == Map.NEW_QUEEN_STREET:
         SpawnPt = vect(0, 7, 4)
-    #elif getCurrentMap() == Map.NUM:
+    #elif getCurrentMap() == Map.NUMBANI:
     #    SpawnPt = vect(82, 1, 2)
     elif getCurrentMap() == Map.OASIS:
-        #City Center
+        ## City Center
         if getCurrentObjective() == 0:
             SpawnPt = vect(-180, -86, 0)
-        #Gardens
+        ## Gardens
         elif getCurrentObjective() == 1:
             SpawnPt = vect(123.45, 12, -230)
-        #University
+        ## University
         elif getCurrentObjective() == 2:
             SpawnPt = vect(147.50, 10, 251)
     elif getCurrentMap() == Map.PARAISO:
@@ -3882,7 +3880,7 @@ rule "Bot Pressure: Doomfist Ability 1":
         goto RULE_START
 
 
-rule "Bot Pressure: junkerQueen Primary":
+rule "Bot Pressure: Junker Queen Primary":
     @Event eachPlayer
     @Team 2
     @Hero junkerQueen
@@ -3897,7 +3895,7 @@ rule "Bot Pressure: junkerQueen Primary":
         goto RULE_START
 
 
-rule "Bot Pressure: junkerQueen Secondary":
+rule "Bot Pressure: Junker Queen Secondary":
     @Event eachPlayer
     @Team 2
     @Hero junkerQueen
@@ -3922,7 +3920,7 @@ rule "Bot Pressure: junkerQueen Secondary":
         goto RULE_START
 
 
-rule "Bot Pressure: junkerQueen Ability 2":
+rule "Bot Pressure: Junker Queen Ability 2":
     @Event eachPlayer
     @Team 2
     @Hero junkerQueen
@@ -4606,8 +4604,8 @@ rule "Bot Pressure: Mei Secondary":
     wait(9999, Wait.ABORT_WHEN_FALSE)
     if RULE_CONDITION:
         goto RULE_START
-/*
-rule "Bot Pressure: Mei Ability 2 - Works but annoying":
+
+rule "Bot Pressure: Mei Ability 2":
     @Event eachPlayer
     @Team 2
     @Hero mei
@@ -4615,13 +4613,14 @@ rule "Bot Pressure: Mei Ability 2 - Works but annoying":
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.hasSpawned() == true
     @Condition BotAbilitiesEnabled == true
+    @Condition AdvancedStrafes == true
     @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 12
 
     wait(random.uniform(1,5), Wait.ABORT_WHEN_FALSE)
     eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
     eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
     eventPlayer.ProjType = "off"
-    eventPlayer.startFacing(directionTowards(eventPlayer.getEyePosition(), sorted(Playerlist, lambda player: distance(eventPlayer.getEyePosition(), player.getEyePosition()))[0].getPosition() + vect(0,0.17,0)), 1000, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
+    eventPlayer.startFacing(directionTowards(eventPlayer.getEyePosition(), sorted(Playerlist, lambda player: distance(eventPlayer.getEyePosition(), player.getEyePosition()))[0].getPosition() + vect(0,0.18,0)), 1000, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
     wait(0.1)
     eventPlayer.forceButtonPress(Button.ABILITY_2)
     wait(0.1)
@@ -4637,7 +4636,7 @@ rule "Bot Pressure: Mei Ability 2 - Works but annoying":
     wait(12)
     if RULE_CONDITION:
         goto RULE_START
-*/
+
 
 rule "Bot Pressure: Pharah Primary":
     @Event eachPlayer
