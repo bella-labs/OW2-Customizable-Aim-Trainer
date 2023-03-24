@@ -444,7 +444,7 @@ rule "Initialize: Workshop Settings":
     BotBehavior.append(createWorkshopSetting(enum["Slam, Punch", "Slam, Punch, Block", "Slam, Punch, Block, Meteor"], "7.1. Tank Bot Behavior", "Doomfist Bot Behavior", 2, 1))
     BotBehavior.append(createWorkshopSetting(enum["Blade, Axe", "Blade, Axe, Shout", "Blade, Axe, Shout, Rampage"], "7.1. Tank Bot Behavior", "Junker Queen Bot Behavior", 2, 2))
     BotBehavior.append(createWorkshopSetting(enum["Javlin", "Javlin, Fortify, Spin", "Javlin, Fortify, Spin, Terra Surge"], "7.1. Tank Bot Behavior", "Orisa Bot Behavior", 2, 3))
-    BotBehavior.append(createWorkshopSetting(enum["Omnic", "Omnic, Nemesis", "Omnic, Nemesis, Shield, Block"], "7.1. Tank Bot Behavior", "Ramattra Bot Behavior", 0, 4))
+    BotBehavior.append(createWorkshopSetting(enum["Omnic", "Omnic, Nemesis", "Omnic, Nemesis, Vortex, Shield, Block", "Omnic, Nemesis, Vortex, Shield, Block, Suffer"], "7.1. Tank Bot Behavior", "Ramattra Bot Behavior", 3, 4))
     BotBehavior.append(createWorkshopSetting(enum["Fire Strike", "Fire Strike, Pin, Shatter", "Fire Strike,Pin, Shatter, Shield"], "7.1. Tank Bot Behavior", "Reinhardt Bot Behavior", 0, 5))
     BotBehavior.append(createWorkshopSetting(enum["Hook", "Hook, Heal",  "Hook, Heal, Whole Hog"], "7.1. Tank Bot Behavior", "Roadhog Bot Behavior", 0, 6))
 	BotBehavior.append(createWorkshopSetting(enum["Rock", "Rock, Flux", "Rock, Flux, Shield, Grasp"], "7.1. Tank Bot Behavior", "Sigma Bot Behavior", 0, 7))
@@ -2906,7 +2906,7 @@ rule "Bot Abilities: Dva Ability 1 (Rd)":
         goto RULE_START
 
 
-rule "Bot Abilities: Ability 1 (R + P)":
+rule "Bot Abilities: Dva Ability 1 (R + P)":
     @Event eachPlayer
     @Team 2
     @Hero dva
@@ -3662,13 +3662,14 @@ rule "Bot Abilities: Orisa Ultimate (BB2 + R)":
 
 
 ### Ramattra Bot Abilities
-rule "Bot Abilities: Ramattra Tempo Shift":
+rule "Bot Abilities: Ramattra Ability 1 + Secondary (BB1 Pn Nr)":
     @Event eachPlayer
     @Team 2
     @Hero ramattra
     @Condition BotsUseAbilities == true
+    @Condition BotsReact == false
+    @Condition BotBehavior[4] >= 1
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
     @Condition eventPlayer.ApplyPressure == false
     
     wait(random.uniform(8, 12), Wait.ABORT_WHEN_FALSE)
@@ -3681,13 +3682,12 @@ rule "Bot Abilities: Ramattra Tempo Shift":
         goto RULE_START
 
 
-rule "Bot Abilities: Ramattra Primary":
+rule "Bot Abilities: Ramattra Primary (P)":
     @Event eachPlayer
     @Team 2
     @Hero ramattra
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
 
     eventPlayer.ProjType = "primary"
     SetProjectileFacing()
@@ -3697,23 +3697,170 @@ rule "Bot Abilities: Ramattra Primary":
     if RULE_CONDITION:
         goto RULE_START
 
-
-rule "Bot Abilities: Ramattra Ability 1":
+rule "Bot Abilities: Ramattra Secondary Shield (BB2 + Rb)":
     @Event eachPlayer
     @Team 2
     @Hero ramattra
-    @Condition eventPlayer.ApplyPressure == true
-    @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
-    @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 10
     @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
+    @Condition BotBehavior[4] >= 2
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isUsingAbility1() == false
+    @Condition eventPlayer.LookTarget.PlayerUsedBlockCD > 0
+    @Condition eventPlayer.LookTarget.PlayerUsedBlockCD >= eventPlayer.LookTarget.AbilityReactChance
 
-    eventPlayer.AbilityAcc = 2
-    if eventPlayer.isUsingAbility1() == false:
-        eventPlayer.forceButtonPress(Button.ABILITY_1)
-    wait(8, Wait.ABORT_WHEN_FALSE)
+    eventPlayer.startFacing(directionTowards(eventPlayer.getEyePosition(), sorted(Playerlist, lambda player: distance(eventPlayer.getEyePosition(), player.getEyePosition()))[0].getPosition() - vect(0,2,0)), 1000, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
+    eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
+    wait(0.25)
+    eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
+    if eventPlayer.ApplyPressure == true:
+        SetProjectileFacing()
+    else:
+        SetDefaultFacing()
+    wait(12)
+
     if RULE_CONDITION:
         goto RULE_START
+
+
+rule "Bot Abilities: Ramattra Secondary Block (BB2 + R)":
+    @Event eachPlayer
+    @Team 2
+    @Hero ramattra
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
+    @Condition BotBehavior[4] >= 2
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isUsingAbility1() == true
+    @Condition eventPlayer.getNormalizedHealth() <= 0.50
+
+    eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
+    wait(eventPlayer.LookTarget.PlayerReactTime, Wait.ABORT_WHEN_FALSE)
+    eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
+
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Abilities: Ramattra Secondary Block (BB2 + Rb)":
+    @Event eachPlayer
+    @Team 2
+    @Hero ramattra
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
+    @Condition BotBehavior[4] >= 2
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isUsingAbility1() == true
+    @Condition eventPlayer.LookTarget.PlayerUsedBlockCD > 0
+    @Condition eventPlayer.LookTarget.PlayerUsedBlockCD >= eventPlayer.LookTarget.AbilityReactChance 
+
+    eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
+    wait(eventPlayer.LookTarget.PlayerReactTime, Wait.ABORT_WHEN_FALSE)
+    eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
+
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Abilities: Ramattra Ability 1 (BB1 + R)":
+    @Event eachPlayer
+    @Team 2
+    @Hero ramattra
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
+    @Condition BotBehavior[4] >= 1
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[2] == false
+    @Condition eventPlayer.isUsingAbility1() == false
+    @Condition eventPlayer.getNormalizedHealth() <= 0.25
+
+    eventPlayer.BotAbilityLock[2] = true
+    eventPlayer.forceButtonPress(Button.ABILITY_1)
+    wait(16)
+    eventPlayer.BotAbilityLock[2] = false
+
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Abilities: Ramattra Ability 1 (BB1 + R)":
+    @Event eachPlayer
+    @Team 2
+    @Hero ramattra
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
+    @Condition BotBehavior[4] >= 1
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[2] == false
+    @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 10
+
+    if eventPlayer.isUsingAbility1() == false:
+        eventPlayer.BotAbilityLock[2] = true
+        eventPlayer.forceButtonPress(Button.ABILITY_1)
+        wait(16)
+        eventPlayer.BotAbilityLock[2] = false
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Abilities: Ramattra Ability 2 (BB2 + P)":
+    @Event eachPlayer
+    @Team 2
+    @Hero ramattra
+    @Condition BotsUseAbilities == true
+    @Condition BotBehavior[4] >= 2
+    @Condition eventPlayer.ApplyPressure == true
+    @Condition eventPlayer.isAlive() == true
+
+    wait(random.uniform(0,10))
+    eventPlayer.ProjType = "ability 2"
+    wait(0.1)
+    eventPlayer.forceButtonPress(Button.ABILITY_2)
+    wait(0.1)
+    eventPlayer.ProjType = "primary"
+    wait(12)
+
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Abilities: Ramattra Ult (BB3)":
+    @Event eachPlayer
+    @Team 2
+    @Hero ramattra
+    @Condition BotsUseAbilities == true
+    @Condition BotBehavior[4] >= 3
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[4] == false
+
+    wait(random.uniform(30,60), Wait.ABORT_WHEN_FALSE)
+    eventPlayer.BotAbilityLock[4] = true
+    eventPlayer.forceButtonPress(Button.ULTIMATE)
+    wait(20)
+    eventPlayer.BotAbilityLock[4] = false
+
+    if RULE_CONDITION:
+        goto RULE_START
+
+        
+rule "Bot Abilities: Ramattra Ult (BB3 + R)":
+    @Event eachPlayer
+    @Team 2
+    @Hero ramattra
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
+    @Condition BotBehavior[4] >= 3
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[4] == false
+    @Condition eventPlayer.BotAbilityLock[2] == true
+    @Condition eventPlayer.getNormalizedHealth() <= 0.50
+
+    eventPlayer.Randomizer = random.randint(0,9)
+    if eventPlayer.Randomizer <= 1:
+        eventPlayer.BotAbilityLock[4] = true
+        eventPlayer.forceButtonPress(Button.ULTIMATE)
+        wait(20)
+        eventPlayer.BotAbilityLock[4] = false
 
 
 ### Reinhardt Bot Abilities
@@ -3740,7 +3887,7 @@ rule "Bot Abilities: Reinhardt Shatter (Default)":
         goto RULE_START
 
 
-rule "Bot Abilities: Reinhardt Swing + Fire Strike (Default)":
+rule "Bot Abilities: Reinhardt Swing + Fire Strike (Pn)":
     @Event eachPlayer
     @Team 2
     @Hero reinhardt
