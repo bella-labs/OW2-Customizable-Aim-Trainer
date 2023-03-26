@@ -4269,7 +4269,6 @@ rule "Bot Abilities: Sigma Ult (Default)":
     @Hero sigma
     @Condition BotsUseAbilities == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
     @Condition eventPlayer.getNormalizedHealth() != 1
 
     wait(random.uniform(5, 20), Wait.ABORT_WHEN_FALSE)
@@ -4426,7 +4425,8 @@ rule "Bot Abilities: Winston Ability 2 (BB2 + Rb)":
     if RULE_CONDITION:
         goto RULE_START
 
-rule "Bot Abilities: Winston Ultimate (BB1)":
+
+rule "Bot Abilities: Winston Ultimate Random (BB1)":
     @Event eachPlayer
     @Team 2
     @Hero winston
@@ -4434,27 +4434,46 @@ rule "Bot Abilities: Winston Ultimate (BB1)":
     @Condition BotsReact == true
     @Condition BotBehavior[8] >= 1
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.BotAbilityLock[3] == false
-    @Condition eventPlayer.LookTarget.PlayerUsedBlockCD > 0
-    @Condition eventPlayer.LookTarget.PlayerUsedBlockCD >= eventPlayer.LookTarget.AbilityReactChance 
+    @Condition eventPlayer.getNormalizedHealth() != 1.00
+    @Condition eventPlayer.BotAbilityLock[4] == false
 
-    eventPlayer.BotAbilityLock[3] = true
-    eventPlayer.forceButtonPress(Button.ABILITY_2)
-    wait(12)
-    eventPlayer.BotAbilityLock[3] = false
-    wait(5)
+    wait(random.uniform(20, 40), Wait.ABORT_WHEN_FALSE)
+    eventPlayer.BotAbilityLock[4] = true
+    eventPlayer.forceButtonPress(Button.ULTIMATE)
+    wait(30)
+    eventPlayer.BotAbilityLock[4] = false
     
-    if RULE_CONDITION:
-        goto RULE_START
+        if RULE_CONDITION:
+            goto RULE_START
+
+
+rule "Bot Abilities: Winston Ultimate (BB1 + R)":
+    @Event eachPlayer
+    @Team 2
+    @Hero winston
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
+    @Condition BotBehavior[8] >= 1
+    @Condition eventPlayer.ApplyPressure == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.getNormalizedHealth() <=25
+    @Condition eventPlayer.BotAbilityLock[4] == false
+
+    eventPlayer.Randomizer = random.randint(0,9)
+    if eventPlayer.Randomizer <= 2:
+        eventPlayer.BotAbilityLock[4] = true
+        eventPlayer.forceButtonPress(Button.ULTIMATE)
+        wait(30)
+        eventPlayer.BotAbilityLock[4] = false
+
 
 ### Wrecking Ball Bot Abilities
-rule "Bot Pressure: Wrecking Ball Primary (Pressure)":
+rule "Bot Pressure: Wrecking Ball Primary (P)":
     @Event eachPlayer
     @Team 2
     @Hero hammond
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
     @Condition eventPlayer.isInAlternateForm() == false
 
     eventPlayer.AbilityAcc = 3
@@ -4464,101 +4483,188 @@ rule "Bot Pressure: Wrecking Ball Primary (Pressure)":
         goto RULE_START
 
 
-rule "Bot Abilities: Ball Form Piledrive (All)":
+rule "Bot Abilities: Wrecking Ball Crouch + Impluse (All)":
     @Event eachPlayer
     @Team 2
     @Hero hammond
     @Condition BotsUseAbilities == true
+    @Condition BotBehavior[9] >= 1
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
+    @Condition eventPlayer.BotAbilityLock[1] == false
     
     wait(random.uniform(2, 7), Wait.ABORT_WHEN_FALSE)
-    if not eventPlayer.isInAlternateForm():
+    if eventPlayer.isInAlternateForm() == false:
+        eventPlayer.BotAbilityLock[2] = true
         eventPlayer.forceButtonPress(Button.ABILITY_1)
-    wait(random.uniform(1, 3), Wait.ABORT_WHEN_FALSE)
-    if eventPlayer.getCurrentHero() == Hero.HAMMOND:
-        eventPlayer.applyImpulse(Vector.UP, 20.5, Relativity.TO_WORLD, Impulse.INCORPORATE_CONTRARY_MOTION)
+    eventPlayer.BotAbilityLock[1] = true
+    eventPlayer.applyImpulse(Vector.UP, random.uniform(10,20), Relativity.TO_WORLD, Impulse.INCORPORATE_CONTRARY_MOTION)
     wait(random.uniform(1, 2), Wait.ABORT_WHEN_FALSE)
-    if eventPlayer.getCurrentHero() == Hero.HAMMOND:
-        eventPlayer.forceButtonPress(Button.CROUCH)
-    wait(random.uniform(3, 6), Wait.ABORT_WHEN_FALSE)
-    if eventPlayer.getCurrentHero() == Hero.HAMMOND:
+    eventPlayer.forceButtonPress(Button.CROUCH)
+    wait(2)
+    if eventPlayer.isInAlternateForm() == true:
+        eventPlayer.BotAbilityLock[2] = false
         eventPlayer.forceButtonPress(Button.ABILITY_1)
+    wait(6)
+    eventPlayer.BotAbilityLock[1] = false
+
     if RULE_CONDITION:
         goto RULE_START
 
 
-rule "Bot Abilities: Ball Form (All)":
+rule "Bot Abilities: Wrecking Ball Ability 1 Randomized (All)":
     @Event eachPlayer
     @Team 2
     @Hero hammond
     @Condition BotsUseAbilities == false
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
+    @Condition eventPlayer.BotAbilityLock[2] == false
     
-    wait(random.uniform(1, 5), Wait.ABORT_WHEN_FALSE)
+    wait(random.uniform(5, 10), Wait.ABORT_WHEN_FALSE)
+    eventPlayer.BotAbilityLock[2] = true
     eventPlayer.forceButtonPress(Button.ABILITY_1)
     wait(random.uniform(1, 5), Wait.ABORT_WHEN_FALSE)
+    if eventPlayer.isInAlternateForm() == true:
+        eventPlayer.forceButtonPress(Button.ABILITY_1)
+    wait(2)
+    eventPlayer.BotAbilityLock[2] = false
+    if RULE_CONDITION:
+        goto RULE_START
+
+        
+rule "Bot Abilities: Wrecking Ball Ability 1 (Rd)":
+    @Event eachPlayer
+    @Team 2
+    @Hero hammond
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[2] == false
+    @Condition eventPlayer.LookTarget.PlayerUsedDodgeCD > 0
+    @Condition eventPlayer.LookTarget.PlayerUsedDodgeCD > eventPlayer.LookTarget.AbilityReactChance
+
+    eventPlayer.BotAbilityLock[2] = true
+    eventPlayer.forceButtonPress(Button.ABILITY_1)
+    wait(eventPlayer.LookTarget.PlayerReactTime)
+    if eventPlayer.isInAlternateForm() == true:
+        eventPlayer.forceButtonPress(Button.ABILITY_1)
+    wait(4)
+    eventPlayer.BotAbilityLock[2] = false
+
     if RULE_CONDITION:
         goto RULE_START
 
 
 
+rule "Bot Abilities: Wrecking Ball Ability 2 (BB2 + Rb)":
+    @Event eachPlayer
+    @Team 2
+    @Hero hammond
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
+    @Condition BotBehavior[9] >= 2
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[2] == false
+    @Condition eventPlayer.LookTarget.PlayerUsedBlockCD > 0
+    @Condition eventPlayer.LookTarget.PlayerUsedBlockCD > eventPlayer.LookTarget.AbilityReactChance
+    @Condition distance(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition()) <= 10
+
+    eventPlayer.BotAbilityLock[3] = true
+    eventPlayer.forceButtonPress(Button.ABILITY_2)
+    wait(12)
+    eventPlayer.BotAbilityLock[3] = false
+    
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Abilities: Wrecking Ball Ultimate + Crouch (BB3)":
+    @Event eachPlayer
+    @Team 2
+    @Hero hammond
+    @Condition BotsUseAbilities == true
+    @Condition BotBehavior[9] >= 3
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[4] == false
+
+    wait(random.uniform(20,40), Wait.ABORT_WHEN_FALSE)
+    if eventPlayer.BotAbilityLock[1] == false:
+        if eventPlayer.isInAlternateForm() == false:
+            eventPlayer.BotAbilityLock[2] = true
+            eventPlayer.forceButtonPress(Button.ABILITY_1)
+        eventPlayer.BotAbilityLock[1] = true
+        eventPlayer.applyImpulse(Vector.UP, random.uniform(10,20), Relativity.TO_WORLD, Impulse.INCORPORATE_CONTRARY_MOTION)
+        wait(random.uniform(1, 2), Wait.ABORT_WHEN_FALSE)
+        eventPlayer.forceButtonPress(Button.ULTIMATE)
+        eventPlayer.forceButtonPress(Button.CROUCH)
+        if eventPlayer.isInAlternateForm() == true:
+            eventPlayer.BotAbilityLock[2] = true
+            eventPlayer.forceButtonPress(Button.ABILITY_1)
+        wait(8)
+        eventPlayer.BotAbilityLock[1] = false
+        wait(12)
+    else:
+        eventPlayer.forceButtonPress(Button.ULTIMATE)
+        wait(20)
+    eventPlayer.BotAbilityLock[4] = false
+    
+    if RULE_CONDITION:
+        goto RULE_START
+
+
 ### Zarya Bot Abilities
-rule "Bot Pressure: Zarya Primary (Pressure)":
+rule "Bot Pressure: Zarya Primary (P)":
     @Event eachPlayer
     @Team 2
     @Hero zarya
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
-    @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 15
+    @Condition distance(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition()) < 15
+    @Condition eventPlayer.BotAbilityLock[1] == false
 
     eventPlayer.AbilityAcc = 3
-    SetDefaultFacing()
     eventPlayer.ProjType = "off"
+    SetDefaultFacing()
     eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
     wait(9999, Wait.ABORT_WHEN_FALSE)
     if RULE_CONDITION:
         goto RULE_START
 
 
-rule "Bot Pressure: Zarya Secondary Close (Pressure)":
+rule "Bot Pressure: Zarya Secondary Close (P)":
     @Event eachPlayer
     @Team 2
     @Hero zarya
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
-    @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 15
+    @Condition distance(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition()) < 15
 
+    wait(random.uniform(2,5), Wait.ABORT_WHEN_FALSE)
     eventPlayer.AbilityAcc = 2
-    eventPlayer.ProjType = "off"
-    eventPlayer.Randomizer = random.randint(0,1)
-    wait(random.uniform(0,5),Wait.ABORT_WHEN_FALSE)
-    eventPlayer.startFacing(directionTowards(eventPlayer.getEyePosition(), sorted(Playerlist, lambda player: distance(eventPlayer.getEyePosition(), player.getEyePosition()))[0].getPosition() + eventPlayer.LookOffset), 1000, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
+    eventPlayer.ProjType = "secondary"
+    SetProjectileFacing()
+    eventPlayer.BotAbilityLock[1] = true
     eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
+    eventPlayer.startFacing(directionTowards(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getPosition() + eventPlayer.LookOffset), 1000, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
+    wait(0.1)
     eventPlayer.forceButtonPress(Button.SECONDARY_FIRE)
     wait(1.1)
+    eventPlayer.Randomizer = random.randint(0,1)
     if eventPlayer.Randomizer == 0:
         eventPlayer.forceButtonPress(Button.SECONDARY_FIRE)
         wait(1.1)
-    eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
-    SetDefaultFacing()
-    eventPlayer.AbilityAcc = 3
-    wait(5)
+    eventPlayer.BotAbilityLock[1] = false
+    wait(2)
     if RULE_CONDITION:
         goto RULE_START
 
 
-rule "Bot Pressure: Zarya Secondary Far (Pressure)":
+rule "Bot Pressure: Zarya Secondary Far (P)":
     @Event eachPlayer
     @Team 2
     @Hero zarya
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
-    @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) >= 15
+    @Condition distance(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition()) >= 15
 
     eventPlayer.AbilityAcc = 2
     eventPlayer.ProjType = "secondary"
@@ -4570,13 +4676,52 @@ rule "Bot Pressure: Zarya Secondary Far (Pressure)":
         goto RULE_START
 
 
+rule "Bot Abilities: Zarya Ability 1 + 2 Handler (BB1)":
+    @Event eachPlayer
+    @Team 2
+    @Hero zarya
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
+    @Condition BotBehavior[10] >= 1
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[2] > 0
+
+    wait(10)
+    eventPlayer.BotAbilityLock[2] -= 1
+    
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Abilities: Zarya Ability 1 (BB1 + Rb)":
+    @Event eachPlayer
+    @Team 2
+    @Hero zarya
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
+    @Condition BotBehavior[10] >= 1
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[2] < 2
+    @Condition eventPlayer.LookTarget.PlayerUsedBlockCD > 0
+    @Condition eventPlayer.LookTarget.PlayerUsedBlockCD > eventPlayer.LookTarget.AbilityReactChance
+
+    if eventPlayer.BotAbilityLock[2] == false:
+        eventPlayer.BotAbilityLock[2] = 1
+    else:
+        eventPlayer.BotAbilityLock[2] += 1
+    eventPlayer.forceButtonPress(Button.ABILITY_1)
+    wait(random.uniform(2,5))
+    
+    if RULE_CONDITION:
+        goto RULE_START
+
+
 rule "Bot Abilities: Zarya Jump (All)":
     @Event eachPlayer
     @Team 2
     @Hero zarya
     @Condition BotsUseAbilities == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
     @Condition eventPlayer.getNormalizedHealth() != 1
 
     wait(random.uniform(1, 10), Wait.ABORT_WHEN_FALSE)
@@ -4585,12 +4730,41 @@ rule "Bot Abilities: Zarya Jump (All)":
     wait(0.5)
     eventPlayer.forceButtonPress(Button.JUMP)
     eventPlayer.forceButtonPress(Button.SECONDARY_FIRE)
-    if eventPlayer.ApplyPressure == true and distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 15:
+    if eventPlayer.ApplyPressure == true and distance(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition()) < 15:
         eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
     SetDefaultFacing()
     if RULE_CONDITION:
         goto RULE_START
 
+
+rule "Bot Abilities: Zarya Ultimate (BB2)":
+    @Event eachPlayer
+    @Team 2
+    @Hero zarya
+    @Condition BotsUseAbilities == true
+    @Condition BotBehavior[10] >= 2
+    @Condition eventPlayer.ApplyPressure == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[4] == false
+
+    wait(random.uniform(20,40), Wait.ABORT_WHEN_FALSE)
+    eventPlayer.ProjType = "ultimate"
+    SetProjectileFacing()
+    wait(0.1)
+    eventPlayer.BotAbilityLock[4] = true
+    eventPlayer.forceButtonPress(Button.ULTIMATE)
+    if distance(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition()) < 15:
+        SetDefaultFacing()
+    else:
+        eventPlayer.ProjType = "secondary"
+    wait(20)
+    eventPlayer.BotAbilityLock[4] = false
+    wait
+        
+    if RULE_CONDITION:
+        goto RULE_START
+        
+        
 ## DPS Bot Abilities
 ### Ashe Bot Abilities
 rule "Bot Abilities: Ashe Scope (Default)":
@@ -4636,7 +4810,6 @@ rule "Bot Pressure: Ashe Primary Close (Pressure)":
     @Hero ashe
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
     @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 10
 
     eventPlayer.AbilityAcc = 2
@@ -4666,7 +4839,6 @@ rule "Bot Pressure: Ashe Primary Far (Pressure)":
     @Hero ashe
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
     @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) >= 10
 
     eventPlayer.AbilityAcc = 2
@@ -4792,7 +4964,6 @@ rule "Bot Abilities: Cassidy Ability 1":
     @Hero mccree
     @Condition BotsUseAbilities == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
     
     wait(random.uniform(0, 10), Wait.ABORT_WHEN_FALSE)
     eventPlayer.forceButtonPress(Button.ABILITY_1)
@@ -4809,7 +4980,6 @@ rule "Bot Abilities: Cassidy Ability 2":
     @Condition BotsUseAbilities == true
     @Condition eventPlayer.isAlive() == true
     @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 13
-    @Condition eventPlayer.hasSpawned() == true
     
     wait(random.uniform(0, 2), Wait.ABORT_WHEN_FALSE)
     eventPlayer.forceButtonPress(Button.ABILITY_2)
