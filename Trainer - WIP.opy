@@ -71,9 +71,10 @@ globalvar DefaultMaxWait
 globalvar DefaultCrouchMax
 globalvar BotUncrouchMin
 globalvar BotUncrouchMax
-globalvar AdvancedStrafes
-globalvar AdvancedStrafesDefault
+globalvar RandStrafes
+globalvar DefaultRandStrafes
 globalvar DefaultTurnRate
+globalvar DefaultMvmtType
 
 ## Bot Hero Lists 
 globalvar HeroList
@@ -91,6 +92,7 @@ globalvar BotsReact
 
 ## Bot Behavior Settings
 globalvar BotBehavior
+globalvar UltFrequency
 
 ## Bot Spawn Variables
 globalvar BotSlot
@@ -105,6 +107,7 @@ globalvar DamageNumbers
 globalvar Playerlist
 globalvar ElimRefresh
 globalvar HealAfterNoDmg
+globalvar StunOnDeath
 globalvar ShowDebugInfo
 
 ## Global Menu Variables
@@ -133,8 +136,10 @@ playervar PathDirection
 playervar PathOldDirection
 playervar BotMvmtRandomizer
 playervar MvmtIndex
-playervar AltMvmt
-playervar AltMvmtLock
+playervar MvmtType
+playervar MvmtTypeLock
+playervar DisableJump
+playervar DisableCrouch
 
 ## Bot Ability Variables
 playervar Randomizer
@@ -144,6 +149,7 @@ playervar AbilityAcc
 playervar OldLookTarget
 playervar BotAbilityLock
 playervar BotAbilitySignal
+playervar BotAbilityVar
 
 ## Bot Facing Variables
 playervar LookTarget
@@ -380,113 +386,117 @@ rule "Initialize: Workshop Settings":
     NumberOfBots = createWorkshopSetting(int[1:12], "1. General Bot Settings (Overridden by in-game changes to settings)", "Number of Bots", 1, 2)
 
     # Pressure Mode
-    MenuTogglePressureType = createWorkshopSetting(enum["off", "killable", "unkillable"], "3.1. Bot Pressure (Overridden by in-game changes to pressure)", "Bots Apply Pressure", 0, 0)
-    MenuTogglePressureDiff = createWorkshopSetting(enum["easy", "medium", "hard", "aimbot"],  "3.1. Bot Pressure (Overridden by in-game changes to pressure)", "Bots Pressure Difficulty", 0, 1)
-    ElimRefresh = createWorkshopSetting(bool, "3.2. Bot Pressure Modifiers", "Eliminations Reset Cooldowns", true, 0)
-    HealAfterNoDmg = createWorkshopSetting(bool, "3.2. Bot Pressure Modifiers", "Restore Health After Not Taking Damage", true, 0)
+    MenuTogglePressureType = createWorkshopSetting(enum["off", "killable", "unkillable"], "2.1. Bot Pressure (Overridden by in-game changes to pressure)", "Bots Apply Pressure", 0, 0)
+    MenuTogglePressureDiff = createWorkshopSetting(enum["easy", "medium", "hard", "aimbot"],  "2.1. Bot Pressure (Overridden by in-game changes to pressure)", "Bots Pressure Difficulty", 0, 1)
+    ElimRefresh = createWorkshopSetting(bool, "2.2. Bot Pressure Modifiers", "Eliminations Reset Cooldowns (killable mode only)", true, 0)
+    HealAfterNoDmg = createWorkshopSetting(bool, "2.2. Bot Pressure Modifiers", "Restore Health After Not Taking Damage (killable mode only)", true, 1)
+    StunOnDeath = createWorkshopSetting(bool, "2.2. Bot Pressure Modifiers", "Player is stunned for 0.5s after dying (killable mode only)", true, 2)
     
     ## Bot Movement Settings
-    MenuToggleBotDiff = createWorkshopSetting(enum["long strafes / custom", "very easy", "easy", "medium", "hard", "very hard", "extreme"], "4. Bot Movement (Overridden by in-game changes to movement)", "Difficulty", 4, 0)
-    MenuToggleBotSpeed = createWorkshopSetting(enum["default", "lucio passive", "kitsune / shout", "lucio amp"],   "4. Bot Movement (Overridden by in-game changes to movement)", "Bot Movement Speed", 0, 1)
-    DefaultRandJump = createWorkshopSetting(bool, "4. Bot Movement (Overridden by in-game changes to movement)", "Bot Jumping", true, 2)
-    DefaultJumpMin = createWorkshopSetting(float[1:10], "4. Bot Movement (Overridden by in-game changes to movement)", "Bot Jumping - Minimum wait", 4.5, 3)
-    DefaultJumpMax = createWorkshopSetting(float[1.5:20], "4. Bot Movement (Overridden by in-game changes to movement)", "Bot Jumping - Maximum wait", 10, 4)
-    DefaultRandCrouch = createWorkshopSetting(bool, "4. Bot Movement (Overridden by in-game changes to movement)", "Bot Crouching", true, 5)
-    DefaultCrouchMax = createWorkshopSetting(float[0.25:10], "4. Bot Movement (Overridden by in-game changes to movement)", "Bot Crouching - Maximum wait", 3, 6)
-    DefaultMinWait = createWorkshopSetting(float[0.1:5], "4. Bot Movement (Overridden by in-game changes to movement)", "Custom Strafe Pattern - Minimum Wait", 5, 7)
-    DefaultMaxWait = createWorkshopSetting(float[0.2:8], "4. Bot Movement (Overridden by in-game changes to movement)", "Custom Strafe Pattern - Maximum Wait", 8, 8)
-    AdvancedStrafesDefault = createWorkshopSetting(bool, "4. Bot Movement (Overridden by in-game changes to movement)", "Advanced Strafe Patterns", false, 9)
+    DefaultMvmtType = createWorkshopSetting(enum["Default", "Default w/ Random Long Strafe", "AD Strafes", "8 Direction Strafes", "Forward AD Strafes", "No Movement"], "3. Bot Movement (Overridden by in-game changes to movement)", "Movement Pattern", 0, 0)
+    MenuToggleBotDiff = createWorkshopSetting(enum["custom", "very easy", "easy", "medium", "hard", "very hard", "extreme"], "3. Bot Movement (Overridden by in-game changes to movement)", "Difficulty", 4, 1)
+    DefaultRandStrafes = createWorkshopSetting(bool, "3. Bot Movement (Overridden by in-game changes to movement)", "Randomly Swap Strafe Pattern", false, 2)
+    MenuToggleBotSpeed = createWorkshopSetting(enum["default", "lucio passive", "kitsune / shout", "lucio amp"],   "3. Bot Movement (Overridden by in-game changes to movement)", "Bot Movement Speed", 1, 3)
+    DefaultMinWait = createWorkshopSetting(float[0.1:5], "3. Bot Movement (Overridden by in-game changes to movement)", "Custom Strafe Pattern - Minimum Wait", 5, 4)
+    DefaultMaxWait = createWorkshopSetting(float[0.2:8], "3. Bot Movement (Overridden by in-game changes to movement)", "Custom Strafe Pattern - Maximum Wait", 8, 5)
+    DefaultRandJump = createWorkshopSetting(bool, "3. Bot Movement (Overridden by in-game changes to movement)", "Bot Jumping", true, 6)
+    DefaultJumpMin = createWorkshopSetting(float[1:10], "3. Bot Movement (Overridden by in-game changes to movement)", "Bot Jumping - Minimum wait", 3.5, 7)
+    DefaultJumpMax = createWorkshopSetting(float[1.5:20], "3. Bot Movement (Overridden by in-game changes to movement)", "Bot Jumping - Maximum wait", 10, 8)
+    DefaultRandCrouch = createWorkshopSetting(bool, "3. Bot Movement (Overridden by in-game changes to movement)", "Bot Crouching", true, 9)
+    DefaultCrouchMax = createWorkshopSetting(float[0.25:10], "3. Bot Movement (Overridden by in-game changes to movement)", "Bot Crouching - Maximum wait", 3, 10)
 
     # Bot Spawn
-    MenuToggleBotSpawn = createWorkshopSetting(bool, "5. Custom Bot Spawn (Overridden by in-game changes to spawn)", "Use Custom Spawn Point", false, 0)
-    SpawnSize = createWorkshopSetting(int[0:100], "5. Custom Bot Spawn (Overridden by in-game changes to spawn)", "Spawn Size", 5, 1)
-    SpawnPt = vect(createWorkshopSetting(float[-999:999], "5. Custom Bot Spawn (Overridden by in-game changes to spawn)", "Spawn x coord", 0, 1),
-    createWorkshopSetting(float[-999:999], "5. Custom Bot Spawn (Overridden by in-game changes to spawn)", "Spawn y coord", 0, 1),
-    createWorkshopSetting(float[-999:999], "5. Custom Bot Spawn (Overridden by in-game changes to spawn)", "Spawn z coord", 0, 1))
+    MenuToggleBotSpawn = createWorkshopSetting(bool, "4. Custom Bot Spawn (Overridden by in-game changes to spawn)", "Use Custom Spawn Point", false, 0)
+    SpawnSize = createWorkshopSetting(int[0:100], "4. Custom Bot Spawn (Overridden by in-game changes to spawn)", "Spawn Size", 5, 1)
+    SpawnPt = vect(createWorkshopSetting(float[-999:999], "4. Custom Bot Spawn (Overridden by in-game changes to spawn)", "Spawn x coord", 0, 1),
+    createWorkshopSetting(float[-999:999], "4. Custom Bot Spawn (Overridden by in-game changes to spawn)", "Spawn y coord", 0, 1),
+    createWorkshopSetting(float[-999:999], "4. Custom Bot Spawn (Overridden by in-game changes to spawn)", "Spawn z coord", 0, 1))
 
     ## Bot Tank Heroes Enabled
-    DefaultHeroList = createWorkshopSetting(bool, "6.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "D.va", false, 0)
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Doomfist", false, 1))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Junker Queen", false, 2))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Orisa", true, 3))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Ramattra", false, 4))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Reinhardt", false, 5))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Roadhog", false, 6))
-	DefaultHeroList.append(createWorkshopSetting(bool, "6.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Sigma", false, 7))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Winston", false, 8))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Wrecking Ball", false, 9))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Zarya", false, 10))
+    DefaultHeroList = createWorkshopSetting(bool, "5.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "D.va", false, 0)
+    DefaultHeroList.append(createWorkshopSetting(bool, "5.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Doomfist", false, 1))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Junker Queen", false, 2))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Orisa", false, 3))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Ramattra", false, 4))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Reinhardt", false, 5))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Roadhog", false, 6))
+	DefaultHeroList.append(createWorkshopSetting(bool, "5.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Sigma", false, 7))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Winston", false, 8))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Wrecking Ball", false, 9))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Zarya", false, 10))
     
     ## Bot Damage Heroes Enabled
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Ashe", false, 0))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Bastion", false, 1))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Cassidy", false, 2))
-	DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Echo", false, 3))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Genji", false, 4))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Hanzo", false, 5))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Junkrat", false, 6))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Mei", false, 7))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Pharah", false, 8))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Reaper", false, 9))
-	DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Sojourn", false, 10))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Soldier 76", false, 11))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Sombra", false, 12))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Symmetra", false, 13))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Torbjörn", false, 14))
-	DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Tracer", false, 15))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Widowmaker", false, 16))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Ashe", false, 0))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Bastion", false, 1))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Cassidy", false, 2))
+	DefaultHeroList.append(createWorkshopSetting(bool, "5.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Echo", false, 3))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Genji", false, 4))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Hanzo", false, 5))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Junkrat", false, 6))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Mei", false, 7))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Pharah", false, 8))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Reaper", false, 9))
+	DefaultHeroList.append(createWorkshopSetting(bool, "5.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Sojourn", false, 10))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Soldier 76", false, 11))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Sombra", true, 12))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Symmetra", false, 13))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Torbjörn", false, 14))
+	DefaultHeroList.append(createWorkshopSetting(bool, "5.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Tracer", false, 15))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Widowmaker", false, 16))
     
     ## Bot Support Heroes Enabled
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Ana", false, 0))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Baptiste", false, 1))
-	DefaultHeroList.append(createWorkshopSetting(bool, "6.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Brigitte", false, 2))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Kiriko", false, 3))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Lúcio", false, 4))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Mercy", false, 5))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Moira", false, 6))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Zenyatta", false, 7))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Ana", false, 0))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Baptiste", false, 1))
+	DefaultHeroList.append(createWorkshopSetting(bool, "5.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Brigitte", false, 2))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Kiriko", false, 3))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Lúcio", false, 4))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Mercy", false, 5))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Moira", false, 6))
+    DefaultHeroList.append(createWorkshopSetting(bool, "5.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Zenyatta", false, 7))
     
+    ## General Bot Behavior
+    UltFrequency = createWorkshopSetting(float[0:5], "6. Bot Behavior", "Ult Frequency (2 = 2x often, etc.)", 1, 0)
     ## Bot tank Behavior (index 0 - 10)
-    BotBehavior = createWorkshopSetting(enum["Boosters, Missiles, Remech", "Boosters, Missiles, Remech, Matrix", "Boosters, Missiles, Remech, Matrix, Bomb"], "7.1. Tank Bot Behavior", "Dva Bot Behavior", 2, 0)
-    BotBehavior.append(createWorkshopSetting(enum["Slam, Punch", "Slam, Punch, Block", "Slam, Punch, Block, Meteor"], "7.1. Tank Bot Behavior", "Doomfist Bot Behavior", 2, 1))
-    BotBehavior.append(createWorkshopSetting(enum["Blade, Axe", "Blade, Axe, Shout", "Blade, Axe, Shout, Rampage"], "7.1. Tank Bot Behavior", "Junker Queen Bot Behavior", 2, 2))
-    BotBehavior.append(createWorkshopSetting(enum["Javlin", "Javlin, Fortify, Spin", "Javlin, Fortify, Spin, Terra Surge"], "7.1. Tank Bot Behavior", "Orisa Bot Behavior", 2, 3))
-    BotBehavior.append(createWorkshopSetting(enum["Omnic", "Omnic, Nemesis", "Omnic, Nemesis, Vortex, Shield, Block", "Omnic, Nemesis, Vortex, Shield, Block, Suffer"], "7.1. Tank Bot Behavior", "Ramattra Bot Behavior", 3, 4))
-    BotBehavior.append(createWorkshopSetting(enum["Fire Strike", "Fire Strike, Pin, Shatter", "Fire Strike,Pin, Shatter, Shield"], "7.1. Tank Bot Behavior", "Reinhardt Bot Behavior", 2, 5))
-    BotBehavior.append(createWorkshopSetting(enum["Hook", "Hook, Heal",  "Hook, Heal, Whole Hog"], "7.1. Tank Bot Behavior", "Roadhog Bot Behavior", 2, 6))
-	BotBehavior.append(createWorkshopSetting(enum["Rock", "Rock, Flux", "Rock, Flux, Shield, Grasp"], "7.1. Tank Bot Behavior", "Sigma Bot Behavior", 2, 7))
-    BotBehavior.append(createWorkshopSetting(enum["Leap", "Leap, Primal", "Leap, Primal, Bubble"], "7.1. Tank Bot Behavior", "Winston Bot Behavior", 2, 8))
-    BotBehavior.append(createWorkshopSetting(enum["Roll", "Roll, Slam", "Roll, Slam, Shield", "Roll, Slam, Shields, Mines"], "7.1. Tank Bot Behavior", "Wrecking Ball Bot Behavior", 3, 9))
-    BotBehavior.append(createWorkshopSetting(enum["Rocket Jump", "Rocket Jump, Self Bubble, Friendly Bubble", "Rocket Jump, Self Bubble, Friendly Bubble, Graviton Surge"], "7.1. Tank Bot Behavior", "Zarya Bot Behavior", 2, 10))
+    BotBehavior = createWorkshopSetting(enum["Boosters, Missiles, Remech", "Boosters, Missiles, Remech, Matrix", "Boosters, Missiles, Remech, Matrix, Bomb"], "6.1. Tank Bot Behavior", "Dva Bot Behavior", 2, 0)
+    BotBehavior.append(createWorkshopSetting(enum["Slam, Punch", "Slam, Punch, Block", "Slam, Punch, Block, Meteor"], "6.1. Tank Bot Behavior", "Doomfist Bot Behavior", 2, 1))
+    BotBehavior.append(createWorkshopSetting(enum["Blade, Axe", "Blade, Axe, Shout", "Blade, Axe, Shout, Rampage"], "6.1. Tank Bot Behavior", "Junker Queen Bot Behavior", 2, 2))
+    BotBehavior.append(createWorkshopSetting(enum["Javlin", "Javlin, Fortify, Spin", "Javlin, Fortify, Spin, Terra Surge"], "6.1. Tank Bot Behavior", "Orisa Bot Behavior", 2, 3))
+    BotBehavior.append(createWorkshopSetting(enum["Omnic", "Omnic, Nemesis", "Omnic, Nemesis, Vortex, Shield, Block", "Omnic, Nemesis, Vortex, Shield, Block, Suffer"], "6.1. Tank Bot Behavior", "Ramattra Bot Behavior", 3, 4))
+    BotBehavior.append(createWorkshopSetting(enum["Fire Strike", "Fire Strike, Pin, Shatter", "Fire Strike,Pin, Shatter, Shield"], "6.1. Tank Bot Behavior", "Reinhardt Bot Behavior", 2, 5))
+    BotBehavior.append(createWorkshopSetting(enum["Hook", "Hook, Heal",  "Hook, Heal, Whole Hog"], "6.1. Tank Bot Behavior", "Roadhog Bot Behavior", 2, 6))
+	BotBehavior.append(createWorkshopSetting(enum["Rock", "Rock, Flux", "Rock, Flux, Shield, Grasp"], "6.1. Tank Bot Behavior", "Sigma Bot Behavior", 2, 7))
+    BotBehavior.append(createWorkshopSetting(enum["Leap", "Leap, Primal", "Leap, Primal, Bubble"], "6.1. Tank Bot Behavior", "Winston Bot Behavior", 2, 8))
+    BotBehavior.append(createWorkshopSetting(enum["Roll", "Roll, Slam", "Roll, Slam, Shield", "Roll, Slam, Shields, Mines"], "6.1. Tank Bot Behavior", "Wrecking Ball Bot Behavior", 3, 9))
+    BotBehavior.append(createWorkshopSetting(enum["Rocket Jump", "Rocket Jump, Self Bubble, Friendly Bubble", "Rocket Jump, Self Bubble, Friendly Bubble, Graviton Surge"], "6.1. Tank Bot Behavior", "Zarya Bot Behavior", 2, 10))
     
     ## Damage Bot Behavior (index 11 - 27)
-    BotBehavior.append(createWorkshopSetting(enum["Coach", "Coach, Dynamite", "Coach, Dynamite, Bob"], "7.2. Damage Bot Behavior", "Ashe Bot Behavior", 0, 0))
-    BotBehavior.append(createWorkshopSetting(enum["Recon", "Recon, Assault", "Recon, Assault, Nade"], "7.2. Damage Bot Behavior", "Bastion Bot Behavior", 0, 1))
-    BotBehavior.append(createWorkshopSetting(enum["Roll", "Roll, Nade", "Roll, Nade, Noon"], "7.2. Damage Bot Behavior", "Cassidy Bot Behavior", 0, 2))
-	BotBehavior.append(createWorkshopSetting(enum["Flight", "Flight, Stickies", "Flight, Stickies, Beam"], "7.2. Damage Bot Behavior", "Echo Bot Behavior", 0, 3))
-    BotBehavior.append(createWorkshopSetting(enum["Dash", "Dash, Deflect", "Dash, Block, Blade"], "7.2. Damage Bot Behavior", "Genji Bot Behavior", 0, 4))
-    BotBehavior.append(createWorkshopSetting(enum["Jump", "Jump, Storm Arrows", "Jump, Storm Arrows, Dragon"], "7.2. Damage Bot Behavior", "Hanzo Bot Behavior", 0, 5))
-    BotBehavior.append(createWorkshopSetting(enum["Conc", "Conc, Trap"], "7.2. Damage Bot Behavior", "Junkrat Bot Behavior", 0, 6))
-    BotBehavior.append(createWorkshopSetting(enum["Cryo", "Cryo, Wall", "Cryo, Wall, Snowball"], "7.2. Damage Bot Behavior", "Mei Bot Behavior", 0, 7))
-    BotBehavior.append(createWorkshopSetting(enum["Hover, Jump Jet", "Hover, Jump Jet, Conc", "Hover, Jump Jet, Conc, Barrage"], "7.2. Damage Bot Behavior", "Pharah Bot Behavior", 0, 8))
-    BotBehavior.append(createWorkshopSetting(enum["Wraith", "Wraith, Teleport", "Wraith, Teleport, Blossom"], "7.2. Damage Bot Behavior", "Reaper Bot Behavior", 0, 9))
-    BotBehavior.append(createWorkshopSetting(enum["Slide, Rail", "Slide, Rail, Orb", "Slide, Rail, Orb, Overclock"], "7.2. Damage Bot Behavior", "Sojourn Bot Behavior", 0, 10))
-	BotBehavior.append(createWorkshopSetting(enum["Rocket", "Rocket, Heal"], "7.2. Damage Bot Behavior", "Soldier 76 Bot Behavior", 0, 11))
-    BotBehavior.append(createWorkshopSetting(enum["Translocate", "Translocate, Invisibility", "Translocate, Invisibility, Hack", "Translocate, Invisibility, Hack, EMP"], "7.2. Damage Bot Behavior", "Sombra Bot Behavior", 0, 12))
-    BotBehavior.append(createWorkshopSetting(enum["None", "Wall"], "7.2. Damage Bot Behavior", "Symmetra Bot Behavior", 0, 13))
-    BotBehavior.append(createWorkshopSetting(enum["Overload", "Overload, Molten Core"], "7.2. Damage Bot Behavior", "Torbjörn Bot Behavior", 0, 14))
-    BotBehavior.append(createWorkshopSetting(enum["Blink", "Blink, Recall", "Blink, Recall, Pulse"], "7.2. Damage Bot Behavior", "Tracer Bot Behavior", 0, 15))
-	BotBehavior.append(createWorkshopSetting(enum["None", "Mine"], "7.2. Damage Bot Behavior", "Widowmaker Bot Behavior", 0, 16))
+    BotBehavior.append(createWorkshopSetting(enum["Coach", "Coach, Dynamite", "Coach, Dynamite, Bob"], "6.2. Damage Bot Behavior", "Ashe Bot Behavior", 2, 0))
+    BotBehavior.append(createWorkshopSetting(enum["Recon", "Recon, Assault", "Recon, Assault, Nade", "Recon, Assault, Nade, Artillary"], "6.2. Damage Bot Behavior", "Bastion Bot Behavior", 3, 1))
+    BotBehavior.append(createWorkshopSetting(enum["Roll", "Roll, Nade", "Roll, Nade, Noon"], "6.2. Damage Bot Behavior", "Cassidy Bot Behavior", 3, 2))
+	BotBehavior.append(createWorkshopSetting(enum["Flight", "Flight, Stickies", "Flight, Stickies, Beam"], "6.2. Damage Bot Behavior", "Echo Bot Behavior", 2, 3))
+    BotBehavior.append(createWorkshopSetting(enum["Dash", "Dash, Deflect", "Dash, Block, Blade"], "6.2. Damage Bot Behavior", "Genji Bot Behavior", 2, 4))
+    BotBehavior.append(createWorkshopSetting(enum["Jump", "Jump, Storm", "Jump, Storm, Dragon"], "6.2. Damage Bot Behavior", "Hanzo Bot Behavior", 2, 5))
+    BotBehavior.append(createWorkshopSetting(enum["Conc", "Conc, Trap", "Conc, Trap, Tire"], "6.2. Damage Bot Behavior", "Junkrat Bot Behavior", 2, 6))
+    BotBehavior.append(createWorkshopSetting(enum["Cryo", "Cryo, Wall", "Cryo, Wall, Snowball"], "6.2. Damage Bot Behavior", "Mei Bot Behavior", 2, 7))
+    BotBehavior.append(createWorkshopSetting(enum["Hover, Jump Jet", "Hover, Jump Jet, Conc", "Hover, Jump Jet, Conc, Barrage"], "6.2. Damage Bot Behavior", "Pharah Bot Behavior", 2, 8))
+    BotBehavior.append(createWorkshopSetting(enum["Wraith", "Wraith, Teleport", "Wraith, Teleport, Blossom"], "6.2. Damage Bot Behavior", "Reaper Bot Behavior", 2, 9))
+    BotBehavior.append(createWorkshopSetting(enum["Slide, Rail", "Slide, Rail, Orb", "Slide, Rail, Orb, Overclock"], "6.2. Damage Bot Behavior", "Sojourn Bot Behavior", 2, 10))
+	BotBehavior.append(createWorkshopSetting(enum["Rocket", "Rocket, Sprint", "Rocket, Sprint, Heal", "Rocket, Sprint, Heal, Visor"], "6.2. Damage Bot Behavior", "Soldier 76 Bot Behavior", 3, 11))
+    BotBehavior.append(createWorkshopSetting(enum["Translocate", "Translocate, Invisibility", "Translocate, Invisibility, Hack", "Translocate, Invisibility, Hack, EMP"], "6.2. Damage Bot Behavior", "Sombra Bot Behavior", 3, 12))
+    BotBehavior.append(createWorkshopSetting(enum["Teleport", "Teleport, Wall"], "6.2. Damage Bot Behavior", "Symmetra Bot Behavior", 1, 13))
+    BotBehavior.append(createWorkshopSetting(enum["Overload", "Overload, Molten Core"], "6.2. Damage Bot Behavior", "Torbjörn Bot Behavior", 0, 14))
+    BotBehavior.append(createWorkshopSetting(enum["Blink", "Blink, Recall", "Blink, Recall, Pulse"], "6.2. Damage Bot Behavior", "Tracer Bot Behavior", 0, 15))
+	BotBehavior.append(createWorkshopSetting(enum["None", "Mine"], "6.2. Damage Bot Behavior", "Widowmaker Bot Behavior", 0, 16))
     
     ## Bot Support Heroes (index 28 - 35)
-    BotBehavior.append(createWorkshopSetting(enum["Sleep", "Sleep, Damage Nade", "Sleep, Damage + Self Nade"], "7.3. Support Bot Behavior", "Ana Bot Behavior", 0, 0))
-    BotBehavior.append(createWorkshopSetting(enum["Exo Boots", "Exo Boots, Window", "Exo Boots, Window, Regen, Immo"], "7.3. Support Bot Behavior", "Baptiste Bot Behavior", 0, 1))
-	BotBehavior.append(createWorkshopSetting(enum["Whip Shot, Bash", "Whip Shot, Bash, Shield", "Whip Shot, Bash, Shield, Rally"], "7.3. Support Bot Behavior", "Brigitte Bot Behavior", 0, 2))
-    BotBehavior.append(createWorkshopSetting(enum["TP, Suzu", "TP, Suzu, Kitsune"], "7.3. Support Bot Behavior", "Kiriko Bot Behavior", 0, 3))
-    BotBehavior.append(createWorkshopSetting(enum["Boop", "Boop, Amp", "Boop, Amp, Beat"], "7.3. Support Bot Behavior", "Lúcio Bot Behavior", 0, 4))
-    BotBehavior.append(createWorkshopSetting(enum["Damage Boost", "Damage Boost, Valkyrie", "Healing Boost, Valkyrie", "Damage + Healing Boost, Valkyrie"], "7.3. Support Bot Behavior", "Mercy Bot Behavior", 0, 5))
-    BotBehavior.append(createWorkshopSetting(enum["Fade", "Fade, Damage Orb", "Fade, Damage + Heal Orb", "Fade, Damage + Heal Orb, Coalescence",], "7.3. Support Bot Behavior", "Moira Bot Behavior", 0, 6))
-    BotBehavior.append(createWorkshopSetting(enum["None", "Discord", "Discord, Transcendence"], "7.3. Support Bot Behavior", "Zenyatta Bot Behavior", 0, 7))
+    BotBehavior.append(createWorkshopSetting(enum["Sleep", "Sleep, Damage Nade", "Sleep, Damage + Self Nade"], "6.3. Support Bot Behavior", "Ana Bot Behavior", 0, 0))
+    BotBehavior.append(createWorkshopSetting(enum["Exo Boots", "Exo Boots, Window", "Exo Boots, Window, Regen, Immo"], "6.3. Support Bot Behavior", "Baptiste Bot Behavior", 0, 1))
+	BotBehavior.append(createWorkshopSetting(enum["Whip Shot, Bash", "Whip Shot, Bash, Shield", "Whip Shot, Bash, Shield, Rally"], "6.3. Support Bot Behavior", "Brigitte Bot Behavior", 0, 2))
+    BotBehavior.append(createWorkshopSetting(enum["TP, Suzu", "TP, Suzu, Kitsune"], "6.3. Support Bot Behavior", "Kiriko Bot Behavior", 0, 3))
+    BotBehavior.append(createWorkshopSetting(enum["Boop", "Boop, Amp", "Boop, Amp, Beat"], "6.3. Support Bot Behavior", "Lúcio Bot Behavior", 0, 4))
+    BotBehavior.append(createWorkshopSetting(enum["Damage Boost", "Damage Boost, Valkyrie", "Healing Boost, Valkyrie", "Damage + Healing Boost, Valkyrie"], "6.3. Support Bot Behavior", "Mercy Bot Behavior", 0, 5))
+    BotBehavior.append(createWorkshopSetting(enum["Fade", "Fade, Damage Orb", "Fade, Damage + Heal Orb", "Fade, Damage + Heal Orb, Coalescence",], "6.3. Support Bot Behavior", "Moira Bot Behavior", 0, 6))
+    BotBehavior.append(createWorkshopSetting(enum["None", "Discord", "Discord, Transcendence"], "6.3. Support Bot Behavior", "Zenyatta Bot Behavior", 0, 7))
 
 
 rule "Initialize: Global Variables":
@@ -622,6 +632,7 @@ rule "Player Joined: Team 2 Defaults":
     eventPlayer.MovementSpeed = 100
     eventPlayer.BotAbilitySignal = [false, false, false, false, false]
     eventPlayer.BotAbilityLock  = [false, false, false, false, false]
+    eventPlayer.BotAbilityVar = false
 
 
 rule "Player Spawned":
@@ -1398,7 +1409,7 @@ def MenuAction8Diff():
     JumpMaxWait = DefaultJumpMax
     BotUncrouchMin = 0.25
     BotUncrouchMax = 0.65
-    AdvancedStrafes = AdvancedStrafesDefault
+    RandStrafes = DefaultRandStrafes
     if MenuToggleBotDiff == 0:
         smallMessage(getAllPlayers(), "    Long strafe / custom pattern: Bots change direction {0} - {1}s".format(DefaultMinWait, DefaultMaxWait))
         MoveMinWait = DefaultMinWait
@@ -1432,7 +1443,7 @@ def MenuAction8Diff():
         BotUncrouchMax = 0.1
         JumpMinWait = 5
         JumpMaxWait = 15
-        AdvancedStrafes = true
+        RandStrafes = true
 
 
 def MenuAction8Abilities():
@@ -1695,8 +1706,10 @@ rule "Stats: Pressure Mode killable track deaths":
     @Condition eventPlayer.getHealth() <= 1
     
     eventPlayer.Deaths += 1
+    if StunOnDeath == true:
+        eventPlayer.setStatusEffect(eventPlayer, Status.STUNNED, 0.5)
     bigMessage(eventPlayer, "you died.")
-    eventPlayer.setHealth(eventPlayer.getMaxHealth())
+    eventPlayer.startHoT(null,1,9999)
 
 
 rule "Stats: Pressure Mode Damage Recieved":
@@ -1815,23 +1828,42 @@ def DestroyAllBots():
 rule "Bot Spawn: Setup":
     @Event eachPlayer
     @Team 2
-    @Condition eventPlayer.hasSpawned() == true
     @Condition eventPlayer.isAlive() == true
 
-    eventPlayer.AltMvmt = 0
-    eventPlayer.AltMvmtLock = false
+    smallMessage(hostPlayer, "Bot Respawn")
+    eventPlayer.MvmtTypeLock = false
+    eventPlayer.MvmtType = DefaultMvmtType
+
+    eventPlayer.BotAbilitySignal = [false, false, false, false, false]
+    eventPlayer.BotAbilityLock  = [false, false, false, false, false]
+    eventPlayer.DisableJump = false
+    eventPlayer.DisableCrouch = false
+    eventPlayer.LtTime = 1
+    eventPlayer.LtRange = 0
+    SetDefaultFacing()
 
     eventPlayer.CurrHero = eventPlayer.getCurrentHero()
-    if eventPlayer.CurrHero == Hero.MERCY:
+    if eventPlayer.CurrHero ==  Hero.ECHO:
+        eventPlayer.DisableJump = true
+        eventPlayer.DisableCrouch = true
+    elif eventPlayer.CurrHero ==  Hero.GENJI:
+        eventPlayer.DisableJump = true
+    elif eventPlayer.CurrHero ==  Hero.HANZO:
+        eventPlayer.DisableJump = true
+    elif eventPlayer.CurrHero == Hero.PHARAH:
+        eventPlayer.DisableCrouch = true
+    elif eventPlayer.CurrHero ==  Hero.BAPTISTE:
+        eventPlayer.DisableJump = true
+        eventPlayer.DisableCrouch = true
+    elif eventPlayer.CurrHero == Hero.MERCY:
+        eventPlayer.DisableJump = true
+        eventPlayer.DisableCrouch = true
         eventPlayer.LtRange = 5
         eventPlayer.LtTime = 3
         SetHealingFacing()
-    else:
-        eventPlayer.LtTime = 1
-        eventPlayer.LtRange = 0
-        SetDefaultFacing()
+
     eventPlayer.teleport(random.choice(eventPlayer.PathLoc))
-    
+
 
 rule "Bot Died: Swap Hero":
     @Event eachPlayer
@@ -1848,15 +1880,16 @@ rule "Bot Died: Swap Hero":
     eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
     eventPlayer.stopForcingButton(Button.RELOAD)
     eventPlayer.stopForcingButton(Button.ULTIMATE)
-    eventPlayer.BotAbilitySignal = [false, false, false, false, false]
-    eventPlayer.BotAbilityLock  = [false, false, false, false, false]
+
     if getNumberOfLivingPlayers(Team.2) > 1:
-        wait(3)
+        wait(2)
+
     if EnabledHeroCount != NumberOfBots:
         AssignNewHero()
         eventPlayer.startForcingHero(ActiveHeroList[NextHero])
         ActiveHeroList = random.shuffle(ActiveHeroList)
-    wait(0.25)
+    
+    wait(1)
     eventPlayer.resurrect()
     wait(0.25)
     # I'm assuming that a comparision is less costly on avg than having to reset health for tank spawn
@@ -1866,7 +1899,7 @@ rule "Bot Died: Swap Hero":
     if eventPlayer.getCurrentHero() == Hero.DVA and eventPlayer.getMaxHealth() == 150:
         wait(2)
         eventPlayer.forceButtonPress(Button.ULTIMATE)
-    
+
 
 # Bot Movement
 rule "Bot Pathing: Initialization":
@@ -1891,12 +1924,11 @@ rule "Bot Pathing: Initialization":
     ResetBotPathing()
 
     
-rule "Bot Pathing: Movement Handler - Default":
+rule "Bot Pathing: Movement Handler: Movement Type 0 Seita remake":
     @Event eachPlayer
     @Team 2
     @Condition eventPlayer.isAlive() == true
-    @Condition AdvancedStrafes == false
-    @Condition eventPlayer.AltMvmt == 0
+    @Condition eventPlayer.MvmtType == 0
 
     ChangePathing()
     wait(random.uniform(MoveMinWait, MoveMaxWait), Wait.ABORT_WHEN_FALSE)
@@ -1905,12 +1937,11 @@ rule "Bot Pathing: Movement Handler - Default":
         goto RULE_START
 
 
-rule "Bot Pathing: Movement Handler - Advanced":
+rule "Bot Pathing: Movement Handler: Movement Type 1 Seita Pathing + rand long strafe":
     @Event eachPlayer
     @Team 2
     @Condition eventPlayer.isAlive() == true
-    @Condition AdvancedStrafes == true
-    @Condition eventPlayer.AltMvmt == 0
+    @Condition eventPlayer.MvmtType == 1
     
     eventPlayer.BotMvmtRandomizer = random.randint(0, 9)
     if eventPlayer.BotMvmtRandomizer < 3:
@@ -1924,29 +1955,58 @@ rule "Bot Pathing: Movement Handler - Advanced":
         goto RULE_START
 
 
-rule "Bot Pathing: Movement Handler - Alt Movement 1":
+rule "Bot Pathing: Movement Handler - MvmtType 2 AD Strafes":
     @Event eachPlayer
     @Team 2
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.AltMvmt == 1
+    @Condition eventPlayer.MvmtType == 2
     
     eventPlayer.BotMvmtRandomizer = random.randint(0, 1)
     if eventPlayer.BotMvmtRandomizer == 0:
         eventPlayer.startThrottleInDirection(Vector.LEFT, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
-    if eventPlayer.BotMvmtRandomizer == 1:
+    else:
         eventPlayer.startThrottleInDirection(Vector.RIGHT, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
-    wait(random.uniform(0.05, 0.35), Wait.ABORT_WHEN_FALSE)
+    wait(random.uniform(MoveMinWait, MoveMaxWait), Wait.ABORT_WHEN_FALSE)
 
     if RULE_CONDITION:
         goto RULE_START
 
 
-rule "Bot Pathing: Movement Handler - Alt Movement 2":
+rule "Bot Pathing: Movement Handler - MvmtType 3 8-direction Strafes":
     @Event eachPlayer
     @Team 2
-    @Condition eventPlayer.hasSpawned() == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.AltMvmt == 2
+    @Condition eventPlayer.MvmtType == 3
+
+    eventPlayer.BotMvmtRandomizer = random.randint(0, 7)
+    if eventPlayer.BotMvmtRandomizer == 0:
+        eventPlayer.startThrottleInDirection(Vector.FORWARD, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.NONE)
+    elif eventPlayer.BotMvmtRandomizer == 1:
+        eventPlayer.startThrottleInDirection(Vector.FORWARD + Vector.LEFT, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
+    elif eventPlayer.BotMvmtRandomizer == 2:
+        eventPlayer.startThrottleInDirection(Vector.LEFT, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
+    elif eventPlayer.BotMvmtRandomizer == 3:
+        eventPlayer.startThrottleInDirection(Vector.BACKWARD + Vector.LEFT, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
+    elif eventPlayer.BotMvmtRandomizer == 4:
+        eventPlayer.startThrottleInDirection(Vector.BACKWARD, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
+    elif eventPlayer.BotMvmtRandomizer == 5:
+        eventPlayer.startThrottleInDirection(Vector.BACKWARD + Vector.RIGHT, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
+    elif eventPlayer.BotMvmtRandomizer == 6:
+        eventPlayer.startThrottleInDirection(Vector.RIGHT, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
+    else:
+        eventPlayer.startThrottleInDirection(Vector.FORWARD + Vector.RIGHT, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
+    
+    wait(random.uniform(MoveMinWait, MoveMaxWait), Wait.ABORT_WHEN_FALSE)
+
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Pathing: Movement Handler - MvmtType 4 Forward AD Strafes":
+    @Event eachPlayer
+    @Team 2
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.MvmtType == 4
 
     eventPlayer.BotMvmtRandomizer = random.randint(0, 7)
     if eventPlayer.BotMvmtRandomizer > 5:
@@ -1957,38 +2017,58 @@ rule "Bot Pathing: Movement Handler - Alt Movement 2":
         eventPlayer.startThrottleInDirection(Vector.FORWARD + Vector.RIGHT, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
     elif eventPlayer.BotMvmtRandomizer == 1:
         eventPlayer.startThrottleInDirection(Vector.LEFT, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
-    elif eventPlayer.BotMvmtRandomizer == 0:
+    else:
         eventPlayer.startThrottleInDirection(Vector.RIGHT, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
-    wait(random.uniform(0.05, 0.35), Wait.ABORT_WHEN_FALSE)
+    wait(random.uniform(MoveMinWait, MoveMaxWait), Wait.ABORT_WHEN_FALSE)
 
     if RULE_CONDITION:
         goto RULE_START
 
 
-rule "Bot Pathing: Alt Movement Handler":
+rule "Bot Pathing: Movement Handler - MvmtType 5 no movement":
     @Event eachPlayer
     @Team 2
-    @Condition eventPlayer.hasSpawned() == true
     @Condition eventPlayer.isAlive() == true
-    @Condition AdvancedStrafes == true
-    @Condition eventPlayer.AltMvmtLock == false
+    @Condition eventPlayer.MvmtType == 5
+
+    eventPlayer.stopThrottleInDirection()
+    wait(random.uniform(MoveMinWait, MoveMaxWait), Wait.ABORT_WHEN_FALSE)
+
+    if RULE_CONDITION:
+        goto RULE_START
+        
+rule "Bot Pathing: Movement Handler - MvmtType 6 Forward Only":
+    @Event eachPlayer
+    @Team 2
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.MvmtType == 6
+
+    eventPlayer.startThrottleInDirection(Vector.FORWARD, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.NONE)
+
+
+rule "Bot Pathing: Randomized Strafes":
+    @Event eachPlayer
+    @Team 2
+    @Condition eventPlayer.isAlive() == true
+    @Condition RandStrafes == true
+    @Condition eventPlayer.MvmtTypeLock == false
     
-    eventPlayer.AltMvmt = 0
+    eventPlayer.MvmtType = DefaultMvmtType
+    # 50% chance to switch strafe pattern every 5 seconds.
     eventPlayer.Randomizer = random.randint(0, 9)
-    if eventPlayer.Randomizer < 3:
-        eventPlayer.AltMvmt = 1
+    if eventPlayer.Randomizer <= 4:
+        eventPlayer.MvmtType = random.randint(0,3)
     wait(5, Wait.ABORT_WHEN_FALSE)
     if RULE_CONDITION:
         goto RULE_START
 
 
-rule "Bot Pathing: Too close to path destination":
+rule "Bot Pathing: Seita pathing - Too close to path destination":
     @Event eachPlayer
     @Team 2
-    @Condition eventPlayer.hasSpawned() == true
     @Condition eventPlayer.isAlive() == true
     @Condition distance(eventPlayer.getPosition(), eventPlayer.PathLoc[eventPlayer.PathDirection]) <= 1.5
-    @Condition eventPlayer.AltMvmt == 0
+    @Condition eventPlayer.MvmtType == 0
     
     eventPlayer.PathIndex.remove(eventPlayer.PathDirection)
     eventPlayer.PathOldDirection = eventPlayer.PathDirection
@@ -2005,11 +2085,7 @@ rule "Bot Default Movement: Bot jumping":
     @Team 2
     @Condition eventPlayer.isAlive() == true
     @Condition RandomJumping == true
-    @Condition eventPlayer.getCurrentHero() != Hero.GENJI
-    @Condition eventPlayer.getCurrentHero() != Hero.HANZO
-    @Condition eventPlayer.getCurrentHero() != Hero.BAPTISTE
-    @Condition eventPlayer.getCurrentHero() != Hero.MERCY
-    @Condition eventPlayer.getCurrentHero() != Hero.ECHO
+    @Condition eventPlayer.DisableJump == false
     
     wait(random.uniform(JumpMinWait, JumpMaxWait), Wait.ABORT_WHEN_FALSE)
     eventPlayer.forceButtonPress(Button.JUMP)
@@ -2022,10 +2098,8 @@ rule "Bot Default Movement: Bot crouching":
     @Team 2
     @Condition eventPlayer.isAlive() == true
     @Condition RandomCrouching == true
-    @Condition eventPlayer.getCurrentHero() != Hero.BAPTISTE
-    @Condition eventPlayer.getCurrentHero() != Hero.ECHO
-    @Condition eventPlayer.getCurrentHero() != Hero.PHARAH
-    @Condition eventPlayer.getCurrentHero() != Hero.MERCY
+    @Condition eventPlayer.DisableCrouch == false
+
     
     wait(random.uniform(0, CrouchMaxWait), Wait.ABORT_WHEN_FALSE)
     eventPlayer.startForcingButton(Button.CROUCH)
@@ -2036,7 +2110,7 @@ rule "Bot Default Movement: Bot crouching":
         goto RULE_START
 
 def ChangePathing():
-    @Name "SUB: ChangePathing"
+    @Name "SUB: ChangePathing (Seita Pathing)"
 
     eventPlayer.PathIndex.remove(eventPlayer.PathDirection)
     eventPlayer.PathOldDirection = eventPlayer.PathDirection
@@ -2046,7 +2120,7 @@ def ChangePathing():
 
 
 def ResetBotPathing():
-    @Name "SUB: ResetBotPathing"
+    @Name "SUB: ResetBotPathing (Seita Pathing)"
 
     if eventPlayer.getSlot() == 3 or eventPlayer.getSlot() == 8:
         eventPlayer.PathLoc[0] = vect(-MvmtRad1 + SpawnPt.x, SpawnPt.y, -MvmtRad1 + SpawnPt.z)
@@ -2101,7 +2175,6 @@ rule "Set Proj Speed - Primary":
     @Condition eventPlayer.ProjType == "primary"
 
     eventPlayer.CurrHero = eventPlayer.getCurrentHero()
-
     if eventPlayer.CurrHero == Hero.DOOMFIST:
         eventPlayer.ProjSpeed = 80
     elif eventPlayer.CurrHero == Hero.DVA:
@@ -2140,7 +2213,6 @@ rule "Set Proj Speed - Primary":
         eventPlayer.ProjSpeed = 50
     elif eventPlayer.CurrHero == Hero.ZENYATTA:
         eventPlayer.ProjSpeed = 90
-
     else:
         eventPlayer.ProjSpeed = 0
 
@@ -2287,8 +2359,7 @@ rule "Set Proj Speed - ultimate":
 rule "Calculate Player Projectile Trajectory":
     @Event eachPlayer
     @Team 1
-    @Condition eventPlayer.hasSpawned()
-    @Condition eventPlayer.isDummy() == false
+    @Condition eventPlayer.isAlive()
     @Condition eventPlayer.MenuToggleProjectile == "on"
     @Condition eventPlayer.ProjSpeed != 0
 
@@ -2303,7 +2374,6 @@ rule "Calculate Bot Projectile Trajectory":
     @Event eachPlayer
     @Team 2
     @Condition eventPlayer.isAlive()
-    @Condition eventPlayer.hasSpawned()
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.ProjSpeed != 0
 
@@ -2318,7 +2388,6 @@ rule "Set Look Target":
     @Event eachPlayer
     @Team 2
     @Condition eventPlayer.isAlive()
-    @Condition eventPlayer.hasSpawned()
 
     eventPlayer.OldLookTarget = eventPlayer.LookTarget
     if eventPlayer.LtRange > 0:
@@ -2420,15 +2489,15 @@ rule "Bot Pressure: Set Pressure Off":
     SetDefaultFacing()
     
 
-rule "Bot Pressure: Loom Offset":
+rule "Bot Pressure: Look Offset":
     @Event eachPlayer
     @Team 2
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
 
-    eventPlayer.LookOffset = PressureDiff * vect(eventPlayer.AbilityAcc * random.uniform(-1, 1), random.uniform(-0.25, 0.25), eventPlayer.AbilityAcc * random.uniform(-1, 1))
-    wait(random.uniform(0.1,0.5),Wait.ABORT_WHEN_FALSE)
+    #chase(eventPlayer.LookOffset, PressureDiff * vect(eventPlayer.AbilityAcc * random.uniform(-1, 1), random.uniform(-0.25, 1), eventPlayer.AbilityAcc * random.uniform(-1, 1)), duration=5, ChaseReeval.DESTINATION_AND_DURATION)
+    eventPlayer.LookOffset = PressureDiff * eventPlayer.AbilityAcc * vect( random.uniform(-0.5, 0.5), random.uniform(-0.125, 0.125), random.uniform(-0.5, 0.5))
+    wait(0.25)
     if RULE_CONDITION:
         goto RULE_START 
 
@@ -2635,7 +2704,7 @@ def PopulateAbilityMatrix():
         eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 1.00, 0.00, 1.00]
         eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 1.00, 0.00]
     elif eventPlayer.CurrHero == Hero.SIGMA:
-        eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 1.00]
+        eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 3.00]
         eventPlayer.PlayerEatCDMatrix   = [0.50, 0.00, 0.00, 0.00, 0.00]
         eventPlayer.PlayerBlockCDMatrix = [0.50, 0.00, 0.00, 1.00, 0.00]
         eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 1.00, 1.00]
@@ -2749,7 +2818,7 @@ def PopulateAbilityMatrix():
         eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.00, 1.00]
         eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.00, 0.00]
     elif eventPlayer.CurrHero == Hero.TRACER:
-        eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 1.00]
+        eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 1.50]
         eventPlayer.PlayerEatCDMatrix   = [0.50, 0.00, 0.00, 0.00, 1.00]
         eventPlayer.PlayerBlockCDMatrix = [0.50, 0.00, 0.00, 0.00, 1.00]
         eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.00, 1.00]
@@ -2996,7 +3065,7 @@ rule "Bot Abilities: Dva Ability 2 (P)":
         goto RULE_START
 
 
-rule "Bot Abilities: Baby Dva Ult (All)":
+rule "Bot Abilities: Baby Dva Ultimate (All)":
     @Event eachPlayer
     @Team 2
     @Hero dva
@@ -3005,13 +3074,18 @@ rule "Bot Abilities: Baby Dva Ult (All)":
     @Condition eventPlayer.getMaxHealth() == 150
     @Condition eventPlayer.BotAbilityLock[4] == false
 
-    wait(random.uniform(15,30), Wait.ABORT_WHEN_FALSE)
-    eventPlayer.BotAbilityLock[4] = true
-    eventPlayer.forceButtonPress(Button.ULTIMATE)
-    eventPlayer.BotAbilityLock[4] = false
+    wait(10 / UltFrequency)
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 3:
+        eventPlayer.BotAbilityLock[4] = true
+        eventPlayer.forceButtonPress(Button.ULTIMATE)
+        eventPlayer.BotAbilityLock[4] = false
+    
+    if RULE_CONDITION:
+        goto RULE_START
 
 
-rule "Bot Abilities: Dva Ult Random (BB2)":
+rule "Bot Abilities: Dva Ultimate Random (BB2)":
     @Event eachPlayer
     @Team 2
     @Hero dva
@@ -3021,15 +3095,21 @@ rule "Bot Abilities: Dva Ult Random (BB2)":
     @Condition eventPlayer.getMaxHealth() != 150
     @Condition eventPlayer.BotAbilityLock[4] == false
 
-    wait(random.uniform(25,50), Wait.ABORT_WHEN_FALSE)
-    eventPlayer.BotAbilityLock[4] = true
-    eventPlayer.forceButtonPress(Button.ULTIMATE)
-    wait(5)
-    eventPlayer.forceButtonPress(Button.ULTIMATE)
-    eventPlayer.BotAbilityLock[4] = false
+    wait(10 / UltFrequency)
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 3:
+        eventPlayer.BotAbilityLock[4] = true
+        eventPlayer.forceButtonPress(Button.ULTIMATE)
+        wait(5)
+        eventPlayer.forceButtonPress(Button.ULTIMATE)
+        wait(10 / UltFrequency)
+        eventPlayer.BotAbilityLock[4] = false
+
+    if RULE_CONDITION:
+        goto RULE_START
 
 
-rule "Bot Abilities: Dva Ult for Remech (BB2 + P)":
+rule "Bot Abilities: Dva Ultimate for Remech (BB2 + P)":
     @Event eachPlayer
     @Team 2
     @Hero dva
@@ -3042,14 +3122,14 @@ rule "Bot Abilities: Dva Ult for Remech (BB2 + P)":
     @Condition eventPlayer.getNormalizedHealth() < 0.25
     
 
-    eventPlayer.Randomizer = random.randint(0,9)
-    if eventPlayer.Randomizer <= 2:
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 5:
         eventPlayer.BotAbilityLock[4] = true
         eventPlayer.forceButtonPress(Button.ULTIMATE)
         wait(5)
         eventPlayer.forceButtonPress(Button.ULTIMATE)
         eventPlayer.BotAbilityLock[4] = false
-    wait(5, Wait.ABORT_WHEN_FALSE)
+        wait(10 / UltFrequency)
 
 
 ### Doomfist Bot Abilities
@@ -3060,7 +3140,6 @@ rule "Bot Abilities: Doomfist All Abilities (Rn)":
     @Condition BotsUseAbilities == true
     @Condition BotsReact == false
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
     @Condition eventPlayer.getNormalizedHealth() != 1
     
     wait(random.uniform(0, 10), Wait.ABORT_WHEN_FALSE)
@@ -3271,7 +3350,7 @@ rule "Bot Abilities: Doomfist Ability 2 (BB1 Rb)":
         goto RULE_START
 
 
-rule "Bot Abilities: Doomfist Ult (BB2)":
+rule "Bot Abilities: Doomfist Ultimate (BB2)":
     @Event eachPlayer
     @Team 2
     @Hero doomfist
@@ -3280,19 +3359,22 @@ rule "Bot Abilities: Doomfist Ult (BB2)":
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.BotAbilityLock[4] == false
 
-    wait(random.uniform(30,60), Wait.ABORT_WHEN_FALSE)
+    wait(10 / UltFrequency)
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 3:
     eventPlayer.BotAbilityLock[4] = true
     eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
     eventPlayer.forceButtonPress(Button.ULTIMATE)
     wait(1)
     eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
-    wait(30)
+    wait(10 / UltFrequency)
     eventPlayer.BotAbilityLock[4] = false
+
     if RULE_CONDITION:
         goto RULE_START
 
 
-rule "Bot Abilities: Doomfist Ult (BB2 + R)":
+rule "Bot Abilities: Doomfist Ultimate (BB2 + R)":
     @Event eachPlayer
     @Team 2
     @Hero doomfist
@@ -3303,15 +3385,15 @@ rule "Bot Abilities: Doomfist Ult (BB2 + R)":
     @Condition eventPlayer.getNormalizedHealth() <= 0.25
     @Condition eventPlayer.BotAbilityLock[4] == false
 
-    eventPlayer.Randomizer = random.randint(0,9)
-    if eventPlayer.Randomizer == 0:
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 3:
         eventPlayer.BotAbilityLock[4] = true
         eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
         eventPlayer.forceButtonPress(Button.ULTIMATE)
         wait(1)
         eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
-        wait(30)
-    eventPlayer.BotAbilityLock[4] = false
+        wait(10 / UltFrequency)
+        eventPlayer.BotAbilityLock[4] = false
     
 
 ### Junker Queen Bot Abilities
@@ -3360,7 +3442,6 @@ rule "Bot Abilities: Junker Queen Ability 1 (BB1)":
     @Condition BotsUseAbilities == true
     @Condition BotBehavior[2] >= 1
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
     @Condition eventPlayer.getNormalizedHealth() != 1
     @Condition eventPlayer.BotAbilityLock[2] == false
     
@@ -3428,14 +3509,20 @@ rule "Bot Abilities: Junker Queen Ability 2 (P)":
     @Condition distance(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition()) < 7
 
     eventPlayer.AbilityAcc = 2
+    eventPlayer.MvmtTypeLock = true
+    eventPlayer.MvmtType = 3
     wait(random.uniform(0,3))
     eventPlayer.forceButtonPress(Button.ABILITY_2)
+    wait(3)
+    eventPlayer.MvmtType = DefaultMvmtType
+    eventPlayer.MvmtTypeLock = false
+    
     wait(5)
     if RULE_CONDITION:
         goto RULE_START
 
 
-rule "Bot Abilities: Junker Queen Ult (BB2)":
+rule "Bot Abilities: Junker Queen Ultimate (BB2)":
     @Event eachPlayer
     @Team 2
     @Hero junkerQueen
@@ -3446,16 +3533,17 @@ rule "Bot Abilities: Junker Queen Ult (BB2)":
     @Condition eventPlayer.BotAbilityLock[4] == false
     @Condition distance(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition()) < 25
 
-    wait(random.uniform(30,60), Wait.ABORT_WHEN_FALSE)
-    eventPlayer.BotAbilityLock[4] = true
-    eventPlayer.forceButtonPress(Button.ULTIMATE)
-    wait(30)
-    eventPlayer.BotAbilityLock[4] = false
-
+    wait(10 / UltFrequency)
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 3:
+        eventPlayer.BotAbilityLock[4] = true
+        eventPlayer.forceButtonPress(Button.ULTIMATE)
+        wait(10 / UltFrequency)
+        eventPlayer.BotAbilityLock[4] = false
     if RULE_CONDITION:
         goto RULE_START
 
-rule "Bot Abilities: Junker Queen Ult (BB2 + R)":
+rule "Bot Abilities: Junker Queen Ultimate (BB2 + R)":
     @Event eachPlayer
     @Team 2
     @Hero junkerQueen
@@ -3468,11 +3556,11 @@ rule "Bot Abilities: Junker Queen Ult (BB2 + R)":
     @Condition eventPlayer.BotAbilityLock[4] == false
     @Condition distance(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition()) < 25
 
-    eventPlayer.Randomizer = random.randint(0,9)
-    if eventPlayer.Randomizer == 0:
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 3:
         eventPlayer.BotAbilityLock[4] = true
         eventPlayer.forceButtonPress(Button.ULTIMATE)
-        wait(30)
+        wait(10 / UltFrequency)
         eventPlayer.BotAbilityLock[4] = false
 
 
@@ -3660,14 +3748,16 @@ rule "Bot Abilities: Orisa Ultimate (BB2)":
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.BotAbilityLock[4] == false
 
-    wait(random.uniform(30,60), Wait.ABORT_WHEN_FALSE)
-    eventPlayer.BotAbilityLock[4] = true
-    eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
-    eventPlayer.forceButtonPress(Button.ULTIMATE)
-    wait(random.uniform(1,5))
-    eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
-    wait(30)
-    eventPlayer.BotAbilityLock[4] = false
+    wait(10 / UltFrequency)
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 3:
+        eventPlayer.BotAbilityLock[4] = true
+        eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
+        eventPlayer.forceButtonPress(Button.ULTIMATE)
+        wait(random.uniform(1,5))
+        eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
+        wait(10 / UltFrequency)
+        eventPlayer.BotAbilityLock[4] = false
         
     if RULE_CONDITION:
         goto RULE_START
@@ -3684,14 +3774,14 @@ rule "Bot Abilities: Orisa Ultimate (BB2 + R)":
     @Condition eventPlayer.getNormalizedHealth() <= 0.25
     @Condition eventPlayer.BotAbilityLock[4] == false
 
-    eventPlayer.Randomizer = random.randint(0,9)
-    if eventPlayer.Randomizer <= 1:
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 3:
         eventPlayer.BotAbilityLock[4] = true
         eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
         eventPlayer.forceButtonPress(Button.ULTIMATE)
         wait(random.uniform(1,5))
         eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
-        wait(30)
+        wait(10 / UltFrequency)
         eventPlayer.BotAbilityLock[4] = false
 
 
@@ -3863,7 +3953,7 @@ rule "Bot Abilities: Ramattra Ability 2 (BB2 + P)":
         goto RULE_START
 
 
-rule "Bot Abilities: Ramattra Ult (BB3)":
+rule "Bot Abilities: Ramattra Ultimate (BB3)":
     @Event eachPlayer
     @Team 2
     @Hero ramattra
@@ -3872,20 +3962,23 @@ rule "Bot Abilities: Ramattra Ult (BB3)":
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.BotAbilityLock[4] == false
 
-    wait(random.uniform(30,60), Wait.ABORT_WHEN_FALSE)
-    eventPlayer.BotAbilityLock[4] = true
-    eventPlayer.BotAbilityLock[1] = true
-    eventPlayer.forceButtonPress(Button.ULTIMATE)
-    while eventPlayer.isUsingUltimate():
-        wait(1)
-    eventPlayer.BotAbilityLock[1] = false
-    eventPlayer.BotAbilityLock[4] = false
+    wait(10 / UltFrequency)
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 3:
+        eventPlayer.BotAbilityLock[4] = true
+        eventPlayer.BotAbilityLock[1] = true
+        eventPlayer.forceButtonPress(Button.ULTIMATE)
+        while eventPlayer.isUsingUltimate():
+            wait(1)
+        eventPlayer.BotAbilityLock[1] = false
+        wait(10 / UltFrequency)
+        eventPlayer.BotAbilityLock[4] = false
 
     if RULE_CONDITION:
         goto RULE_START
 
         
-rule "Bot Abilities: Ramattra Ult (BB3 + R)":
+rule "Bot Abilities: Ramattra Ultimate (BB3 + R)":
     @Event eachPlayer
     @Team 2
     @Hero ramattra
@@ -3897,8 +3990,8 @@ rule "Bot Abilities: Ramattra Ult (BB3 + R)":
     @Condition eventPlayer.BotAbilityLock[2] == true
     @Condition eventPlayer.getNormalizedHealth() <= 0.50
 
-    eventPlayer.Randomizer = random.randint(0,9)
-    if eventPlayer.Randomizer <= 1:
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 3:
         eventPlayer.BotAbilityLock[4] = true
         eventPlayer.forceButtonPress(Button.ULTIMATE)
         wait(20)
@@ -3999,8 +4092,8 @@ rule "Bot Abilities: Reinhardt Ability 1 (BB1 + P)":
     
     wait(random.uniform(0, 5), Wait.ABORT_WHEN_FALSE)
     eventPlayer.BotAbilityLock[2] = true
-    eventPlayer.AltMvmtLock = true
-    eventPlayer.AltMvmt = 2
+    eventPlayer.MvmtTypeLock = true
+    eventPlayer.MvmtType = 3
     eventPlayer.forceButtonPress(Button.ABILITY_1)
     eventPlayer.Randomizer = random.uniform(0,1)
     if eventPlayer.Randomizer >= 0.80:
@@ -4011,8 +4104,8 @@ rule "Bot Abilities: Reinhardt Ability 1 (BB1 + P)":
         eventPlayer.forceButtonPress(Button.ABILITY_1)
     eventPlayer.Randomizer = random.uniform(1,7)
     wait(eventPlayer.Randomizer)
-    eventPlayer.AltMvmt = 0
-    eventPlayer.AltMvmtLock = false
+    eventPlayer.MvmtType = DefaultMvmtType
+    eventPlayer.MvmtTypeLock = false
     wait(7 - eventPlayer.Randomizer)
     eventPlayer.BotAbilityLock[2] = false
     wait(2)
@@ -4041,7 +4134,7 @@ rule "Bot Abilities: Reinhardt Ability 2 (P)":
         goto RULE_START
 
 
-rule "Bot Abilities: Reinhardt Ult (BB1)":
+rule "Bot Abilities: Reinhardt Ultimate (BB1)":
     @Event eachPlayer
     @Team 2
     @Hero reinhardt
@@ -4052,23 +4145,22 @@ rule "Bot Abilities: Reinhardt Ult (BB1)":
     @Condition distance(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition()) < 20
 
 
-    eventPlayer.Randomizer = random.uniform(0,9)
-    if eventPlayer.Randomizer == 0:
+    wait(10 / UltFrequency)
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 3:
         if eventPlayer.ApplyPressure == true:
             SetDefaultFacing()
         eventPlayer.BotAbilityLock[4] = true
-        eventPlayer.setUltCharge(100)
         wait(0.1)
         eventPlayer.forceButtonPress(Button.ULTIMATE)
         eventPlayer.BotAbilityLock[4] = false
-        if eventPlayer.ApplyPressure == true:
-            SetProjectileFacing()
-    wait(20)
+        wait(10 / UltFrequency)
+        
     if RULE_CONDITION:
         goto RULE_START
 
 
-rule "Bot Abilities: Reinhardt Ult (BB1 + R)":
+rule "Bot Abilities: Reinhardt Ultimate (BB1 + R)":
     @Event eachPlayer
     @Team 2
     @Hero reinhardt
@@ -4080,8 +4172,8 @@ rule "Bot Abilities: Reinhardt Ult (BB1 + R)":
     @Condition eventPlayer.BotAbilityLock[4] == false
     @Condition distance(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition()) < 20
 
-    eventPlayer.Randomizer = random.uniform(0,9)
-    if eventPlayer.Randomizer <= 3:
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 4:
         if eventPlayer.ApplyPressure == true:
             SetDefaultFacing()
         eventPlayer.setUltCharge(100)
@@ -4089,7 +4181,8 @@ rule "Bot Abilities: Reinhardt Ult (BB1 + R)":
         eventPlayer.forceButtonPress(Button.ULTIMATE)
         if eventPlayer.ApplyPressure == true:
             SetProjectileFacing()
-    wait(20)
+        wait(10 / UltFrequency)
+        
     if RULE_CONDITION:
         goto RULE_START
 
@@ -4184,17 +4277,21 @@ rule "Bot Abilities: Roadhog Ultimate (BB2 + P)":
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.BotAbilityLock[4] == false
 
-    wait(random.uniform(20,40), Wait.ABORT_WHEN_FALSE)
-    eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
-    eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
-    SetDefaultFacing()
-    eventPlayer.BotAbilityLock[1] = true
-    eventPlayer.forceButtonPress(Button.ULTIMATE)
-    eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
-    wait(8)
-    SetProjectileFacing()
-    eventPlayer.BotAbilityLock[1] = false
-    wait
+    wait(10 / UltFrequency)
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 3:
+        eventPlayer.BotAbilityLock[4] = true
+        eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
+        eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
+        SetDefaultFacing()
+        eventPlayer.BotAbilityLock[1] = true
+        eventPlayer.forceButtonPress(Button.ULTIMATE)
+        eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
+        wait(8)
+        SetProjectileFacing()
+        eventPlayer.BotAbilityLock[1] = false
+        wait(10 / UltFrequency)
+        eventPlayer.BotAbilityLock[4] = false
         
     if RULE_CONDITION:
         goto RULE_START
@@ -4320,7 +4417,7 @@ rule "Bot Abilities: Sigma Ability 2 Random (P)":
         goto RULE_START
  
 
-rule "Bot Abilities: Sigma Ult (Default)":
+rule "Bot Abilities: Sigma Ultimate (Default)":
     @Event eachPlayer
     @Team 2
     @Hero sigma
@@ -4328,30 +4425,32 @@ rule "Bot Abilities: Sigma Ult (Default)":
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.getNormalizedHealth() != 1
 
-    wait(random.uniform(5, 20), Wait.ABORT_WHEN_FALSE)
-    eventPlayer.forceButtonPress(Button.ULTIMATE)
-    if eventPlayer.isUsingUltimate() == true:
-        eventPlayer.startForcingButton(Button.JUMP)
-        if eventPlayer.ApplyPressure == true:
-            SetDefaultFacing()
-        else:
-            eventPlayer.startFacing(vect(random.uniform(-10,10) + SpawnPt.x ,random.uniform(-10,0) + SpawnPt.y ,random.uniform(-10,10) + SpawnPt.z), DefaultTurnRate, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
-        wait(random.uniform(0.5,3.5))
-        eventPlayer.stopForcingButton(Button.JUMP)
-        eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
-        if eventPlayer.ApplyPressure == true:
-            SetProjectileFacing()
-        else:
-            SetDefaultFacing()
-        eventPlayer.Randomizer = random.randint(0,3)
-        if eventPlayer.Randomizer == 0:
+    wait(10 / UltFrequency)
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 3:
+        eventPlayer.forceButtonPress(Button.ULTIMATE)
+        if eventPlayer.isUsingUltimate() == true:
             eventPlayer.startForcingButton(Button.JUMP)
-            wait(random.uniform(0,2))
+            if eventPlayer.ApplyPressure == true:
+                SetDefaultFacing()
+            else:
+                eventPlayer.startFacing(vect(random.uniform(-10,10) + SpawnPt.x ,random.uniform(-10,0) + SpawnPt.y ,random.uniform(-10,10) + SpawnPt.z), DefaultTurnRate, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
+            wait(random.uniform(0.5,3.5))
             eventPlayer.stopForcingButton(Button.JUMP)
-    wait(1)
-    if eventPlayer.ApplyPressure == true:
-        eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
-    wait(15, Wait.ABORT_WHEN_FALSE)
+            eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
+            if eventPlayer.ApplyPressure == true:
+                SetProjectileFacing()
+            else:
+                SetDefaultFacing()
+            eventPlayer.Randomizer = random.randint(0,3)
+            if eventPlayer.Randomizer == 0:
+                eventPlayer.startForcingButton(Button.JUMP)
+                wait(random.uniform(0,2))
+                eventPlayer.stopForcingButton(Button.JUMP)
+        wait(1)
+        if eventPlayer.ApplyPressure == true:
+            eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
+        wait(10 / UltFrequency)
     if RULE_CONDITION:
         goto RULE_START
 
@@ -4492,26 +4591,28 @@ rule "Bot Abilities: Winston Ultimate Random (BB1)":
     @Condition eventPlayer.getNormalizedHealth() != 1.00
     @Condition eventPlayer.BotAbilityLock[4] == false
 
-    wait(random.uniform(10, 20), Wait.ABORT_WHEN_FALSE)
-    smallMessage(hostPlayer, "Debug: Angry Monke 1")
-    eventPlayer.BotAbilityLock[4] = true
-    eventPlayer.AltMvmtLock = true
-    eventPlayer.AltMvmt = 2
-    eventPlayer.forceButtonPress(Button.ULTIMATE)
-    eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
-    eventPlayer.BotAbilityLock[2] = true
-    eventPlayer.forceButtonPress(Button.ABILITY_1)
-    while eventPlayer.isUsingUltimate():
-        wait(random.uniform(2,3))
+    wait(10 / UltFrequency)
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 3:
+        smallMessage(hostPlayer, "Debug: Angry Monke 1")
+        eventPlayer.BotAbilityLock[4] = true
+        eventPlayer.MvmtTypeLock = true
+        eventPlayer.MvmtType = 3
+        eventPlayer.forceButtonPress(Button.ULTIMATE)
+        eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
+        eventPlayer.BotAbilityLock[2] = true
         eventPlayer.forceButtonPress(Button.ABILITY_1)
-    eventPlayer.AltMvmt = 0
-    eventPlayer.AltMvmtLock = false
-    eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
-    eventPlayer.BotAbilityLock[4] = false
-    wait(10)
-    
-        if RULE_CONDITION:
-            goto RULE_START
+        while eventPlayer.isUsingUltimate():
+            wait(random.uniform(2,3))
+            eventPlayer.forceButtonPress(Button.ABILITY_1)
+        eventPlayer.MvmtType = DefaultMvmtType
+        eventPlayer.MvmtTypeLock = false
+        eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
+        eventPlayer.BotAbilityLock[4] = false
+        wait(10 / UltFrequency)
+        
+    if RULE_CONDITION:
+        goto RULE_START
 
 
 rule "Bot Abilities: Winston Ultimate (BB1 + R)":
@@ -4526,12 +4627,12 @@ rule "Bot Abilities: Winston Ultimate (BB1 + R)":
     @Condition eventPlayer.getNormalizedHealth() <= 0.25
     @Condition eventPlayer.BotAbilityLock[4] == false
 
-    eventPlayer.Randomizer = random.randint(0,9)
-    if eventPlayer.Randomizer <= 4:
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 3:
         smallMessage(hostPlayer, "Debug: Angry Monke 2")
         eventPlayer.BotAbilityLock[4] = true
-        eventPlayer.AltMvmtLock = true
-        eventPlayer.AltMvmt = 2
+        eventPlayer.MvmtTypeLock = true
+        eventPlayer.MvmtType = 3
         eventPlayer.forceButtonPress(Button.ULTIMATE)
         eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
         eventPlayer.BotAbilityLock[2] = true
@@ -4539,10 +4640,10 @@ rule "Bot Abilities: Winston Ultimate (BB1 + R)":
         while eventPlayer.isUsingUltimate():
             wait(random.uniform(2,3))
             eventPlayer.forceButtonPress(Button.ABILITY_1)
-        eventPlayer.AltMvmt = 0
-        eventPlayer.AltMvmtLock = false
+        eventPlayer.MvmtType = DefaultMvmtType
+        eventPlayer.MvmtTypeLock = false
         eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
-        wait(10)
+        wait(10 / UltFrequency)
         eventPlayer.BotAbilityLock[4] = false
 
 ### Wrecking Ball Bot Abilities
@@ -4622,12 +4723,12 @@ rule "Bot Abilities: Wrecking Ball Ability 1 (Rd)":
 
     smallMessage(hostPlayer, "Ball A1 Rd")
     eventPlayer.BotAbilityLock[2] = true
-    eventPlayer.AltMvmtLock = true
-    eventPlayer.AltMvmt = 1
+    eventPlayer.MvmtTypeLock = true
+    eventPlayer.MvmtType = 2
     eventPlayer.forceButtonPress(Button.ABILITY_1)
     wait(eventPlayer.LookTarget.PlayerReactTime * 2)
-    eventPlayer.AltMvmt = 0
-    eventPlayer.AltMvmtLock = false
+    eventPlayer.MvmtType = DefaultMvmtType
+    eventPlayer.MvmtTypeLock = false
     if eventPlayer.isInAlternateForm() == true:
         eventPlayer.forceButtonPress(Button.ABILITY_1)
     wait(4)
@@ -4668,30 +4769,30 @@ rule "Bot Abilities: Wrecking Ball Ultimate + Crouch (BB3)":
     @Condition BotBehavior[9] >= 3
     @Condition eventPlayer.isAlive() == true
 
-    smallMessage(hostPlayer, "Ball start")
-    wait(random.uniform(10,20), Wait.ABORT_WHEN_FALSE)
-    smallMessage(getAllPlayers(), "Ball go")
-    if eventPlayer.BotAbilityLock[1] == false:
-        if eventPlayer.isInAlternateForm() == false:
-            eventPlayer.BotAbilityLock[2] = true
-            eventPlayer.forceButtonPress(Button.ABILITY_1)
-        eventPlayer.BotAbilityLock[1] = true
-        eventPlayer.applyImpulse(Vector.UP, random.uniform(10,20), Relativity.TO_WORLD, Impulse.INCORPORATE_CONTRARY_MOTION)
-        wait(random.uniform(1,2))
-        eventPlayer.startForcingButton(Button.ULTIMATE)
-        eventPlayer.startForcingButton(Button.CROUCH)
-        wait(random.uniform(1,2))
-        eventPlayer.stopForcingButton(Button.ULTIMATE)
-        eventPlayer.stopForcingButton(Button.CROUCH)
-        if eventPlayer.isInAlternateForm() == true:
-            eventPlayer.BotAbilityLock[2] = true
-            eventPlayer.forceButtonPress(Button.ABILITY_1)
-        wait(8)
-        eventPlayer.BotAbilityLock[1] = false
-    else:
-        eventPlayer.forceButtonPress(Button.ULTIMATE)
-        wait(8)
-    wait(2)
+    wait(10 / UltFrequency)
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 3:
+        smallMessage(getAllPlayers(), "Debug: Ball go")
+        if eventPlayer.BotAbilityLock[1] == false:
+            if eventPlayer.isInAlternateForm() == false:
+                eventPlayer.BotAbilityLock[2] = true
+                eventPlayer.forceButtonPress(Button.ABILITY_1)
+            eventPlayer.BotAbilityLock[1] = true
+            eventPlayer.applyImpulse(Vector.UP, random.uniform(10,20), Relativity.TO_WORLD, Impulse.INCORPORATE_CONTRARY_MOTION)
+            wait(random.uniform(1,2))
+            eventPlayer.startForcingButton(Button.ULTIMATE)
+            eventPlayer.startForcingButton(Button.CROUCH)
+            wait(random.uniform(1,2))
+            eventPlayer.stopForcingButton(Button.ULTIMATE)
+            eventPlayer.stopForcingButton(Button.CROUCH)
+            if eventPlayer.isInAlternateForm() == true:
+                eventPlayer.BotAbilityLock[2] = true
+                eventPlayer.forceButtonPress(Button.ABILITY_1)
+            wait(10)
+            eventPlayer.BotAbilityLock[1] = false
+        else:
+            eventPlayer.forceButtonPress(Button.ULTIMATE)
+            wait(10 / UltFrequency)
     
     if RULE_CONDITION:
         goto RULE_START
@@ -4774,7 +4875,7 @@ rule "Bot Abilities: Zarya Ability 1 + 2 Handler A (BB1)":
 
     wait(10)
     eventPlayer.BotAbilityLock[2] -= 1
-    smallMessage(hostPlayer, "zar +1 cd")
+    smallMessage(hostPlayer, "Debug: zar +1 cd")
 
 
 rule "Bot Abilities: Zarya Ability 1 + 2 Handler B (BB1)":
@@ -4789,9 +4890,10 @@ rule "Bot Abilities: Zarya Ability 1 + 2 Handler B (BB1)":
 
     wait(10)
     eventPlayer.BotAbilityLock[2] -= 1
-    smallMessage(hostPlayer, "zar +1 cd")
+    smallMessage(hostPlayer, "Debug: zar +1 cd")
 
 
+# Having this rule to trigger by false < 2 is kinda jank? But wasting a rule on init isn't worth it
 rule "Bot Abilities: Zarya Ability 1 (BB1 + Rb)":
     @Event eachPlayer
     @Team 2
@@ -4845,19 +4947,20 @@ rule "Bot Abilities: Zarya Ultimate (BB2)":
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.BotAbilityLock[4] == false
 
-    wait(random.uniform(10,20), Wait.ABORT_WHEN_FALSE)
-    eventPlayer.ProjType = "ultimate"
-    SetProjectileFacing()
-    wait(0.1)
-    eventPlayer.BotAbilityLock[4] = true
-    eventPlayer.forceButtonPress(Button.ULTIMATE)
-    if distance(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition()) < 15:
-        SetDefaultFacing()
-    else:
-        eventPlayer.ProjType = "secondary"
-    wait(10)
-    eventPlayer.BotAbilityLock[4] = false
-    wait
+    wait(10 / UltFrequency)
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 3:
+        eventPlayer.ProjType = "ultimate"
+        SetProjectileFacing()
+        wait(0.1)
+        eventPlayer.BotAbilityLock[4] = true
+        eventPlayer.forceButtonPress(Button.ULTIMATE)
+        if distance(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition()) < 15:
+            SetDefaultFacing()
+        else:
+            eventPlayer.ProjType = "secondary"
+        wait(10 / UltFrequency)
+        eventPlayer.BotAbilityLock[4] = false
         
     if RULE_CONDITION:
         goto RULE_START
@@ -4865,13 +4968,12 @@ rule "Bot Abilities: Zarya Ultimate (BB2)":
         
 ## DPS Bot Abilities
 ### Ashe Bot Abilities
-rule "Bot Abilities: Ashe Scope (Default)":
+rule "Bot Abilities: Ashe Scope (Pn)":
     @Event eachPlayer
     @Team 2
     @Hero ashe
     @Condition BotsUseAbilities == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
     @Condition eventPlayer.ApplyPressure == false
     
     wait(random.uniform(0, 2), Wait.ABORT_WHEN_FALSE)
@@ -4882,84 +4984,175 @@ rule "Bot Abilities: Ashe Scope (Default)":
         goto RULE_START
 
 
+rule "Bot Pressure: Ashe Primary Close (P)":
+    @Event eachPlayer
+    @Team 2
+    @Hero ashe
+    @Condition eventPlayer.ApplyPressure == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[3] == false
+    @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 10
+
+    eventPlayer.AbilityAcc = 2
+    SetDefaultFacing()
+    eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
+    eventPlayer.Randomizer = random.randint(1,11)
+    while eventPlayer.getAmmo(0) >= eventPlayer.Randomizer:
+        eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
+        wait(0.33, Wait.ABORT_WHEN_FALSE)
+    eventPlayer.forceButtonPress(Button.RELOAD)
+    wait(random.uniform(2,4), Wait.ABORT_WHEN_FALSE)
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Pressure: Ashe Primary Far (P)":
+    @Event eachPlayer
+    @Team 2
+    @Hero ashe
+    @Condition eventPlayer.ApplyPressure == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[3] == false
+    @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) >= 10
+
+    eventPlayer.AbilityAcc = 2
+    SetDefaultFacing()
+    eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
+    wait(0.5)
+    eventPlayer.Randomizer = random.randint(1,11)
+    while eventPlayer.getAmmo(0) >= eventPlayer.Randomizer:
+        eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
+        wait(0.33, Wait.ABORT_WHEN_FALSE)
+    eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
+    eventPlayer.forceButtonPress(Button.RELOAD)
+    wait(random.uniform(2,4), Wait.ABORT_WHEN_FALSE)
+    if RULE_CONDITION:
+        goto RULE_START
+
+
 rule "Bot Abilities: Ashe Ability 1 (All)":
     @Event eachPlayer
     @Team 2
     @Hero ashe
     @Condition BotsUseAbilities == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
-    @Condition eventPlayer.getNormalizedHealth() != 1
+    @Condition eventPlayer.BotAbilityLock[2] == false
 
-    wait(random.uniform(0,3), Wait.ABORT_WHEN_FALSE)
+    wait(random.uniform(3,7), Wait.ABORT_WHEN_FALSE)
+    smallMessage(hostPlayer, "Debug: ashe a1 a")
+    eventPlayer.BotAbilityLock[2] = true
     eventPlayer.startFacing(vect(random.uniform(-20,20) + eventPlayer.getEyePosition().x , random.uniform(-20,0) + eventPlayer.getEyePosition().y ,random.uniform(-20,20) + eventPlayer.getEyePosition().z), 1000, Relativity.TO_WORLD, FacingReeval.NONE)
-    wait(0.5)
+    wait(0.1)
     eventPlayer.forceButtonPress(Button.ABILITY_1)
-    wait(0.5)
+    wait(0.1)
     SetDefaultFacing()
     wait(10)
+    eventPlayer.BotAbilityLock[2] = false
     if RULE_CONDITION:
         goto RULE_START
 
 
-rule "Bot Pressure: Ashe Primary Close (Pressure)":
+rule "Bot Abilities: Ashe Ability 1 (R)":
     @Event eachPlayer
     @Team 2
     @Hero ashe
-    @Condition eventPlayer.ApplyPressure == true
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
     @Condition eventPlayer.isAlive() == true
-    @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 10
+    @Condition eventPlayer.getNormalizedHealth() < 0.5
+    @Condition eventPlayer.BotAbilityLock[2] == false
+    @Condition distance(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition()) < 5
 
-    eventPlayer.AbilityAcc = 2
+    wait(random.uniform(1,2), Wait.ABORT_WHEN_FALSE)
+    smallMessage(hostPlayer, "Debug: ashe a1 R")
+    eventPlayer.BotAbilityLock[2] = true
+    eventPlayer.startFacing(vect(random.uniform(-20,20) + eventPlayer.getEyePosition().x , random.uniform(-20,0) + eventPlayer.getEyePosition().y ,random.uniform(-20,20) + eventPlayer.getEyePosition().z), 1000, Relativity.TO_WORLD, FacingReeval.NONE)
+    wait(0.1)
+    eventPlayer.forceButtonPress(Button.ABILITY_1)
+    wait(0.1)
     SetDefaultFacing()
-    eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
-    eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
-    wait(0.33, Wait.ABORT_WHEN_FALSE)
-    eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
-    wait(0.33, Wait.ABORT_WHEN_FALSE)
-    eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
-    wait(0.33, Wait.ABORT_WHEN_FALSE)
-    eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
-    wait(0.33, Wait.ABORT_WHEN_FALSE)
-    eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
-    wait(0.33, Wait.ABORT_WHEN_FALSE)
-    eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
-    wait(0.33, Wait.ABORT_WHEN_FALSE)
-    eventPlayer.forceButtonPress(Button.RELOAD)
-    wait(3, Wait.ABORT_WHEN_FALSE)
+    wait(10)
+    eventPlayer.BotAbilityLock[2] = false
+
     if RULE_CONDITION:
         goto RULE_START
 
 
-rule "Bot Pressure: Ashe Primary Far (Pressure)":
+rule "Bot Abilities: Ashe Ability 1 (Rd)":
     @Event eachPlayer
     @Team 2
     @Hero ashe
-    @Condition eventPlayer.ApplyPressure == true
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
     @Condition eventPlayer.isAlive() == true
-    @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) >= 10
+    @Condition eventPlayer.BotAbilityLock[2] == false
+    @Condition eventPlayer.LookTarget.PlayerUsedDodgeCD > 0
+    @Condition eventPlayer.LookTarget.PlayerUsedDodgeCD >= eventPlayer.LookTarget.AbilityReactChance
 
-    eventPlayer.AbilityAcc = 2
+    smallMessage(hostPlayer, "Debug: ashe a1 Rd")
+    eventPlayer.BotAbilityLock[2] = true
+    eventPlayer.startFacing(vect(random.uniform(-20,20) + eventPlayer.getEyePosition().x , random.uniform(-20,0) + eventPlayer.getEyePosition().y ,random.uniform(-20,20) + eventPlayer.getEyePosition().z), 1000, Relativity.TO_WORLD, FacingReeval.NONE)
+    wait(0.1)
+    eventPlayer.forceButtonPress(Button.ABILITY_1)
+    wait(0.1)
     SetDefaultFacing()
-    eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
-    eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
-    wait(0.75, Wait.ABORT_WHEN_FALSE)
-    eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
-    wait(0.75, Wait.ABORT_WHEN_FALSE)
-    eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
-    wait(0.75, Wait.ABORT_WHEN_FALSE)
-    eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
-    wait(0.75, Wait.ABORT_WHEN_FALSE)
-    eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
-    wait(0.75, Wait.ABORT_WHEN_FALSE)
-    eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
-    wait(0.75, Wait.ABORT_WHEN_FALSE)
-    eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
-    eventPlayer.forceButtonPress(Button.RELOAD)
-    wait(3, Wait.ABORT_WHEN_FALSE)
+    wait(10)
+    eventPlayer.BotAbilityLock[2] = false
+
     if RULE_CONDITION:
         goto RULE_START
 
+
+rule "Bot Abilities: Ashe Ability 2 (P)":
+    @Event eachPlayer
+    @Team 2
+    @Hero ashe
+    @Condition BotsUseAbilities == true
+    @Condition BotBehavior[11] >= 1
+    @Condition eventPlayer.ApplyPressure == true
+    @Condition eventPlayer.BotAbilityLock[3] == false
+
+    wait(random.uniform(3,7), Wait.ABORT_WHEN_FALSE)
+    smallMessage(hostPlayer, "Debug ashe a2")
+    eventPlayer.BotAbilityLock[3] = true
+    eventPlayer.BotAbilityVar = eventPlayer.LookTarget.getEyePosition()
+    eventPlayer.startFacing(directionTowards(eventPlayer.getEyePosition(), eventPlayer.BotAbilityVar), 1000, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
+    eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
+    eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
+    eventPlayer.forceButtonPress(Button.ABILITY_2)
+    wait(0.75)
+    eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
+    eventPlayer.BotAbilityLock[3] = false
+    wait(12)
+
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Abilities: Ashe Ultimate (BB2)":
+    @Event eachPlayer
+    @Team 2
+    @Hero ashe
+    @Condition BotsUseAbilities == true
+    @Condition BotBehavior[11] >= 2
+    @Condition eventPlayer.ApplyPressure == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[4] == false
+
+    wait(10 / UltFrequency)
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 3:
+        eventPlayer.ProjType = "ultimate"
+        SetProjectileFacing()
+        wait(0.1)
+        eventPlayer.BotAbilityLock[4] = true
+        eventPlayer.forceButtonPress(Button.ULTIMATE)
+        SetDefaultFacing()
+        wait(10 / UltFrequency)
+        eventPlayer.BotAbilityLock[4] = false
+        
+    if RULE_CONDITION:
+        goto RULE_START
 
 
 ### Bastion Bot Abilities
@@ -4969,7 +5162,6 @@ rule "Bot Abilities: Bastion Primary":
     @Hero bastion
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
 
     eventPlayer.AbilityAcc = 3
     SetDefaultFacing()
@@ -4983,13 +5175,13 @@ rule "Bot Abilities: Bastion Secondary":
     @Event eachPlayer
     @Team 2
     @Hero bastion
+    @Condition BotsUseAbilities == true
+    @Condition BotBehavior[12] >= 1
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
-    @Condition BotsUseAbilities == true
 
     eventPlayer.AbilityAcc = 2
-    wait(random.uniform(0,5), Wait.ABORT_WHEN_FALSE)
+    wait(random.uniform(5,7), Wait.ABORT_WHEN_FALSE)
     eventPlayer.ProjType = "secondary"
     SetProjectileFacing()
     wait(0.1)
@@ -5007,11 +5199,11 @@ rule "Bot Abilities: Bastion Ability 1":
     @Team 2
     @Hero bastion
     @Condition BotsUseAbilities == true
+    @Condition BotBehavior[12] >= 1
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.hasSpawned() == true
-    @Condition eventPlayer.getNormalizedHealth() != 1
     
-    wait(random.uniform(0, 10), Wait.ABORT_WHEN_FALSE)
+    wait(random.uniform(0, 7), Wait.ABORT_WHEN_FALSE)
     eventPlayer.forceButtonPress(Button.ABILITY_1)
     wait(10)
     if RULE_CONDITION:
@@ -5023,22 +5215,57 @@ rule "Bot Abilities: Bastion Jump":
     @Team 2
     @Hero bastion
     @Condition BotsUseAbilities == true
+    @Condition BotBehavior[12] >= 2
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
-    @Condition eventPlayer.getNormalizedHealth() != 1
+    @Condition eventPlayer.BotAbilityLock[1] == false
 
-    wait(random.uniform(0, 10), Wait.ABORT_WHEN_FALSE)
+    wait(random.uniform(3,7), Wait.ABORT_WHEN_FALSE)
+    eventPlayer.BotAbilityLock[1] = true
     eventPlayer.startFacing(vect(random.uniform(-20,20) + eventPlayer.getEyePosition().x , -100 + eventPlayer.getEyePosition().y ,random.uniform(-20,20) + eventPlayer.getEyePosition().z), DefaultTurnRate, Relativity.TO_WORLD, FacingReeval.NONE)
     wait(0.5)
     eventPlayer.forceButtonPress(Button.SECONDARY_FIRE)
     SetDefaultFacing()
-    wait(random.uniform(0.5,2))
+    eventPlayer.Randomizer = random.uniform(0.5,1.5)
+    wait(eventPlayer.Randomizer)
     eventPlayer.forceButtonPress(Button.JUMP)
-    wait(10)
+    wait(8 - eventPlayer.Randomizer)
+
     if RULE_CONDITION:
         goto RULE_START
 
 
+rule "Bot Abilities: Bastion Ultimate":
+    @Event eachPlayer
+    @Team 2
+    @Hero bastion
+    @Condition BotsUseAbilities == true
+    @Condition BotBehavior[12] >= 3
+    @Condition eventPlayer.isAlive() == true
+    
+    wait(10 / UltFrequency)
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 3:
+        eventPlayer.forceButtonPress(Button.ULTIMATE)
+        wait(1)
+        eventPlayer.MvmtTypeLock = true
+        eventPlayer.MvmtType = 3
+        eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
+        wait(random.uniform(0.5,1))
+        eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
+        wait(random.uniform(0.5,1))
+        eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
+        wait(random.uniform(0.5,1))
+        eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
+        eventPlayer.MvmtType = DefaultMvmtType
+        eventPlayer.MvmtTypeLock = false
+        if eventPlayer.ApplyPressure == true:
+            eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
+        wait(10 / UltFrequency)
+
+    if RULE_CONDITION:
+        goto RULE_START
+
+        
 ### Cassidy Bot Abilities
 rule "Bot Abilities: Cassidy Primary":
     @Event eachPlayer
@@ -5046,7 +5273,7 @@ rule "Bot Abilities: Cassidy Primary":
     @Hero mccree
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
+    @Condition eventPlayer.BotAbilityLock[4] == false
 
     eventPlayer.AbilityAcc = 2
     SetDefaultFacing()
@@ -5056,26 +5283,73 @@ rule "Bot Abilities: Cassidy Primary":
         goto RULE_START
 
 
-rule "Bot Abilities: Cassidy Ability 1":
+rule "Bot Abilities: Cassidy Ability 1 (All)":
     @Event eachPlayer
     @Team 2
     @Hero mccree
     @Condition BotsUseAbilities == true
     @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[2] == false
     
-    wait(random.uniform(0, 10), Wait.ABORT_WHEN_FALSE)
+    wait(random.uniform(5, 10), Wait.ABORT_WHEN_FALSE)
+    smallMessage(hostPlayer, "Debug: Cass A1 A")
+    eventPlayer.BotAbilityLock[2] = true
     eventPlayer.forceButtonPress(Button.ABILITY_1)
-    wait(4, Wait.ABORT_WHEN_FALSE)
+    wait(6)
+    eventPlayer.BotAbilityLock[2] = false
     if RULE_CONDITION:
         goto RULE_START
 
 
-rule "Bot Abilities: Cassidy Ability 2":
+rule "Bot Abilities: Cassidy Ability 1 (R)":
     @Event eachPlayer
     @Team 2
     @Hero mccree
-    @Condition eventPlayer.ApplyPressure == true
     @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[2] == false
+    @Condition eventPlayer.getAmmo(0) == 1
+    
+    eventPlayer.Randomizer = random.randint(0,3)
+    if eventPlayer.Randomizer == 0:
+        smallMessage(hostPlayer, "Debug: Cass A1 R")
+        eventPlayer.BotAbilityLock[2] = true
+        eventPlayer.forceButtonPress(Button.ABILITY_1)
+        wait(6)
+        eventPlayer.BotAbilityLock[2] = false
+
+
+rule "Bot Abilities: Cassidy Ability 1 (Rd)":
+    @Event eachPlayer
+    @Team 2
+    @Hero mccree
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[2] == false
+    @Condition eventPlayer.LookTarget.PlayerUsedDodgeCD > 0
+    @Condition eventPlayer.LookTarget.PlayerUsedDodgeCD >= eventPlayer.LookTarget.AbilityReactChance
+    
+    
+    smallMessage(hostPlayer, "Debug: Cass A1 Rd")
+    eventPlayer.BotAbilityLock[2] = true
+    wait(random.uniform(0.5,eventPlayer.LookTarget.PlayerReactTime))
+    eventPlayer.forceButtonPress(Button.ABILITY_1)
+    wait(6)
+    eventPlayer.BotAbilityLock[2] = false
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Abilities: Cassidy Ability 2 (BB1 + R)":
+    @Event eachPlayer
+    @Team 2
+    @Hero mccree
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
+    @Condition eventPlayer.ApplyPressure == true
+    @Condition BotBehavior[13] >= 1
     @Condition eventPlayer.isAlive() == true
     @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 13
     
@@ -5086,41 +5360,38 @@ rule "Bot Abilities: Cassidy Ability 2":
         goto RULE_START
 
 
-
-### Echo Bot Abilities
-rule "Bot Abilities: Echo Fly Ability 1 (All)":
+rule "Bot Abilities: Cassidy Ultimate (BB2)":
     @Event eachPlayer
     @Team 2
-    @Hero echo
-    @Condition eventPlayer.getAltitude() < 3
-    @Condition eventPlayer.isAlive() == true
+    @Hero mccree
     @Condition BotsUseAbilities == true
-    @Condition eventPlayer.hasSpawned() == true
+    @Condition BotBehavior[13] >= 2
+    @Condition eventPlayer.ApplyPressure == true
+    @Condition eventPlayer.isAlive() == true
     
-    eventPlayer.forceButtonPress(Button.ABILITY_1)
-    wait(6)
+    wait(10 / UltFrequency)
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 3:
+        eventPlayer.BotAbilityLock[4] = true
+        eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
+        eventPlayer.forceButtonPress(Button.ULTIMATE)
+        wait(random.uniform(2,5))
+        eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
+        eventPlayer.BotAbilityLock[4] = false
+        wait(10 / UltFrequency)
+
     if RULE_CONDITION:
         goto RULE_START
 
 
-rule "Bot Abilities: Echo Jump (All)":
-    @Event eachPlayer
-    @Team 2
-    @Hero echo
-    @Condition eventPlayer.isAlive() == true
-    @Condition BotsUseAbilities == true
-    @Condition eventPlayer.hasSpawned() == true
-    
-    eventPlayer.startForcingButton(Button.JUMP)
 
-
-rule "Bot Abilities: Echo Primary (Pressure)":
+### Echo Bot Abilities
+rule "Bot Abilities: Echo Primary (P)":
     @Event eachPlayer
     @Team 2
     @Hero echo
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
 
     eventPlayer.AbilityAcc = 2
     eventPlayer.ProjType = "primary"
@@ -5131,14 +5402,15 @@ rule "Bot Abilities: Echo Primary (Pressure)":
         goto RULE_START
 
 
-rule "Bot Abilities: Echo Secondary (Pressure)":
+rule "Bot Abilities: Echo Secondary (P)":
     @Event eachPlayer
     @Team 2
     @Hero echo
+    @Condition BotsUseAbilities == true
+    @Condition BotBehavior[14] >= 1 
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
-    @Condition BotsUseAbilities == true
+    
 
     eventPlayer.AbilityAcc = 2
     eventPlayer.ProjType = "secondary"
@@ -5150,16 +5422,72 @@ rule "Bot Abilities: Echo Secondary (Pressure)":
         goto RULE_START
 
 
-rule "Bot Abilities: Echo Beam (Pressure)":
+rule "Bot Abilities: Echo Ability 1 (All)":
     @Event eachPlayer
     @Team 2
     @Hero echo
+    @Condition BotsUseAbilities == true
+    @Condition eventPlayer.getAltitude() < 3
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[2] == false
+    
+    wait(random.uniform(3,5), Wait.ABORT_WHEN_FALSE)
+    smallMessage(hostPlayer, "Debug: Echo a1 All")
+    eventPlayer.BotAbilityLock[2] = true
+    eventPlayer.Randomizer = random.randint(0,9)
+    if eventPlayer.Randomizer != 0:
+        eventPlayer.startForcingButton(Button.JUMP)
+    eventPlayer.forceButtonPress(Button.ABILITY_1)
+    wait(6)
+    eventPlayer.BotAbilityLock[2] = false
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Abilities: Echo Ability 1 (Rd)":
+    @Event eachPlayer
+    @Team 2
+    @Hero echo
+    @Condition BotsUseAbilities == true
+    @Condition eventPlayer.getAltitude() < 3
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[2] == false
+    @Condition eventPlayer.LookTarget.PlayerUsedDodgeCD > 0
+    @Condition eventPlayer.LookTarget.PlayerUsedDodgeCD >= eventPlayer.LookTarget.AbilityReactChance
+    
+    smallMessage(hostPlayer, "Debug: Echo a1 Rd")
+    eventPlayer.BotAbilityLock[2] = true
+    if eventPlayer.Randomizer != 0:
+        eventPlayer.startForcingButton(Button.JUMP)
+    eventPlayer.forceButtonPress(Button.ABILITY_1)
+    wait(6)
+    eventPlayer.BotAbilityLock[2] = false
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Abilities: Echo Hover Stop (All)":
+    @Event eachPlayer
+    @Team 2
+    @Hero echo
+    @Condition BotsUseAbilities == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isOnGround() == true
+    
+    eventPlayer.stopForcingButton(Button.JUMP)
+
+
+rule "Bot Abilities: Echo Ability 2 (P + R)":
+    @Event eachPlayer
+    @Team 2
+    @Hero echo
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
+    @Condition BotBehavior[14] >= 2
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
-    @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 16
-    @Condition getClosestPlayer(eventPlayer.getEyePosition(), Team.1).getNormalizedHealth() <= 0.6
-    @Condition BotsUseAbilities == true
+    @Condition distance(eventPlayer.getEyePosition(), eventPlayer.LookOffset.getEyePosition()) < 16
+    @Condition eventPlayer.LookTarget.getNormalizedHealth() <= 0.6
                                 
     SetDefaultFacing()
     eventPlayer.startForcingButton(Button.ABILITY_2)
@@ -5170,16 +5498,14 @@ rule "Bot Abilities: Echo Beam (Pressure)":
         goto RULE_START
 
 
-
 ### Genji
-rule "Bot Abilities: Genji Primary (Pressure)":
+rule "Bot Abilities: Genji Primary (P)":
     @Event eachPlayer
     @Team 2
     @Hero genji
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
-    @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) > 10
+    @Condition distance(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition()) > 10
     @Condition eventPlayer.isUsingUltimate() == false
 
     eventPlayer.AbilityAcc = 2
@@ -5192,14 +5518,13 @@ rule "Bot Abilities: Genji Primary (Pressure)":
         goto RULE_START
 
 
-rule "Bot Abilities: Genji Secondary (Pressure)":
+rule "Bot Abilities: Genji Secondary (P)":
     @Event eachPlayer
     @Team 2
     @Hero genji
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
-    @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) <= 10
+    @Condition distance(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition()) <= 10
     @Condition eventPlayer.isUsingUltimate() == false
 
     eventPlayer.AbilityAcc = 2
@@ -5220,7 +5545,6 @@ rule "Bot Abilities: Genji Jump (All)":
     @Condition RandomJumping == true
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.isOnGround() == true
-    @Condition eventPlayer.hasSpawned() == true
     
     wait(random.uniform(0.4, 0.9), Wait.ABORT_WHEN_FALSE)
     eventPlayer.forceButtonPress(Button.JUMP)
@@ -5228,37 +5552,97 @@ rule "Bot Abilities: Genji Jump (All)":
     eventPlayer.forceButtonPress(Button.JUMP)
 
 
-rule "Bot Abilities: Genji Ability 1 (All)":
+rule "Bot Abilities: Genji Ability 1 Randomized (All)":
     @Event eachPlayer
     @Team 2
     @Hero genji
     @Condition BotsUseAbilities == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.getNormalizedHealth() != 1
-    @Condition eventPlayer.hasSpawned() == true
-    @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 15
+    @Condition eventPlayer.BotAbilityLock[2] == false
     @Condition eventPlayer.isUsingUltimate() == false
     @Condition eventPlayer.isUsingAbility2() == false
-    
 
+    wait(random.uniform(4,7), Wait.ABORT_WHEN_FALSE)
+    eventPlayer.BotAbilityLock[2] = true
+    smallMessage(hostPlayer, "Debug: genji a1 A")
     eventPlayer.Randomizer = random.randint(0, 2)
-    if eventPlayer.Randomizer == 0:
+    if eventPlayer.Randomizer >= 1:
         eventPlayer.ProjType = "ability 1"
         SetProjectileFacing()
-        wait(0.5)
-        eventPlayer.forceButtonPress(Button.ABILITY_1)
-        wait(0.5)
-    if eventPlayer.Randomizer == 1:
+    else:
         eventPlayer.startFacing(vect(random.uniform(-20,20) + eventPlayer.getEyePosition().x ,random.uniform(-5,20) + eventPlayer.getEyePosition().y ,random.uniform(-20,20) + eventPlayer.getEyePosition().z), DefaultTurnRate, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
-        wait(0.5)
-        eventPlayer.forceButtonPress(Button.ABILITY_1)
-        wait(0.5)
+    wait(0.25)
+    eventPlayer.forceButtonPress(Button.ABILITY_1)
+    wait(0.25)
     if eventPlayer.ApplyPressure == true:
         eventPlayer.ProjType = "primary"
         SetProjectileFacing()
     else:
         SetDefaultFacing()    
-    wait(6)
+    wait(8)
+    eventPlayer.BotAbilityLock[2] = false
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Abilities: Genji Ability 1 (Rd)":
+    @Event eachPlayer
+    @Team 2
+    @Hero genji
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[2] == false
+    @Condition eventPlayer.isUsingUltimate() == false
+    @Condition eventPlayer.isUsingAbility2() == false
+    @Condition eventPlayer.LookTarget.PlayerUsedDodgeCD > 0
+    @Condition eventPlayer.LookTarget.PlayerUsedDodgeCD >= eventPlayer.LookTarget.AbilityReactChance
+    
+    eventPlayer.BotAbilityLock[2] = true
+    smallMessage(hostPlayer, "Debug: genji a1 Rd")
+    eventPlayer.Randomizer = random.randint(0, 2)
+    if eventPlayer.Randomizer == 0:
+        eventPlayer.ProjType = "ability 1"
+        SetProjectileFacing()
+    else:
+        eventPlayer.startFacing(vect(random.uniform(-20,20) + eventPlayer.getEyePosition().x ,random.uniform(-5,20) + eventPlayer.getEyePosition().y ,random.uniform(-20,20) + eventPlayer.getEyePosition().z), DefaultTurnRate, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
+    wait(0.25)
+    eventPlayer.forceButtonPress(Button.ABILITY_1)
+    wait(0.25)
+    if eventPlayer.ApplyPressure == true:
+        eventPlayer.ProjType = "primary"
+        SetProjectileFacing()
+    else:
+        SetDefaultFacing()    
+    wait(8)
+    eventPlayer.BotAbilityLock[2] = false
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Abilities: Genji Ability 1 (R + P)":
+    @Event eachPlayer
+    @Team 2
+    @Hero genji
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
+    @Condition eventPlayer.ApplyPressure == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[2] == false
+    @Condition eventPlayer.isUsingUltimate() == false
+    @Condition eventPlayer.isUsingAbility2() == false
+    @Condition eventPlayer.LookTarget.getNormalizedHealth() <= 0.4
+    
+    eventPlayer.BotAbilityLock[2] = true
+    smallMessage(hostPlayer, "Debug: genji a1 R")
+    eventPlayer.ProjType = "ability 1"
+    SetProjectileFacing()
+    wait(0.25)
+    eventPlayer.forceButtonPress(Button.ABILITY_1)
+    wait(0.25)
+    eventPlayer.ProjType = "primary"
+    wait(8)
+    eventPlayer.BotAbilityLock[2] = false
     if RULE_CONDITION:
         goto RULE_START
 
@@ -5268,66 +5652,92 @@ rule "Bot Abilities: Genji Ability 2 (All)":
     @Team 2
     @Hero genji
     @Condition BotsUseAbilities == true
+    @Condition BotsReact == false
+    @Condition BotBehavior[15] >= 1
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.getNormalizedHealth() != 1
-    @Condition eventPlayer.hasSpawned() == true
     
-    wait(random.uniform(0, 3), Wait.ABORT_WHEN_FALSE)
+    wait(random.uniform(5, 10), Wait.ABORT_WHEN_FALSE)
+    eventPlayer.BotAbilityLock[3] = true
     wait(0.1)
     eventPlayer.forceButtonPress(Button.ABILITY_2)
-
     wait(8)
+    eventPlayer.BotAbilityLock[3] = false
     if RULE_CONDITION:
         goto RULE_START
+
+
+rule "Bot Abilities: Genji Ability 2 (Rb)":
+    @Event eachPlayer
+    @Team 2
+    @Hero genji
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == false
+    @Condition BotBehavior[15] >= 1
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[3] == false
+    @Condition eventPlayer.LookTarget.PlayerUsedBlockCD > 0
+    @Condition eventPlayer.LookTarget.PlayerUsedBlockCD >= eventPlayer.LookTarget.AbilityReactChance
+    
+    wait(random.uniform(0,0.5))
+    eventPlayer.BotAbilityLock[3] = true
+    eventPlayer.forceButtonPress(Button.ABILITY_2)
+    wait(8)
+    eventPlayer.BotAbilityLock[3] = false
+    if RULE_CONDITION:
+        goto RULE_START
+
 
 rule "Bot Abilities: Genji Ultimate (All)":
     @Event eachPlayer
     @Team 2
     @Hero genji
     @Condition BotsUseAbilities == true
+    @Condition BotBehavior[15] >= 2
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
-    @Condition eventPlayer.getNormalizedHealth() != 1
-    @Condition AdvancedStrafes == true
 
-    wait(random.uniform(0, 10), Wait.ABORT_WHEN_FALSE)
-    eventPlayer.Randomizer = random.randint(0, 2)
-    if eventPlayer.Randomizer == 0:
-        eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
-        eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
-        eventPlayer.forceButtonPress(Button.ULTIMATE)
-        eventPlayer.AltMvmtLock = true
-        eventPlayer.AltMvmt = 2
-    while eventPlayer.isUsingUltimate():
-        if eventPlayer.ApplyPressure == false:
-            eventPlayer.startFacing(vect(random.uniform(-20,20) + eventPlayer.getEyePosition().x ,random.uniform(-5,20) + eventPlayer.getEyePosition().y ,random.uniform(-20,20) + eventPlayer.getEyePosition().z), DefaultTurnRate, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
+    wait(10 / UltFrequency)
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 3:
+        eventPlayer.Randomizer = random.randint(0, 2)
+        if eventPlayer.Randomizer == 0:
+            eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
+            eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
+            eventPlayer.forceButtonPress(Button.ULTIMATE)
+            eventPlayer.MvmtTypeLock = true
+            eventPlayer.MvmtType = 3
+        while eventPlayer.isUsingUltimate():
+            wait(random.uniform(0,1))
+            if eventPlayer.ApplyPressure == false:
+                eventPlayer.startFacing(vect(random.uniform(-20,20) + eventPlayer.getEyePosition().x ,random.uniform(-5,20) + eventPlayer.getEyePosition().y ,random.uniform(-20,20) + eventPlayer.getEyePosition().z), DefaultTurnRate, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
+            else:
+                eventPlayer.ProjType = "ability 1"
+                SetProjectileFacing()
+            wait(0.25)
+            eventPlayer.forceButtonPress(Button.ABILITY_1)
+            if eventPlayer.ApplyPressure == true:
+                eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
+                SetDefaultFacing()
+            wait(random.uniform(2,3), Wait.ABORT_WHEN_FALSE)
+        eventPlayer.MvmtType = DefaultMvmtType
+        eventPlayer.MvmtTypeLock = false
+        if eventPlayer.ApplyPressure == true:
+            eventPlayer.ProjType = "primary"
+            SetProjectileFacing()
         else:
-            eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
             SetDefaultFacing()
-        wait(random.uniform(0,1))
-        eventPlayer.ProjType = "ability 1"
-        SetProjectileFacing()
-        eventPlayer.forceButtonPress(Button.ABILITY_1)
-        wait(2, Wait.ABORT_WHEN_FALSE)
-    eventPlayer.AltMvmt = 0
-    eventPlayer.AltMvmtLock = false
-    if eventPlayer.ApplyPressure == true:
-        eventPlayer.ProjType = "primary"
-        SetProjectileFacing()
-    else:
-        SetDefaultFacing()
+        wait(10 / UltFrequency)
+
     if RULE_CONDITION:
         goto RULE_START
 
 
 ### Hanzo Bot Abilities
-rule "Bot Abilities: Hanzo Primary (Pressure)":
+rule "Bot Abilities: Hanzo Primary (P)":
     @Event eachPlayer
     @Team 2
     @Hero hanzo
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
 
     eventPlayer.AbilityAcc = 2
     eventPlayer.ProjType = "primary"
@@ -5340,22 +5750,48 @@ rule "Bot Abilities: Hanzo Primary (Pressure)":
         goto RULE_START
 
 
-rule "Bot Abilities: Hanzo Storm (Pressure)":
+rule "Bot Abilities: Hanzo Ability 2 (P + BB1)":
     @Event eachPlayer
     @Team 2
     @Hero hanzo
+    @Condition BotsUseAbilities == true
+    @Condition BotBehavior[16] >= 1
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
-    @Condition BotsUseAbilities == true
+
 
     eventPlayer.AbilityAcc = 2
-    wait(3, Wait.ABORT_WHEN_FALSE)
+    wait(random.uniform(5,10), Wait.ABORT_WHEN_FALSE)
     eventPlayer.forceButtonPress(Button.ABILITY_2)
-    wait(random.uniform(7,15))
+    wait(10)
     if RULE_CONDITION:
         goto RULE_START
 
+
+rule "Bot Abilities: Hanzo Ultimate (BB2)":
+    @Event eachPlayer
+    @Team 2
+    @Hero hanzo
+    @Condition BotsUseAbilities == true
+    @Condition BotBehavior[16] >= 2
+    @Condition eventPlayer.ApplyPressure == true
+    @Condition eventPlayer.isAlive() == true
+    
+    wait(10 / UltFrequency)
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 3:
+        eventPlayer.BotAbilityLock[4] = true
+        eventPlayer.startFacing(directionTowards(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition() + vect(random.uniform(-20,20),0,random.uniform(-20,20))), 1000, Relativity.TO_WORLD, FacingReeval.NONE)
+        eventPlayer.forceButtonPress(Button.ULTIMATE)
+        wait(2)
+        if eventPlayer.ApplyPressure == true:
+            SetProjectileFacing()
+        else:
+            SetDefaultFacing()
+        eventPlayer.BotAbilityLock[4] = false
+        wait(10 / UltFrequency)
+    if RULE_CONDITION:
+        goto RULE_START
 
 
 rule "Bot Abilities: Hanzo Jump (All)":
@@ -5365,24 +5801,53 @@ rule "Bot Abilities: Hanzo Jump (All)":
     @Condition RandomJumping == true
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.isOnGround() == true
-    @Condition eventPlayer.hasSpawned() == true
+    @Condition eventPlayer.BotAbilityLock[1] == false
     
-    wait(random.uniform(0.4, 0.9), Wait.ABORT_WHEN_FALSE)
+    wait(random.uniform(4,7), Wait.ABORT_WHEN_FALSE)
+    smallMessage(hostPlayer, "Debug: Hanzo jump All")
+    eventPlayer.BotAbilityLock[1] = true
+    wait(random.uniform(0.4, 0.9))
     eventPlayer.forceButtonPress(Button.JUMP)
     wait(random.uniform(0.2, 0.5))
     eventPlayer.forceButtonPress(Button.JUMP)
-    wait(4.4)
+    wait(4)
+    eventPlayer.BotAbilityLock[1] = false
+
     if RULE_CONDITION:
         goto RULE_START
 
 
-rule "Bot Abilities: Hanzo Draw (Default)":
+rule "Bot Abilities: Hanzo Jump (Rd)":
+    @Event eachPlayer
+    @Team 2
+    @Hero hanzo
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isOnGround() == true
+    @Condition eventPlayer.BotAbilityLock[1] == false
+    @Condition eventPlayer.LookTarget.PlayerUsedDodgeCD > 0
+    @Condition eventPlayer.LookTarget.PlayerUsedDodgeCD >= eventPlayer.LookTarget.AbilityReactChance
+
+    smallMessage(hostPlayer, "Debug: Hanzo jump Rd")
+    eventPlayer.BotAbilityLock[1] = true
+    wait(random.uniform(0, eventPlayer.LookTarget.PlayerReactTime))
+    eventPlayer.forceButtonPress(Button.JUMP)
+    wait(random.uniform(0.2, 0.5))
+    eventPlayer.forceButtonPress(Button.JUMP)
+    wait(4)
+    eventPlayer.BotAbilityLock[1] = false
+    
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Abilities: Hanzo Draw (Pn)":
     @Event eachPlayer
     @Team 2
     @Hero hanzo
     @Condition BotsUseAbilities == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
     @Condition eventPlayer.ApplyPressure == false
     
     wait(random.uniform(0.5, 3), Wait.ABORT_WHEN_FALSE)
@@ -5395,13 +5860,12 @@ rule "Bot Abilities: Hanzo Draw (Default)":
 
 
 ### Junkrat Bot Abilities
-rule "Bot Abilities: Junkrat Primary (Pressure)":
+rule "Bot Abilities: Junkrat Primary (P)":
     @Event eachPlayer
     @Team 2
     @Hero junkrat
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
 
     eventPlayer.AbilityAcc = 2
     eventPlayer.ProjType = "primary"
@@ -5412,22 +5876,51 @@ rule "Bot Abilities: Junkrat Primary (Pressure)":
         goto RULE_START
 
 
-rule "Bot Abilities: Junkrat Secondary (Pressure)":
+rule "Bot Abilities: Junkrat Ability 1 Handler A (BB1)":
     @Event eachPlayer
     @Team 2
     @Hero junkrat
+    @Condition BotsUseAbilities == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[2] == 1
+
+    wait(8)
+    eventPlayer.BotAbilityLock[2] -= 1
+    smallMessage(hostPlayer, "Debug: junkrat +1 cd")
+
+
+rule "Bot Abilities: Junkrat Ability 1 Handler B (BB1)":
+    @Event eachPlayer
+    @Team 2
+    @Hero junkrat
+    @Condition BotsUseAbilities == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[2] == 2
+
+    wait(8)
+    eventPlayer.BotAbilityLock[2] -= 1
+    smallMessage(hostPlayer, "Debug: junkrat +1 cd")
+
+
+rule "Bot Abilities: Junkrat Ability 1 + Secondary (P)":
+    @Event eachPlayer
+    @Team 2
+    @Hero junkrat
+    @Condition BotsUseAbilities == true
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
-    @Condition BotsUseAbilities == true
+    @Condition eventPlayer.BotAbilityLock[2] < 2
 
-    eventPlayer.AbilityAcc = 2
     wait(random.uniform(3,7), Wait.ABORT_WHEN_FALSE)
+    if eventPlayer.BotAbilityLock[2] == false:
+        eventPlayer.BotAbilityLock[2] = 0
+    eventPlayer.BotAbilityLock[2] += 1
+    eventPlayer.AbilityAcc = 2
     eventPlayer.ProjType = "secondary"
     eventPlayer.forceButtonPress(Button.ABILITY_1)
     wait(0.1)
     eventPlayer.ProjType = "primary"
-    wait(random.uniform(0.5,2), Wait.ABORT_WHEN_FALSE)
+    wait(random.uniform(0.5,2))
     eventPlayer.forceButtonPress(Button.SECONDARY_FIRE)
     wait(5)
     if RULE_CONDITION:
@@ -5435,51 +5928,87 @@ rule "Bot Abilities: Junkrat Secondary (Pressure)":
 
 
 
-rule "Bot Abilities: Junkrat Conc Movement (All)":
+rule "Bot Abilities: Junkrat Ability 1 + Secondary Movement (All)":
     @Event eachPlayer
     @Team 2
     @Hero junkrat
     @Condition BotsUseAbilities == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
 
     wait(random.uniform(10, 20), Wait.ABORT_WHEN_FALSE)
-    eventPlayer.Randomizer = random.randint(0,1)
-    if eventPlayer.Randomizer == 0:
-        eventPlayer.startFacing(vect(eventPlayer.getEyePosition().x, eventPlayer.getEyePosition().y - 100, eventPlayer.getEyePosition().z), DefaultTurnRate, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
-        eventPlayer.forceButtonPress(Button.ABILITY_1)
-        wait(random.uniform(0.1,1), Wait.ABORT_WHEN_FALSE)
-        eventPlayer.forceButtonPress(Button.SECONDARY_FIRE)
-        if eventPlayer.ApplyPressure == true:
-            SetProjectileFacing()
-        else:
-            SetDefaultFacing()
-    elif AdvancedStrafes == true and eventPlayer.Randomizer == 1:
-        eventPlayer.startFacing(vect(eventPlayer.getEyePosition().x, eventPlayer.getEyePosition().y - 100, eventPlayer.getEyePosition().z), DefaultTurnRate, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
-        eventPlayer.forceButtonPress(Button.ABILITY_1)
-        wait(random.uniform(0.1,1), Wait.ABORT_WHEN_FALSE)
-        eventPlayer.forceButtonPress(Button.SECONDARY_FIRE)
+    if eventPlayer.BotAbilityLock[2] == false:
+        eventPlayer.BotAbilityLock[2] = 0
+    eventPlayer.BotAbilityLock[2] += 1
+    eventPlayer.startFacing(eventPlayer.getEyePosition() + vect(0,-100,0), DefaultTurnRate, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
+    eventPlayer.forceButtonPress(Button.ABILITY_1)
+    wait(random.uniform(0.1,1), Wait.ABORT_WHEN_FALSE)
+    eventPlayer.forceButtonPress(Button.SECONDARY_FIRE)
+    if eventPlayer.BotAbilityLock[2] < 2:
+        wait(random.uniform(0.1,0.5), Wait.ABORT_WHEN_FALSE)
         eventPlayer.forceButtonPress(Button.ABILITY_1)
         wait(random.uniform(0.1,0.3), Wait.ABORT_WHEN_FALSE)
         eventPlayer.forceButtonPress(Button.SECONDARY_FIRE)
-        if eventPlayer.ApplyPressure == true:
-            SetProjectileFacing()
-        else:
-            SetDefaultFacing()
+    if eventPlayer.ApplyPressure == true:
+        SetProjectileFacing()
+    else:
+        SetDefaultFacing()
+
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Abilities: Junkrat Ability 2 (BB1)":
+    @Event eachPlayer
+    @Team 2
+    @Hero junkrat
+    @Condition BotsUseAbilities == true
+    @Condition BotBehavior[17] >= 1
+    @Condition eventPlayer.isAlive() == true
+
+    wait(random.uniform(3,7), Wait.ABORT_WHEN_FALSE)
+    eventPlayer.forceButtonPress(Button.ABILITY_2)
+    wait(10)
+
+    if RULE_CONDITION:
+        goto RULE_START
+
+        
+
+rule "Bot Abilities: Junkrat Ultimate":
+    @Event eachPlayer
+    @Team 2
+    @Hero junkrat
+    @Condition BotsUseAbilities == true
+    @Condition BotBehavior[17] >= 2
+    @Condition eventPlayer.isAlive() == true
+    
+    wait(10 / UltFrequency)
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 3:
+        eventPlayer.forceButtonPress(Button.ULTIMATE)
+        while eventPlayer.isUsingUltimate():
+            eventPlayer.startFacing(vect(random.uniform(-100,100),random.uniform(-100,100),random.uniform(-100,100)), 1000, Relativity.TO_WORLD, FacingReeval.NONE)
+            wait(0.5)
+            eventPlayer.Randomizer = random.uniform(0,9)
+            if eventPlayer.Randomizer == 0:
+                eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
+        wait(10 / UltFrequency)
 
     if RULE_CONDITION:
         goto RULE_START
 
 
 ### Mei Bot Abilities
-rule "Bot Pressure: Mei Primary (Pressure)":
+rule "Bot Pressure: Mei Primary (P)":
     @Event eachPlayer
     @Team 2
     @Hero mei
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
-    @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 10
+    @Condition eventPlayer.BotAbilityLock[2] == false
+    @Condition eventPlayer.BotAbilityLock[3] == false
+    @Condition eventPlayer.BotAbilityLock[4] == false
+    @Condition distance(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition()) < 10
 
     eventPlayer.AbilityAcc = 2
     eventPlayer.ProjType = "primary"
@@ -5491,14 +6020,16 @@ rule "Bot Pressure: Mei Primary (Pressure)":
         goto RULE_START
 
 
-rule "Bot Pressure: Mei Secondary  (Pressure)":
+rule "Bot Pressure: Mei Secondary (P)":
     @Event eachPlayer
     @Team 2
     @Hero mei
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
-    @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) >= 10
+    @Condition eventPlayer.BotAbilityLock[2] == false
+    @Condition eventPlayer.BotAbilityLock[3] == false
+    @Condition eventPlayer.BotAbilityLock[4] == false
+    @Condition distance(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition()) >= 10
 
     eventPlayer.AbilityAcc = 2
     eventPlayer.ProjType = "secondary"
@@ -5510,63 +6041,88 @@ rule "Bot Pressure: Mei Secondary  (Pressure)":
         goto RULE_START
 
 
-rule "Bot Abilities: Mei Ability 1 (All)":
+rule "Bot Abilities: Mei Ability 1 (R)":
     @Event eachPlayer
     @Team 2
     @Hero mei
     @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
+    @Condition eventPlayer.BotAbilityLock[2] == false
     @Condition eventPlayer.getNormalizedHealth() <= 0.5
     
     wait(random.uniform(0, 5), Wait.ABORT_WHEN_FALSE)
+    eventPlayer.BotAbilityLock[2] = true
+    eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
     eventPlayer.forceButtonPress(Button.ABILITY_1)
+    wait(random.uniform(1,3))
+    eventPlayer.BotAbilityLock[2] = false
     wait(12)
     if RULE_CONDITION:
         goto RULE_START
 
 
-rule "Bot Pressure: Mei Ability 2 (Reactive)":
+rule "Bot Pressure: Mei Ability 2 (R)":
     @Event eachPlayer
     @Team 2
     @Hero mei
-    @Condition eventPlayer.ApplyPressure == true
-    @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
     @Condition BotsUseAbilities == true
     @Condition BotsReact == true
-    @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 12
+    @Condition BotBehavior[18] >= 1
+    @Condition eventPlayer.ApplyPressure == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[3] == false
+    @Condition distance(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition()) < 12
 
     wait(random.uniform(1,5), Wait.ABORT_WHEN_FALSE)
     eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
     eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
+    eventPlayer.BotAbilityLock[3] = true
     eventPlayer.ProjType = "off"
-    eventPlayer.startFacing(directionTowards(eventPlayer.getEyePosition(), sorted(Playerlist, lambda player: distance(eventPlayer.getEyePosition(), player.getEyePosition()))[0].getPosition() + vect(0,0.18,0)), 1000, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
+    eventPlayer.startFacing(directionTowards(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getPosition() + vect(0,0.18,0)), 1000, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
     wait(0.1)
     eventPlayer.forceButtonPress(Button.ABILITY_2)
     wait(0.1)
     eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
     wait(0.1)
-    if distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 10:
-        eventPlayer.ProjType = "primary"
-        eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
-    else:
-        eventPlayer.ProjType = "secondary"
-        eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
-    SetProjectileFacing()
+    SetDefaultFacing()
+    eventPlayer.BotAbilityLock[3] = false
     wait(12)
     if RULE_CONDITION:
         goto RULE_START
 
 
+rule "Bot Abilities: Mei Ultimate (All)":
+    @Event eachPlayer
+    @Team 2
+    @Hero mei
+    @Condition BotsUseAbilities == true
+    @Condition BotBehavior[18] >= 2
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[4] == false
+    
+    wait(10 / UltFrequency)
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 3:
+        eventPlayer.BotAbilityLock[4] = true
+        eventPlayer.ProjType = "ultimate"
+        SetProjectileFacing()
+        wait(0.1)
+        eventPlayer.forceButtonPress(Button.ULTIMATE)
+        SetDefaultFacing()
+        eventPlayer.BotAbilityLock[4] = false
+        wait(10 / UltFrequency)
+    if RULE_CONDITION:
+        goto RULE_START
+
+
 ### Pharah Bot Abilities
-rule "Bot Pressure: Pharah Primary":
+rule "Bot Pressure: Pharah Primary (P)":
     @Event eachPlayer
     @Team 2
     @Hero pharah
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
 
     eventPlayer.AbilityAcc = 2
     eventPlayer.ProjType = "primary"
@@ -5576,45 +6132,130 @@ rule "Bot Pressure: Pharah Primary":
     if RULE_CONDITION:
         goto RULE_START
 
-rule "Bot Abilities: Pharah Fly BotUsingFuel Vertical speed < -5.7":
+
+rule "Bot Abilities: Pharah Ability 1 (All)":
     @Event eachPlayer
     @Team 2
     @Hero pharah
-    @Condition eventPlayer.getVerticalSpeed() < -5.7
-    @Condition eventPlayer.isAlive() == true
     @Condition BotsUseAbilities == true
-    @Condition eventPlayer.isOnGround() == false
-    @Condition eventPlayer.hasSpawned() == true
-    
-    eventPlayer.startForcingButton(Button.JUMP)
-
-
-rule "Bot Abilities: Pharah Fly BotUsingFuel, Stop - Vertical speed > 3.5":
-    @Event eachPlayer
-    @Team 2
-    @Hero pharah
-    @Condition eventPlayer.getVerticalSpeed() > 3.5
-    @Condition eventPlayer.isAlive() == true
-    @Condition BotsUseAbilities == true
-    @Condition eventPlayer.isOnGround() == false
-    @Condition eventPlayer.hasSpawned() == true
-    
-    eventPlayer.stopForcingButton(Button.JUMP)
-
-
-rule "Bot Abilities: Pharah Fly Bot JumpJet2":
-    @Event eachPlayer
-    @Team 2
-    @Hero pharah
     @Condition eventPlayer.getAltitude() < 5.5
     @Condition eventPlayer.isAlive() == true
-    @Condition BotsUseAbilities == true
-    @Condition eventPlayer.hasSpawned() == true
+    
     
     eventPlayer.forceButtonPress(Button.ABILITY_1)
     wait(3)
     if RULE_CONDITION:
         goto RULE_START
+
+
+rule "Bot Abilities: Pharah Ability 2 (BB1)":
+    @Event eachPlayer
+    @Team 2
+    @Hero pharah
+    @Condition BotsUseAbilities == true
+    @Condition BotBehavior[19] >= 1
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[3] == false
+    
+    smallMessage(hostPlayer, "Debug: Pharah a2 all")
+    wait(random.uniform(3,7), Wait.ABORT_WHEN_FALSE)
+    eventPlayer.BotAbilityLock[3] = true
+    eventPlayer.ProjType = "ability 2"
+    SetProjectileFacing()
+    wait(0.1)
+    eventPlayer.forceButtonPress(Button.ABILITY_2)
+    wait(0.1)
+    if eventPlayer.ApplyPressure == true:
+        eventPlayer.ProjType = "primary"
+        SetProjectileFacing()
+    else:
+        SetDefaultFacing()
+    wait(9)
+    eventPlayer.BotAbilityLock[3] = false
+
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Abilities: Pharah Ability 2 (BB1 + Rd)":
+    @Event eachPlayer
+    @Team 2
+    @Hero pharah
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
+    @Condition BotBehavior[19] >= 1
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[3] == false
+    @Condition eventPlayer.LookTarget.PlayerUsedDodgeCD > 0
+    @Condition eventPlayer.LookTarget.PlayerUsedDodgeCD >= eventPlayer.LookTarget.AbilityReactChance
+    
+    smallMessage(hostPlayer, "Debug: Pharah a2 Rd")
+    eventPlayer.BotAbilityLock[3] = true
+    eventPlayer.ProjType = "ability 2"
+    SetProjectileFacing()
+    wait(0.1)
+    eventPlayer.forceButtonPress(Button.ABILITY_2)
+    wait(0.1)
+    if eventPlayer.ApplyPressure == true:
+        eventPlayer.ProjType = "primary"
+        SetProjectileFacing()
+    else:
+        SetDefaultFacing()
+    wait(9)
+    eventPlayer.BotAbilityLock[3] = false
+
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Abilities: Pharah Ultimate (All)":
+    @Event eachPlayer
+    @Team 2
+    @Hero pharah
+    @Condition BotsUseAbilities == true
+    @Condition BotBehavior[19] >= 2
+    @Condition eventPlayer.isAlive() == true
+    
+    wait(10 / UltFrequency)
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 3:
+        eventPlayer.ProjType = "ultimate"
+        SetProjectileFacing()
+        wait(0.1)
+        eventPlayer.forceButtonPress(Button.ULTIMATE)
+        wait(2.5)
+        if eventPlayer.ApplyPressure == true:
+            eventPlayer.ProjType = "primary"
+            SetProjectileFacing()
+        else:
+            SetDefaultFacing()
+        wait(10 / UltFrequency)
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Abilities: Pharah Hover Falling (All)":
+    @Event eachPlayer
+    @Team 2
+    @Hero pharah
+    @Condition BotsUseAbilities == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isOnGround() == false
+    @Condition eventPlayer.getVerticalSpeed() < -5.7
+    
+    eventPlayer.startForcingButton(Button.JUMP)
+
+
+rule "Bot Abilities: Pharah Hover Too much hover (All)":
+    @Event eachPlayer
+    @Team 2
+    @Hero pharah
+    @Condition BotsUseAbilities == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isOnGround() == false
+    @Condition eventPlayer.getVerticalSpeed() > 3.5
+    
+    eventPlayer.stopForcingButton(Button.JUMP)
 
 
 ### Reaper Bot Abilities
@@ -5624,7 +6265,8 @@ rule "Bot Abilities: Reaper Primary":
     @Hero reaper
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
+    @Condition eventPlayer.BotAbilityLock[2] == false
+    @Condition eventPlayer.BotAbilityLock[3] == false
 
     eventPlayer.AbilityAcc = 3
     SetDefaultFacing()
@@ -5634,18 +6276,66 @@ rule "Bot Abilities: Reaper Primary":
         goto RULE_START
 
 
+rule "Bot Abilities: Reaper Ability 1 (All)":
+    @Event eachPlayer
+    @Team 2
+    @Hero reaper
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == false
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[2] == false
+    
+    wait(random.uniform(5, 10), Wait.ABORT_WHEN_FALSE)
+    eventPlayer.BotAbilityLock[2] = true
+    eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
+    eventPlayer.forceButtonPress(Button.ABILITY_1)
+    wait(random.uniform(0.4,3))
+    if eventPlayer.isUsingAbility1():
+        eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
+    eventPlayer.BotAbilityLock[2] = false
+    wait(8)
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Abilities: Reaper Ability 1 (Rd)":
+    @Event eachPlayer
+    @Team 2
+    @Hero reaper
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == false
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[2] == false
+    @Condition eventPlayer.LookTarget.PlayerUsedDodgeCD > 0
+    @Condition eventPlayer.LookTarget.PlayerUsedDodgeCD >= eventPlayer.LookTarget.AbilityReactChance
+    
+    wait(random.uniform(0.5, eventPlayer.LookTarget.PlayerReactTime), Wait.ABORT_WHEN_FALSE)
+    eventPlayer.BotAbilityLock[2] = true
+    eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
+    eventPlayer.forceButtonPress(Button.ABILITY_1)
+    wait(random.uniform(0.4,3))
+    if eventPlayer.isUsingAbility1():
+        eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
+    eventPlayer.BotAbilityLock[2] = false
+    wait(8)
+    if RULE_CONDITION:
+        goto RULE_START
+
+
 rule "Bot Abilities: Reaper Ability 2":
     @Event eachPlayer
     @Team 2
     @Hero reaper
+    @Condition BotsUseAbilities == true
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
-    @Condition BotsUseAbilities == true
-    @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) > 15
+    @Condition BotBehavior[20] >= 1
+    @Condition eventPlayer.BotAbilityLock[3] == false
+    @Condition distance(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition()) > 15
 
-    wait(random.uniform(1,3), Wait.ABORT_WHEN_FALSE)
+    wait(random.uniform(3,7), Wait.ABORT_WHEN_FALSE)
     eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
+    eventPlayer.BotAbilityLock[3] = true
     eventPlayer.startFacing(directionTowards(eventPlayer.getEyePosition(), sorted(Playerlist, lambda player: distance(eventPlayer.getEyePosition(), player.getEyePosition()))[0].getPosition() + vect(random.uniform(-1,1),-0.15,random.uniform(-1,1))), 1000, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
     wait(0.1)
     eventPlayer.forceButtonPress(Button.ABILITY_2)
@@ -5653,43 +6343,37 @@ rule "Bot Abilities: Reaper Ability 2":
     eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
     wait(0.1)
     SetDefaultFacing()
-    eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
+    eventPlayer.BotAbilityLock[3] = false
     wait(10)
     if RULE_CONDITION:
         goto RULE_START
 
 
-rule "Bot Abilities: Reaper Ability 1":
+rule "Bot Abilities: Reaper Ultimate (All)":
     @Event eachPlayer
     @Team 2
     @Hero reaper
     @Condition BotsUseAbilities == true
+    @Condition BotBehavior[20] >= 2
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
-    @Condition eventPlayer.getNormalizedHealth() <= 0.5
     
-    wait(random.uniform(0, 5), Wait.ABORT_WHEN_FALSE)
-    if eventPlayer.ApplyPressure == true:
-        eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
-    eventPlayer.forceButtonPress(Button.ABILITY_1)
-    wait(random.uniform(0.4,3))
-    if eventPlayer.isUsingAbility1():
-        eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
-    if eventPlayer.ApplyPressure == true:
-        eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
-    wait(8)
+    wait(10 / UltFrequency)
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 3:
+        eventPlayer.forceButtonPress(Button.ULTIMATE)
+        wait(10 / UltFrequency)
+
     if RULE_CONDITION:
         goto RULE_START
 
 
 ### Sojourn Bot Abilities
-rule "Bot Abilities: Sojourn Primary":
+rule "Bot Abilities: Sojourn Primary (P)":
     @Event eachPlayer
     @Team 2
     @Hero sojourn
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
 
     eventPlayer.AbilityAcc = 2
     eventPlayer.ProjType = "primary"
@@ -5700,17 +6384,16 @@ rule "Bot Abilities: Sojourn Primary":
         goto RULE_START
 
 
-rule "Bot Abilities: Sojourn Secondary":
+rule "Bot Abilities: Sojourn Secondary (P)":
     @Event eachPlayer
     @Team 2
     @Hero sojourn
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
-
 
     eventPlayer.AbilityAcc = 2
-    wait(random.uniform(1,5), Wait.ABORT_WHEN_FALSE)
+    if eventPlayer.isUsingUltimate() == false:
+        wait(random.uniform(1,5), Wait.ABORT_WHEN_FALSE)
     eventPlayer.ProjType = "off"
     SetDefaultFacing()
     wait(0.1)
@@ -5718,60 +6401,103 @@ rule "Bot Abilities: Sojourn Secondary":
     eventPlayer.ProjType = "primary"
     SetProjectileFacing()
     eventPlayer.AbilityAcc = 2
-    wait(5,Wait.ABORT_WHEN_FALSE)
+    if eventPlayer.isUsingUltimate() == false:
+        wait(5)
+    else:
+        wait(random.uniform(0.5,2))
     if RULE_CONDITION:
         goto RULE_START
 
 
-rule "Bot Abilities: Sojourn Orb":
+rule "Bot Abilities: Sojourn Ability 1 (All)":
     @Event eachPlayer
     @Team 2
     @Hero sojourn
-    @Condition eventPlayer.ApplyPressure == true
-    @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
     @Condition BotsUseAbilities == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[2] == false
+    
+    wait(random.uniform(5, 10), Wait.ABORT_WHEN_FALSE)
+    eventPlayer.BotAbilityLock[2] = true
+    eventPlayer.forceButtonPress(Button.ABILITY_1)
+    wait(random.uniform(0, 1))
+    eventPlayer.Randomizer = random.randint(0,9)
+    if eventPlayer.Randomizer > 0:
+        eventPlayer.forceButtonPress(Button.JUMP)
+    wait(7)
+    eventPlayer.BotAbilityLock[2] = false
+    if RULE_CONDITION:
+        goto RULE_START
 
-    eventPlayer.AbilityAcc = 2
-    wait(random.uniform(3,7), Wait.ABORT_WHEN_FALSE)
+
+rule "Bot Abilities: Sojourn Ability 1 (Rd)":
+    @Event eachPlayer
+    @Team 2
+    @Hero sojourn
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[2] == false
+    @Condition eventPlayer.LookTarget.PlayerUsedDodgeCD > 0
+    @Condition eventPlayer.LookTarget.PlayerUsedDodgeCD >= eventPlayer.LookTarget.AbilityReactChance
+    
+    wait(random.uniform(0.5, eventPlayer.LookTarget.PlayerReactTime))
+    eventPlayer.BotAbilityLock[2] = true
+    eventPlayer.forceButtonPress(Button.ABILITY_1)
+    wait(random.uniform(0, 1))
+    if eventPlayer.Randomizer > 0:
+        eventPlayer.forceButtonPress(Button.JUMP)
+    wait(7)
+    eventPlayer.BotAbilityLock[2] = false
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Abilities: Sojourn Ability 2 (All)":
+    @Event eachPlayer
+    @Team 2
+    @Hero sojourn
+    @Condition BotsUseAbilities == true
+    @Condition eventPlayer.ApplyPressure == true
+    @Condition BotBehavior[21] >= 1
+    @Condition eventPlayer.isAlive() == true
+
+    wait(random.uniform(5, 10), Wait.ABORT_WHEN_FALSE)
     eventPlayer.startFacing(directionTowards(eventPlayer.getEyePosition(), sorted(Playerlist, lambda player: distance(eventPlayer.getEyePosition(), player.getEyePosition()))[0].getPosition() + eventPlayer.LookOffset), 1000, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
     wait(0.1)
     eventPlayer.startForcingButton(Button.ABILITY_2)
     wait(0.1)
     SetProjectileFacing()
-    eventPlayer.AbilityAcc = 2
     wait(10)
     if RULE_CONDITION:
         goto RULE_START
 
 
-
-rule "Bot Abilities: Sojourn Power Slide - GGSYK":
+rule "Bot Abilities: Sojourn Ultimate (All)":
     @Event eachPlayer
     @Team 2
     @Hero sojourn
     @Condition BotsUseAbilities == true
+    @Condition BotBehavior[21] >= 2
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
     
-    eventPlayer.Randomizer = random.randint (0,9)
-    wait(random.uniform(0, 1), Wait.ABORT_WHEN_FALSE)
-    eventPlayer.forceButtonPress(Button.ABILITY_1)
-    wait(random.uniform(0, 1), Wait.ABORT_WHEN_FALSE)
-    if eventPlayer.Randomizer > 0:
-        eventPlayer.forceButtonPress(Button.JUMP)
-    wait(7, Wait.ABORT_WHEN_FALSE)
+    wait(10 / UltFrequency)
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 3:
+        eventPlayer.forceButtonPress(Button.ULTIMATE)
+        wait(10 / UltFrequency)
+
     if RULE_CONDITION:
         goto RULE_START
 
+
 ### Solider 76 Bot Abilities
-rule "Bot Abilities: Soldier Primary":
+rule "Bot Abilities: Soldier Primary (P)":
     @Event eachPlayer
     @Team 2
     @Hero soldier
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
 
     eventPlayer.AbilityAcc = 3
     SetDefaultFacing()
@@ -5781,14 +6507,14 @@ rule "Bot Abilities: Soldier Primary":
         goto RULE_START
 
 
-rule "Bot Abilities: Soldier Secondary":
+rule "Bot Abilities: Soldier Secondary (P)":
     @Event eachPlayer
     @Team 2
     @Hero soldier
+    @Condition BotsUseAbilities == true
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
-    @Condition BotsUseAbilities == true
+   
 
     eventPlayer.AbilityAcc = 2
     wait(random.uniform(2,5),Wait.ABORT_WHEN_FALSE)
@@ -5801,15 +6527,112 @@ rule "Bot Abilities: Soldier Secondary":
     if RULE_CONDITION:
         goto RULE_START
 
+        
+rule "Bot Abilities: Soldier Ability 1 (R)":
+    @Event eachPlayer
+    @Team 2
+    @Hero soldier
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
+    @Condition BotBehavior[22] >= 1
+    @Condition eventPlayer.isAlive()
+    @Condition distance(eventPlayer.getPosition(), eventPlayer.LookTarget.getPosition()) > 25
+
+    smallMessage(hostPlayer, "Debug: S76 a1 R")
+    eventPlayer.MvmtTypeLock = true
+    eventPlayer.MvmtType = 6
+    eventPlayer.DisableJump = true
+    eventPlayer.DisableCrouch = true
+    eventPlayer.startForcingButton(Button.ABILITY_1)
+    wait(random.uniform(1,2))
+    eventPlayer.stopForcingButton(Button.ABILITY_1)
+    eventPlayer.MvmtType = DefaultMvmtType
+    eventPlayer.MvmtTypeLock = false
+    eventPlayer.DisableJump = false
+    eventPlayer.DisableCrouch = false
+    wait(5)
+
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Abilities: Soldier Ability 1 (Rd)":
+    @Event eachPlayer
+    @Team 2
+    @Hero soldier
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
+    @Condition BotBehavior[22] >= 1
+    @Condition eventPlayer.isAlive()
+    @Condition eventPlayer.LookTarget.PlayerUsedDodgeCD > 0
+    @Condition eventPlayer.LookTarget.PlayerUsedDodgeCD >= eventPlayer.LookTarget.AbilityReactChance
+
+    smallMessage(hostPlayer, "Debug: S76 a1 Rd")
+    eventPlayer.MvmtTypeLock = true
+    eventPlayer.MvmtType = 6
+    eventPlayer.MvmtIndex = 0
+    eventPlayer.DisableJump = true
+    eventPlayer.DisableCrouch = true
+    eventPlayer.startForcingButton(Button.ABILITY_1)
+    while eventPlayer.isAlive() and eventPlayer.MvmtIndex < 3:
+        eventPlayer.startFacing(vect(eventPlayer.getPosition().x + 500, eventPlayer.getPosition().x - 10, eventPlayer.getPosition().x + 500), 500, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
+        wait(random.uniform(0.25,0.75))
+        eventPlayer.startFacing(vect(eventPlayer.getPosition().x - 500, eventPlayer.getPosition().x - 10, eventPlayer.getPosition().x - 500), 500, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
+        wait(random.uniform(0.25,0.75))
+        eventPlayer.MvmtIndex += 1
+    SetDefaultFacing()
+    eventPlayer.stopForcingButton(Button.ABILITY_1)
+    eventPlayer.MvmtType = DefaultMvmtType
+    eventPlayer.MvmtTypeLock = false
+    eventPlayer.DisableJump = false
+    eventPlayer.DisableCrouch = false
+
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Abilities: Solider Ability 2 (R)":
+    @Event eachPlayer
+    @Team 2
+    @Hero soldier
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
+    @Condition BotBehavior[22] >= 2
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.getNormalizedHealth() <= 0.5
+
+    wait(random.uniform(0,2), Wait.ABORT_WHEN_FALSE)
+    eventPlayer.forceButtonPress(Button.ABILITY_2)
+    wait(15)
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Abilities: Soldier Ultimate (All)":
+    @Event eachPlayer
+    @Team 2
+    @Hero soldier
+    @Condition BotsUseAbilities == true
+    @Condition BotBehavior[22] >= 3
+    @Condition eventPlayer.isAlive() == true
+    
+    wait(10 / UltFrequency)
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 3:
+        eventPlayer.forceButtonPress(Button.ULTIMATE)
+        wait(10 / UltFrequency)
+
+    if RULE_CONDITION:
+        goto RULE_START
+
 
 ### Sombra Bot Abilities
-rule "Bot Abilities: Sombra Primary":
+rule "Bot Abilities: Sombra Primary (P)":
     @Event eachPlayer
     @Team 2
     @Hero sombra
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
 
     eventPlayer.AbilityAcc = 3
     SetDefaultFacing()
@@ -5819,83 +6642,207 @@ rule "Bot Abilities: Sombra Primary":
         goto RULE_START
 
 
-rule "Bot Abilities: Sombra Secondary":
+rule "Bot Abilities: Sombra Secondary (P + R)":
     @Event eachPlayer
     @Team 2
     @Hero sombra
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
+    @Condition BotBehavior[23] >= 2
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
-    @Condition BotsUseAbilities == true
-    @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 12
+    @Condition eventPlayer.BotAbilityLock[1] == false
+    @Condition distance(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition()) < 12
 
-    eventPlayer.AbilityAcc = 2
+    wait(random.uniform(2, 5), Wait.ABORT_WHEN_FALSE)
+    smallMessage(hostPlayer, "Debug: Sombra hack rand")
+    eventPlayer.BotAbilityLock[1] = true
     eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
     wait(1)
     eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
-    eventPlayer.AbilityAcc = 3
     wait(10)
+    eventPlayer.BotAbilityLock[1] = false
+
     if RULE_CONDITION:
         goto RULE_START
 
 
+rule "Bot Abilities: Sombra Secondary (P + Rs)":
+    @Event eachPlayer
+    @Team 2
+    @Hero sombra
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
+    @Condition BotBehavior[23] >= 2
+    @Condition eventPlayer.ApplyPressure == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[1] == false
+    @Condition eventPlayer.LookTarget.PlayerUsedStunCD > 0
+    @Condition eventPlayer.LookTarget.PlayerUsedStunCD >= eventPlayer.LookTarget.AbilityReactChance 
+    @Condition distance(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition()) < 12
 
-rule "Bot Abilities: Sombra TP":
+    eventPlayer.BotAbilityLock[1] = true
+    smallMessage(hostPlayer, "Debug: Sombra hack Rs")
+    eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
+    wait(1)
+    eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
+    wait(10)
+    eventPlayer.BotAbilityLock[1] = false
+
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Abilities: Sombra Ability 1 (All)":
+    @Event eachPlayer
+    @Team 2
+    @Hero sombra
+    @Condition BotsUseAbilities == true
+    @Condition BotBehavior[23] >= 1
+    @Condition eventPlayer.ApplyPressure == false
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[2] == false
+    
+    wait(random.uniform(5, 10), Wait.ABORT_WHEN_FALSE)
+    eventPlayer.BotAbilityLock[2] = true
+    eventPlayer.forceButtonPress(Button.ABILITY_1)
+    wait(random.uniform(1, 5))
+    if eventPlayer.isUsingAbility1():
+        eventPlayer.forceButtonPress(Button.ABILITY_1)
+    wait(10)
+    eventPlayer.BotAbilityLock[2] = false
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Abilities: Sombra Ability 1 (P)":
+    @Event eachPlayer
+    @Team 2
+    @Hero sombra
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
+    @Condition BotBehavior[23] >= 1
+    @Condition eventPlayer.ApplyPressure == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[2] == false
+    @Condition distance(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition()) > 12
+
+    wait(random.uniform(1,2), Wait.ABORT_WHEN_FALSE)
+    eventPlayer.BotAbilityLock[2] = true
+    eventPlayer.forceButtonPress(Button.ABILITY_1)
+    wait(random.uniform(1, 5))
+    if eventPlayer.isUsingAbility1():
+        eventPlayer.forceButtonPress(Button.ABILITY_1)
+    wait(10)
+    eventPlayer.BotAbilityLock[2] = false
+    if RULE_CONDITION:
+        goto RULE_START
+
+rule "Bot Abilities: Sombra Ability 2 (All)":
     @Event eachPlayer
     @Team 2
     @Hero sombra
     @Condition BotsUseAbilities == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
-    
+    @Condition eventPlayer.BotAbilityLock[3] == false
     
     wait(random.uniform(5, 10), Wait.ABORT_WHEN_FALSE)
+    eventPlayer.BotAbilityLock[3] = true
     eventPlayer.startFacing(vect(random.uniform(-20,20) + eventPlayer.getEyePosition().x ,random.uniform(-5,20) + eventPlayer.getEyePosition().y ,random.uniform(-20,20) + eventPlayer.getEyePosition().z), 1000, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
     wait(0.1)
     eventPlayer.forceButtonPress(Button.ABILITY_2)
     wait(0.1)
     SetDefaultFacing()
-    wait(random.uniform(0.5, 3), Wait.ABORT_WHEN_FALSE)
+    wait(random.uniform(0.5, 3))
     if eventPlayer.isUsingAbility2():
         eventPlayer.Randomizer = random.randint(0,9)
         if eventPlayer.Randomizer == 0:
             eventPlayer.forceButtonPress(Button.INTERACT)
         else:
             eventPlayer.forceButtonPress(Button.ABILITY_2)
-        wait(10, Wait.ABORT_WHEN_FALSE)
+    wait(10)
+    eventPlayer.BotAbilityLock[3] = false
     if RULE_CONDITION:
         goto RULE_START
 
-
-rule "Bot Abilities: Sombra Cloak":
+rule "Bot Abilities: Sombra Ability 2 (Rd)":
     @Event eachPlayer
     @Team 2
     @Hero sombra
     @Condition BotsUseAbilities == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
+    @Condition eventPlayer.BotAbilityLock[3] == false
+    @Condition eventPlayer.LookTarget.PlayerUsedDodgeCD > 0
+    @Condition eventPlayer.LookTarget.PlayerUsedDodgeCD >= eventPlayer.LookTarget.AbilityReactChance
     
-    eventPlayer.Randomizer = random.randint(0,9)
-    wait(random.uniform(5, 10), Wait.ABORT_WHEN_FALSE)
-    eventPlayer.forceButtonPress(Button.ABILITY_1)
-    wait(random.uniform(1, 5), Wait.ABORT_WHEN_FALSE)
-    if eventPlayer.isUsingAbility1():
-        eventPlayer.forceButtonPress(Button.ABILITY_1)
-    wait(10, Wait.ABORT_WHEN_FALSE)
+    eventPlayer.BotAbilityLock[3] = true
+    eventPlayer.startFacing(vect(random.uniform(-20,20) + eventPlayer.getEyePosition().x ,random.uniform(-5,20) + eventPlayer.getEyePosition().y ,random.uniform(-20,20) + eventPlayer.getEyePosition().z), 1000, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
+    wait(0.1)
+    eventPlayer.forceButtonPress(Button.ABILITY_2)
+    wait(0.1)
+    SetDefaultFacing()
+    wait(random.uniform(0.5, eventPlayer.LookTarget.AbilityReactChance))
+    if eventPlayer.isUsingAbility2():
+        eventPlayer.forceButtonPress(Button.ABILITY_2)
+    wait(10)
+    eventPlayer.BotAbilityLock[3] = false
     if RULE_CONDITION:
         goto RULE_START
 
+
+rule "Bot Abilities: Sombra Ultimate (All)":
+    @Event eachPlayer
+    @Team 2
+    @Hero sombra
+    @Condition BotsUseAbilities == true
+    @Condition BotBehavior[23] >= 3
+    @Condition eventPlayer.isAlive() == true
+    
+    wait(10 / UltFrequency)
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 3:
+        smallMessage(hostPlayer, "Debug: Sombra ult")
+        if eventPlayer.isUsingAbility1():
+            eventPlayer.forceButtonPress(Button.ABILITY_1)
+            wait(0.5)
+        if eventPlayer.BotAbilityLock[3] == false:
+            eventPlayer.BotAbilityLock[3] = true
+            eventPlayer.startFacing(vect(random.uniform(-20,20) + eventPlayer.getEyePosition().x ,random.uniform(-5,20) + eventPlayer.getEyePosition().y ,random.uniform(-20,20) + eventPlayer.getEyePosition().z), 1000, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
+            wait(0.1)
+            eventPlayer.forceButtonPress(Button.ABILITY_2)
+            wait(0.1)
+            SetDefaultFacing()
+            wait(random.uniform(0.25, 0.75))
+            if eventPlayer.isUsingAbility2():
+                eventPlayer.forceButtonPress(Button.ABILITY_2)
+            wait(0.25)
+            eventPlayer.startForcingButton(Button.ULTIMATE)
+            wait(0.25)
+            eventPlayer.stopForcingButton(Button.ULTIMATE)
+            wait(10)
+            eventPlayer.BotAbilityLock[3] = false
+        else:
+            eventPlayer.startForcingButton(Button.ULTIMATE)
+            wait(0.25)
+            eventPlayer.stopForcingButton(Button.ULTIMATE)
+            wait(10)
+
+    if RULE_CONDITION:
+        goto RULE_START
+
+
 ### Symmetra Bot Abilities
-rule "Bot Abilities: Symmetra Primary":
+rule "Bot Abilities: Symmetra Primary (P)":
     @Event eachPlayer
     @Team 2
     @Hero symmetra
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
-    @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 12
+    @Condition eventPlayer.BotAbilityLock[3] == false
+    @Condition eventPlayer.BotAbilityLock[4] == false
+    @Condition distance(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition()) < 12
 
-    eventPlayer.AbilityAcc = 3
+    eventPlayer.AbilityAcc = 2
     SetDefaultFacing()
     eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
     eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
@@ -5904,14 +6851,15 @@ rule "Bot Abilities: Symmetra Primary":
         goto RULE_START
 
 
-rule "Bot Abilities: Symmetra Secondary":
+rule "Bot Abilities: Symmetra Secondary (P)":
     @Event eachPlayer
     @Team 2
     @Hero symmetra
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
-    @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) >= 12
+    @Condition eventPlayer.BotAbilityLock[3] == false
+    @Condition eventPlayer.BotAbilityLock[4] == false
+    @Condition distance(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition()) >= 12
 
     eventPlayer.AbilityAcc = 2
     eventPlayer.ProjType = "secondary"
@@ -5925,40 +6873,66 @@ rule "Bot Abilities: Symmetra Secondary":
         goto RULE_START
 
 
-
-/*
-#rule "Bot Pressure: Symmetra TP - Causes Server Overload":
+rule "Bot Abilities: Symmetra Ability 2 (All)":
     @Event eachPlayer
     @Team 2
     @Hero symmetra
-    @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
     @Condition BotsUseAbilities == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[3] == false
 
     wait(random.uniform(5,10), Wait.ABORT_WHEN_FALSE)
+    eventPlayer.BotAbilityLock[3] = true
     eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
     eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
-    eventPlayer.ProjType = "off"
+    eventPlayer.MvmtTypeLock = true
+    eventPlayer.MvmtType = 5
     eventPlayer.startFacing(eventPlayer.getPosition() + vect(random.uniform(-20,20), 0, random.uniform(-20,20)), 1000, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
     wait(0.1)
     eventPlayer.forceButtonPress(Button.ABILITY_2)
     wait(0.1)
     eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
-    eventPlayer.startForcingButton(Button.INTERACT)
     SetDefaultFacing()
-    if eventPlayer.ApplyPressure == true:
-        if distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 12:
-            eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
-        else:
-            eventPlayer.ProjType = "secondary"
-            SetProjectileFacing()
-            eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
-    wait(3)
+    eventPlayer.startForcingButton(Button.INTERACT)
+    wait(1)
     eventPlayer.stopForcingButton(Button.INTERACT)
+    eventPlayer.MvmtType = DefaultMvmtType
+    eventPlayer.MvmtTypeLock = false
+    eventPlayer.BotAbilityLock[3] = false
     wait(7, Wait.ABORT_WHEN_FALSE)
+
     if RULE_CONDITION:
         goto RULE_START
-*/
+
+
+rule "Bot Abilities: Symmetra Ultimate (All)":
+    @Event eachPlayer
+    @Team 2
+    @Hero symmetra
+    @Condition BotsUseAbilities == true
+    @Condition BotBehavior[24] >= 1
+    @Condition eventPlayer.BotAbilityLock[4] == false
+    @Condition eventPlayer.isAlive()
+
+    wait(10 / UltFrequency)
+    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
+    if eventPlayer.Randomizer < 3:
+        eventPlayer.BotAbilityLock[4] = true
+        eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
+        eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
+        eventPlayer.startFacing(eventPlayer.getEyePosition() + vect(0,-100,0), DefaultTurnRate, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
+        wait(0.1)
+        eventPlayer.forceButtonPress(Button.ULTIMATE)
+        if eventPlayer.Randomizer >= 8:
+            eventPlayer.forceButtonPress(Button.ULTIMATE)
+        eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
+        SetDefaultFacing()
+        eventPlayer.BotAbilityLock[4] = false
+
+    if RULE_CONDITION:
+        goto RULE_START
+
+
 ### Torbjorn Bot Abilities
 rule "Bot Abilities: Torbjorn Primary":
     @Event eachPlayer
@@ -5966,7 +6940,6 @@ rule "Bot Abilities: Torbjorn Primary":
     @Hero torbjorn
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
     @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) >= 10
 
     eventPlayer.AbilityAcc = 2
@@ -5985,7 +6958,6 @@ rule "Bot Abilities: Torbjorn Secondary":
     @Hero torbjorn
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
     @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 10
 
     eventPlayer.AbilityAcc = 2
@@ -6006,7 +6978,6 @@ rule "Bot Abilities: Overload":
     @Condition BotsUseAbilities == true
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.getNormalizedHealth() != 1
-    @Condition eventPlayer.hasSpawned() == true
     
     wait(random.uniform(0,10), Wait.ABORT_WHEN_FALSE)
     eventPlayer.forceButtonPress(Button.ABILITY_2)
@@ -6022,7 +6993,6 @@ rule "Bot Pressure: Tracer Primary":
     @Hero tracer
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
 
     eventPlayer.AbilityAcc = 3
     SetDefaultFacing()
@@ -6039,7 +7009,6 @@ rule "Bot Abilities: Tracer Blink":
     @Hero tracer
     @Condition BotsUseAbilities == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
     
     wait(random.uniform(0, 3), Wait.ABORT_WHEN_FALSE)
     eventPlayer.forceButtonPress(Button.ABILITY_1)
@@ -6054,7 +7023,6 @@ rule "Bot Abilities: Tracer Recall":
     @Hero tracer
     @Condition BotsUseAbilities == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
     @Condition eventPlayer.getNormalizedHealth() <= 0.5
     
     wait(random.uniform(0, 3), Wait.ABORT_WHEN_FALSE)
@@ -6070,7 +7038,6 @@ rule "Bot Abilities: Widowmaker Primary Close":
     @Hero widowmaker
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
     @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 7.5
 
     eventPlayer.AbilityAcc = 3
@@ -6087,7 +7054,6 @@ rule "Bot Abilities: Widowmaker Primary + Secondary Far":
     @Hero widowmaker
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
     @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1))  >= 7.5
 
     eventPlayer.AbilityAcc = 2
@@ -6108,7 +7074,6 @@ rule "Bot Abilities: Widowmaker Scope":
     @Hero widowmaker
     @Condition BotsUseAbilities == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
     @Condition eventPlayer.ApplyPressure == false
     
     wait(random.uniform(0, 2), Wait.ABORT_WHEN_FALSE)
@@ -6266,7 +7231,7 @@ rule "Bot Abilities: Baptiste Jump":
     @Condition eventPlayer.isOnGround() == true
     @Condition eventPlayer.hasSpawned() == true
     
-    if AdvancedStrafes == true:
+    if RandStrafes == true:
         eventPlayer.Randomizer = random.randint(0,9)
         wait(random.uniform(3, 5), Wait.ABORT_WHEN_FALSE)
         if eventPlayer.Randomizer >= 3:
@@ -6276,15 +7241,15 @@ rule "Bot Abilities: Baptiste Jump":
             wait(random.uniform(0.1, 0.5))
             eventPlayer.forceButtonPress(Button.JUMP)
         else:
-            eventPlayer.AltMvmtLock = true
-            eventPlayer.AltMvmt = 1
+            eventPlayer.MvmtTypeLock = true
+            eventPlayer.MvmtType = 2
             for eventPlayer.MvmtIndex in range(0,20):
                 eventPlayer.startForcingButton(Button.CROUCH)
                 wait(random.uniform(0.05,0.35))
                 eventPlayer.stopForcingButton(Button.CROUCH)
                 wait(random.uniform(0.1,0.2))
-            eventPlayer.AltMvmt = 0
-            eventPlayer.AltMvmtLock = false
+            eventPlayer.MvmtType = DefaultMvmtType
+            eventPlayer.MvmtTypeLock = false
     else:
         wait(random.uniform(3, 5), Wait.ABORT_WHEN_FALSE)
         eventPlayer.startForcingButton(Button.CROUCH)
@@ -6431,14 +7396,7 @@ rule "Bot Ablities: Mercy Hold jump air - Default":
     @Condition eventPlayer.isUsingAbility1() == false
     @Condition eventPlayer.isOnGround() == false
     
-    if AdvancedStrafes == true:
-        eventPlayer.startForcingButton(Button.JUMP)
-        wait(random.uniform(0.5,1.5))
-        eventPlayer.stopForcingButton(Button.JUMP)
-        wait(random.uniform(1,3))
-        eventPlayer.startForcingButton(Button.JUMP)
-    else:
-        eventPlayer.startForcingButton(Button.JUMP)
+    eventPlayer.startForcingButton(Button.JUMP)
 
 
 rule "Bot Ablities: Mercy Stop Hold ground - Default":
@@ -6460,7 +7418,7 @@ rule "Bot Ablities: Mercy Ult - Advanced":
     @Condition eventPlayer.hasSpawned() == true
     @Condition eventPlayer.isAlive() == true
     @Condition BotsUseAbilities == true
-    @Condition AdvancedStrafes == true
+    @Condition RandStrafes == true
     @Condition eventPlayer.isUsingUltimate() == false
     @Condition eventPlayer.getNormalizedHealth() != 1
 
@@ -6593,10 +7551,10 @@ rule "Bot Abilities: Lucio AD Turnaround":
     @Condition BotsUseAbilities == true
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.hasSpawned() == true
-    @Condition AdvancedStrafes == true
+    @Condition RandStrafes == true
     
-    eventPlayer.AltMvmtLock = true
-    eventPlayer.AltMvmt = 1
+    eventPlayer.MvmtTypeLock = true
+    eventPlayer.MvmtType = 2
     eventPlayer.MvmtIndex = 0
     eventPlayer.Randomizer = random.randint(0,9)
     wait(random.uniform(5,15), Wait.ABORT_WHEN_FALSE)
@@ -6605,14 +7563,14 @@ rule "Bot Abilities: Lucio AD Turnaround":
             eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
             eventPlayer.MvmtIndex = 35
             eventPlayer.ProjType = "off"
-        while AdvancedStrafes == true and eventPlayer.MvmtIndex < 45:
+        while RandStrafes == true and eventPlayer.MvmtIndex < 45:
             eventPlayer.startFacing(vect(eventPlayer.getPosition().x + 1000, eventPlayer.getPosition().x - 10, eventPlayer.getPosition().x + 1000), 1000, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
             wait(random.uniform(0.1,0.35), Wait.ABORT_WHEN_FALSE)
             eventPlayer.startFacing(vect(eventPlayer.getPosition().x - 1000, eventPlayer.getPosition().x - 10, eventPlayer.getPosition().x - 1000), 1000, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
             wait(random.uniform(0.1,0.35), Wait.ABORT_WHEN_FALSE)
             eventPlayer.MvmtIndex += 1     
-        eventPlayer.AltMvmt = 0
-        eventPlayer.AltMvmtLock = false
+        eventPlayer.MvmtType = DefaultMvmtType
+        eventPlayer.MvmtTypeLock = false
         if eventPlayer.ApplyPressure == true:
             eventPlayer.ProjType = "primary"
             SetProjectileFacing()
