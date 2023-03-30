@@ -239,6 +239,12 @@ subroutine CalculateProjectileLead
 subroutine PopulateAbilityMatrix
 subroutine AllowInput
 subroutine InitializeBotHero
+subroutine WinstonUltimate
+subroutine DvaUltimate
+subroutine DoomfistUltimate
+subroutine BrigBashCombo
+subroutine BrigWhipShot
+
 
 #Activated extensions
 
@@ -393,7 +399,7 @@ rule "Initialize: Workshop Settings":
     # Pressure Mode
     MenuTogglePressureType = createWorkshopSetting(enum["off", "killable", "unkillable"], "2.1. Bot Pressure (Overridden by in-game changes to pressure)", "Bots Apply Pressure", 0, 0)
     MenuTogglePressureDiff = createWorkshopSetting(enum["easy", "medium", "hard", "aimbot"],  "2.1. Bot Pressure (Overridden by in-game changes to pressure)", "Bots Pressure Difficulty", 0, 1)
-    ElimRefresh = createWorkshopSetting(bool, "2.2. Bot Pressure Modifiers (killable mode only)", "Eliminations reset cooldowns", true, 0)
+    ElimRefresh = createWorkshopSetting(bool, "2.2. Bot Pressure Modifiers (killable mode only)", "Eliminations / Deaths reset cooldowns", true, 0)
     HealAfterNoDmg = createWorkshopSetting(bool, "2.2. Bot Pressure Modifiers (killable mode only)", "Restore health after not taking damage", true, 1)
     DeathPunishment = createWorkshopSetting(bool, "2.2. Bot Pressure Modifiers (killable mode only)", "Punish player deaths (player is stunned and bot recovers health)", true, 2)
     
@@ -678,7 +684,7 @@ rule "Player Left":
 def GlobalHud():
     @Name "SUB: GlobalHud"
     # Stats that are always displayed
-    hudSubheader(eventPlayer, " \n", HudPosition.LEFT, 0, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubheader(eventPlayer, " \n", HudPosition.LEFT, -1, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     hudSubtext(eventPlayer, "Elims:  {0}".format(ceil(eventPlayer.Kills)), HudPosition.LEFT, 0.1, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     hudSubtext(eventPlayer, "Elims/min:  {0}".format(ceil(eventPlayer.Kills / (eventPlayer.Timer / 60))), HudPosition.LEFT, 0.2, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     hudSubtext(eventPlayer, "Accuracy:  {0}  %".format(ceil(100 * eventPlayer.getHeroStatistic(eventPlayer.getCurrentHero(), HeroStat.WEAPON_ACCURACY))), HudPosition.LEFT, 0.3, Color.LIME_GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
@@ -713,7 +719,7 @@ def MenuHud():
     hudSubtext([i for i in eventPlayer if MenuTogglePressureType != "off"], 
     "KDR:  {0}".format(eventPlayer.Kills / eventPlayer.Deaths), HudPosition.LEFT, -0.01, Color.ROSE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     hudSubtext([i for i in eventPlayer if MenuTogglePressureType != "off"], 
-    "Deaths:  {0}".format(eventPlayer.Deaths), HudPosition.LEFT, 0.01, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    "Deaths:  {0}".format(eventPlayer.Deaths), HudPosition.LEFT, 0.11, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     hudSubtext([i for i in eventPlayer if MenuTogglePressureType != "off"], 
     "Net Damage:  {0}".format(eventPlayer.DmgDealt - eventPlayer.DmgTaken), HudPosition.LEFT, 0.51, Color.PURPLE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     # Settings Headers
@@ -1544,6 +1550,32 @@ rule "Player Ability: Elimination refresh CDs":
     eventPlayer.setHealth(eventPlayer.getMaxHealth())
 
 
+rule "Player Ability: Punishment for Death":
+    @Event playerTookDamage
+    @Team 1
+    @Condition MenuTogglePressureType == "killable"
+    @Condition eventPlayer.getHealth() <= 1
+    @Condition DeathPunishment == true
+    
+    eventPlayer.setStatusEffect(eventPlayer, Status.STUNNED, 0.5)
+    attacker.setHealth(attacker.getMaxHealth())
+
+
+rule "Player Ability: Elimination refresh CDs":
+    @Event playerTookDamage
+    @Team 1
+    @Condition MenuTogglePressureType == "killable"
+    @Condition eventPlayer.getHealth() <= 1
+    @Condition ElimRefresh == true
+
+    wait(1)
+    eventPlayer.setAbilityCooldown(Button.PRIMARY_FIRE,0)
+    eventPlayer.setAbilityCooldown(Button.SECONDARY_FIRE,0)
+    eventPlayer.setAbilityCooldown(Button.ABILITY_1,0)
+    eventPlayer.setAbilityCooldown(Button.ABILITY_2,0)
+    eventPlayer.setHealth(eventPlayer.getMaxHealth())
+
+
 rule "Player Ability: Grant Zarya Charge outside of pressure":
     @Event eachPlayer
     @Team 1
@@ -1737,6 +1769,109 @@ def DestroyAllBots():
 
 
 # Bot Lifecycle
+def InitializeBotHero():
+    @Name "SUB: InitalizeBotHero"
+
+    eventPlayer.MvmtTypeLock = false
+    eventPlayer.MvmtType = DefaultMvmtType
+    eventPlayer.BotAbilitySignal = [false, false, false, false, false]
+    eventPlayer.BotAbilityLock  = [false, false, false, false, false]
+    eventPlayer.DisableJump = false
+    eventPlayer.DisableCrouch = false
+    eventPlayer.LtTime = 1
+    eventPlayer.LtRange = 0
+    SetDefaultFacing()
+
+    eventPlayer.CurrHero = eventPlayer.getCurrentHero()
+    if eventPlayer.CurrHero == Hero.DVA:
+        eventPlayer.startForcingName("ChoiHyoBin")
+    elif eventPlayer.CurrHero == Hero.DOOMFIST:
+        eventPlayer.startForcingName("Danteh")
+    elif eventPlayer.CurrHero == Hero.JUNKER_QUEEN:
+        eventPlayer.startForcingName("Hanbin")
+    elif eventPlayer.CurrHero == Hero.ORISA:
+        eventPlayer.startForcingName("Gator")
+    elif eventPlayer.CurrHero == Hero.RAMATTRA:
+        eventPlayer.startForcingName("Hawk")
+    elif eventPlayer.CurrHero == Hero.REINHARDT:
+        eventPlayer.startForcingName("Super")
+    elif eventPlayer.CurrHero == Hero.ROADHOG:
+        eventPlayer.startForcingName("Gesture")
+    elif eventPlayer.CurrHero == Hero.SIGMA:
+        eventPlayer.startForcingName("Void")
+    elif eventPlayer.CurrHero == Hero.HAMMOND:
+        eventPlayer.startForcingName("Ga9a")
+    elif eventPlayer.CurrHero == Hero.WINSTON:
+        eventPlayer.startForcingName("Fearless")
+    elif eventPlayer.CurrHero == Hero.ZARYA:
+        eventPlayer.startForcingName("Hotba")
+        eventPlayer.BotAbilityLock[2] = 2
+    elif eventPlayer.CurrHero == Hero.ASHE:
+        eventPlayer.startForcingName("Shy")
+    elif eventPlayer.CurrHero == Hero.BASTION:
+        eventPlayer.startForcingName("Architect")
+    elif eventPlayer.CurrHero == Hero.MCCREE:
+        eventPlayer.startForcingName("Carpe")
+    elif eventPlayer.CurrHero == Hero.ECHO:
+        eventPlayer.startForcingName("Speedily")
+        eventPlayer.DisableJump = true
+        eventPlayer.DisableCrouch = true
+    elif eventPlayer.CurrHero == Hero.GENJI:
+        eventPlayer.startForcingName("Sp9rk1e")
+        eventPlayer.DisableJump = true
+    elif eventPlayer.CurrHero == Hero.HANZO:
+        eventPlayer.startForcingName("Profit")
+        eventPlayer.DisableJump = true
+    elif eventPlayer.CurrHero == Hero.JUNKRAT:
+        eventPlayer.startForcingName("Jake")
+        eventPlayer.BotAbilityLock[2] = 2
+    elif eventPlayer.CurrHero == Hero.MEI:
+        eventPlayer.startForcingName("Pelican")
+    elif eventPlayer.CurrHero == Hero.PHARAH:
+        eventPlayer.startForcingName("Jinmu")
+        eventPlayer.DisableCrouch = true
+    elif eventPlayer.CurrHero == Hero.REAPER:
+        eventPlayer.startForcingName("Doha")
+    elif eventPlayer.CurrHero == Hero.SOJOURN:
+        eventPlayer.startForcingName("Edison")
+    elif eventPlayer.CurrHero == Hero.SOLDIER:
+        eventPlayer.startForcingName("Fleta")
+    elif eventPlayer.CurrHero == Hero.SOMBRA:
+        eventPlayer.startForcingName("Lip")
+    elif eventPlayer.CurrHero == Hero.SOMBRA: 
+        eventPlayer.startForcingName("Happy")
+    elif eventPlayer.CurrHero == Hero.TORBJORN:
+        eventPlayer.startForcingName("Nero")
+    elif eventPlayer.CurrHero == Hero.TRACER:
+        eventPlayer.startForcingName("Proper")
+        eventPlayer.BotAbilityLock[2] = 3
+    elif eventPlayer.CurrHero == Hero.WIDOWMAKER:
+        eventPlayer.startForcingName("ANS")
+    elif eventPlayer.CurrHero == Hero.ANA:
+        eventPlayer.startForcingName("Shu")
+    elif eventPlayer.CurrHero == Hero.BAPTISTE:
+        eventPlayer.startForcingName("Alarm")
+        eventPlayer.DisableJump = true
+        eventPlayer.DisableCrouch = true
+    elif eventPlayer.CurrHero == Hero.BRIGITTE:
+        eventPlayer.startForcingName("Skewed")
+    elif eventPlayer.CurrHero == Hero.KIRIKO:
+        eventPlayer.startForcingName("Fielder")
+    elif eventPlayer.CurrHero == Hero.LUCIO:
+        eventPlayer.startForcingName("FunnyAstro")
+    elif eventPlayer.CurrHero == Hero.MERCY:
+        eventPlayer.startForcingName("Moth")
+        eventPlayer.DisableJump = true
+        eventPlayer.DisableCrouch = true
+        eventPlayer.LtRange = 5
+        eventPlayer.LtTime = 3
+        SetHealingFacing()
+    if eventPlayer.CurrHero == Hero.MOIRA:
+        eventPlayer.startForcingName("Viol2t")
+    if eventPlayer.CurrHero == Hero.ZENYATTA:
+        eventPlayer.startForcingName("Jjonak")
+
+
 rule "Bot Spawn: Setup":
     @Event eachPlayer
     @Team 2
@@ -1802,7 +1937,7 @@ rule "Bot Pathing: Initialization":
     ResetBotPathing()
 
     
-rule "Bot Pathing: Movement Handler: Movement Type 0 Seita remake":
+rule "Bot Pathing: Movement Handler: Movement Type 0 Seita Pathing":
     @Event eachPlayer
     @Team 2
     @Condition eventPlayer.isAlive() == true
@@ -1829,6 +1964,24 @@ rule "Bot Pathing: Movement Handler: Movement Type 1 Seita Pathing + rand long s
         ChangePathing()
         wait(random.uniform(MoveMinWait, MoveMaxWait), Wait.ABORT_WHEN_FALSE)
 
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+
+rule "Bot Pathing: Seita pathing - Too close to path destination":
+    @Event eachPlayer
+    @Team 2
+    @Condition eventPlayer.isAlive() == true
+    @Condition distance(eventPlayer.getPosition(), eventPlayer.PathLoc[eventPlayer.PathDirection]) <= 1.5
+    @Condition eventPlayer.MvmtType <= 1
+    
+    eventPlayer.PathIndex.remove(eventPlayer.PathDirection)
+    eventPlayer.PathOldDirection = eventPlayer.PathDirection
+    eventPlayer.PathDirection = random.choice(eventPlayer.PathIndex)
+    eventPlayer.PathIndex.append(eventPlayer.PathOldDirection)
+    eventPlayer.startThrottleInDirection(localVector(eventPlayer.PathLoc[eventPlayer.PathDirection], eventPlayer, Transform.ROTATION_AND_TRANSLATION), 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
+    wait(1, Wait.ABORT_WHEN_FALSE)
     if RULE_CONDITION:
         goto RULE_START
 
@@ -1880,7 +2033,7 @@ rule "Bot Pathing: Movement Handler - MvmtType 3 8-direction Strafes":
         goto RULE_START
 
 
-rule "Bot Pathing: Movement Handler - MvmtType 5 no movement":
+rule "Bot Pathing: Movement Handler - MvmtType 4 no movement":
     @Event eachPlayer
     @Team 2
     @Condition eventPlayer.isAlive() == true
@@ -1893,7 +2046,7 @@ rule "Bot Pathing: Movement Handler - MvmtType 5 no movement":
         goto RULE_START
         
 
-rule "Bot Pathing: Movement Handler - MvmtType 4 Forward AD Strafes":
+rule "Bot Pathing: Movement Handler - MvmtType 5 Forward AD Strafes":
     @Event eachPlayer
     @Team 2
     @Condition eventPlayer.isAlive() == true
@@ -1938,23 +2091,6 @@ rule "Bot Pathing: Randomized Strafes":
     if eventPlayer.Randomizer <= 4:
         eventPlayer.MvmtType = random.randint(0,3)
     wait(5, Wait.ABORT_WHEN_FALSE)
-    if RULE_CONDITION:
-        goto RULE_START
-
-
-rule "Bot Pathing: Seita pathing - Too close to path destination":
-    @Event eachPlayer
-    @Team 2
-    @Condition eventPlayer.isAlive() == true
-    @Condition distance(eventPlayer.getPosition(), eventPlayer.PathLoc[eventPlayer.PathDirection]) <= 1.5
-    @Condition eventPlayer.MvmtType <= 1
-    
-    eventPlayer.PathIndex.remove(eventPlayer.PathDirection)
-    eventPlayer.PathOldDirection = eventPlayer.PathDirection
-    eventPlayer.PathDirection = random.choice(eventPlayer.PathIndex)
-    eventPlayer.PathIndex.append(eventPlayer.PathOldDirection)
-    eventPlayer.startThrottleInDirection(localVector(eventPlayer.PathLoc[eventPlayer.PathDirection], eventPlayer, Transform.ROTATION_AND_TRANSLATION), 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
-    wait(1, Wait.ABORT_WHEN_FALSE)
     if RULE_CONDITION:
         goto RULE_START
 
@@ -2555,10 +2691,10 @@ def PopulateAbilityMatrix():
         eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.25, 0.25, 0.00]
     elif eventPlayer.CurrHero == Hero.DOOMFIST:
         eventPlayer.PlayerReactMatrix   = [1.00, 1.60, 1.00, 1.00, 1.00]
-        eventPlayer.PlayerEatCDMatrix   = [0.50, 0.00, 0.00, 0.00, 0.00]
-        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.00, 1.00, 0.00, 1.00]
-        eventPlayer.PlayerDodgeCDMatrix = [0.00, 1.00, 0.50, 0.00, 1.00]
-        eventPlayer.PlayerStunCDMatrix  = [0.00, 0.50, 1.00, 1.00, 0.00]
+        eventPlayer.PlayerEatCDMatrix   = [0.25, 0.00, 0.00, 0.00, 0.00]
+        eventPlayer.PlayerBlockCDMatrix = [0.25, 0.00, 0.75, 0.00, 0.90]
+        eventPlayer.PlayerDodgeCDMatrix = [0.00, 1.00, 0.50, 0.00, 0.90]
+        eventPlayer.PlayerStunCDMatrix  = [0.00, 0.50, 0.50, 0.75, 0.00]
     elif eventPlayer.CurrHero == Hero.JUNKER_QUEEN:
         eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 3.00]
         eventPlayer.PlayerEatCDMatrix   = [0.50, 0.75, 0.00, 0.00, 0.00]
@@ -2773,16 +2909,6 @@ def PopulateAbilityMatrix():
 # Bot Abilities
 ## Tank Bot Abilities
 ### D.va Bot Abilities
-
-rule "Bot Abilities: Dva Demech Ability Lock fix":
-    @Event eachPlayer
-    @Team 2
-    @Hero dva
-    @Condition eventPlayer.getMaxHealth() == 150
-    
-    eventPlayer.BotAbilityLock = [false, false, false, false, false]
-
-
 rule "Bot Abilities: Dva Primary (P)":
     @Event eachPlayer
     @Team 2
@@ -2808,7 +2934,7 @@ rule "Bot Abilities: Dva Secondary Random (BB1)":
     @Condition eventPlayer.getNormalizedHealth() != 1
     @Condition eventPlayer.BotAbilityLock[1] == false
 
-    wait(random.uniform(2, 7), Wait.ABORT_WHEN_FALSE)
+    wait(random.uniform(3, 7), Wait.ABORT_WHEN_FALSE)
     eventPlayer.BotAbilityLock[1] = true
     eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
     wait(0.5)
@@ -2846,7 +2972,7 @@ rule "Bot Abilities: Dva Secondary (BB1 + Re)":
         goto RULE_START
     
 
-rule "Bot Abilities: Dva Ability 1 (NR)":
+rule "Bot Abilities: Dva Ability 1 (Rn)":
     @Event eachPlayer
     @Team 2
     @Hero dva
@@ -2906,9 +3032,6 @@ rule "Bot Abilities: Dva Ability 1 (R + P)":
     @Condition eventPlayer.getMaxHealth() != 150
     @Condition eventPlayer.BotAbilityLock[2] == false
     @Condition eventPlayer.LookTarget.PlayerUsedDodgeCD == 0
-
-    eventPlayer.Randomizer = random.uniform(0,1)
-    if eventPlayer.Randomizer >= eventPlayer.LookTarget.PlayerUsedDodgeCD:
         
     if eventPlayer.getNormalizedHealth() > 0.5:
         wait(random.uniform(1,5), Wait.ABORT_WHEN_FALSE)
@@ -2928,14 +3051,13 @@ rule "Bot Abilities: Dva Ability 1 (R + P)":
         goto RULE_START
 
 
-
 rule "Bot Abilities: Dva Ability 2 (P)":
     @Event eachPlayer
     @Team 2
     @Hero dva
     @Condition BotsUseAbilities == true
-    @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.ApplyPressure == true
+    @Condition eventPlayer.isAlive() == true
 
     eventPlayer.AbilityAcc = 2
     wait(random.uniform(0,5),Wait.ABORT_WHEN_FALSE)
@@ -2961,8 +3083,7 @@ rule "Bot Abilities: Baby Dva Ultimate (All)":
     @Condition eventPlayer.BotAbilityLock[4] == false
 
     wait(10 / UltFrequency)
-    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
-    if eventPlayer.Randomizer < 3:
+    if random.randint(0,9) / UltFrequency < 3:
         eventPlayer.BotAbilityLock[4] = true
         eventPlayer.forceButtonPress(Button.ULTIMATE)
         eventPlayer.BotAbilityLock[4] = false
@@ -2982,14 +3103,8 @@ rule "Bot Abilities: Dva Ultimate Random (BB2)":
     @Condition eventPlayer.BotAbilityLock[4] == false
 
     wait(10 / UltFrequency)
-    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
-    if eventPlayer.Randomizer < 3:
-        eventPlayer.BotAbilityLock[4] = true
-        eventPlayer.forceButtonPress(Button.ULTIMATE)
-        wait(5)
-        eventPlayer.forceButtonPress(Button.ULTIMATE)
-        wait(10 / UltFrequency)
-        eventPlayer.BotAbilityLock[4] = false
+    if random.randint(0,9) / UltFrequency < 3:
+        DvaUltimate()
 
     if RULE_CONDITION:
         goto RULE_START
@@ -3007,15 +3122,19 @@ rule "Bot Abilities: Dva Ultimate for Remech (BB2 + P)":
     @Condition eventPlayer.getMaxHealth() != 150
     @Condition eventPlayer.getNormalizedHealth() < 0.25
     
+    if random.randint(0,9) / UltFrequency < 5:
+        DvaUltimate()
 
-    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
-    if eventPlayer.Randomizer < 5:
-        eventPlayer.BotAbilityLock[4] = true
-        eventPlayer.forceButtonPress(Button.ULTIMATE)
-        wait(5)
-        eventPlayer.forceButtonPress(Button.ULTIMATE)
-        eventPlayer.BotAbilityLock[4] = false
-        wait(10 / UltFrequency)
+
+def DvaUltimate():
+    @Name "SUB: Dva Ultimate"
+
+    eventPlayer.BotAbilityLock[4] = true
+    eventPlayer.forceButtonPress(Button.ULTIMATE)
+    wait(5)
+    eventPlayer.forceButtonPress(Button.ULTIMATE)
+    wait(10 / UltFrequency)
+    eventPlayer.BotAbilityLock[4] = false
 
 
 ### Doomfist Bot Abilities
@@ -3049,7 +3168,7 @@ rule "Bot Abilities: Doomfist All Abilities (Rn)":
         wait(random.uniform(0.1, 1))
         eventPlayer.stopForcingButton(Button.ABILITY_2)
     elif eventPlayer.Randomizer == 4:
-        eventPlayer.startFacing(directionTowards(eventPlayer.getEyePosition(), vect(eventPlayer.getEyePosition().x, eventPlayer.getEyePosition().y +100, eventPlayer.getEyePosition().z)), DefaultTurnRate, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
+        eventPlayer.startFacing(directionTowards(eventPlayer.getEyePosition(), vect(eventPlayer.getEyePosition().x, eventPlayer.getEyePosition().y + 100, eventPlayer.getEyePosition().z)), DefaultTurnRate, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
         wait(random.uniform(0.1,1))
         eventPlayer.forceButtonPress(Button.ABILITY_1)
         SetDefaultFacing()
@@ -3099,7 +3218,7 @@ rule "Bot Abilities: Doomfist Secondary (P)":
     eventPlayer.BotAbilityLock[1] = true
     eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
     eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
-    if distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) > 15:
+    if distance(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition()) > 15:
         wait(random.uniform(1,1.6))
     else:
         wait(random.uniform(0.2,1.6))
@@ -3248,19 +3367,14 @@ rule "Bot Abilities: Doomfist Ultimate (BB2)":
     wait(10 / UltFrequency)
     eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
     if eventPlayer.Randomizer < 3:
-    eventPlayer.BotAbilityLock[4] = true
-    eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
-    eventPlayer.forceButtonPress(Button.ULTIMATE)
-    wait(1)
-    eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
-    wait(10 / UltFrequency)
-    eventPlayer.BotAbilityLock[4] = false
+        smallMessage(hostPlayer, "Debug: Doomfist ult rand")
+        DoomfistUltimate()
 
     if RULE_CONDITION:
         goto RULE_START
 
 
-rule "Bot Abilities: Doomfist Ultimate (BB2 + R)":
+rule "Bot Abilities: Doomfist Ultimate (BB2 + Rh)":
     @Event eachPlayer
     @Team 2
     @Hero doomfist
@@ -3273,14 +3387,21 @@ rule "Bot Abilities: Doomfist Ultimate (BB2 + R)":
 
     eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
     if eventPlayer.Randomizer < 3:
-        eventPlayer.BotAbilityLock[4] = true
-        eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
-        eventPlayer.forceButtonPress(Button.ULTIMATE)
-        wait(1)
-        eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
-        wait(10 / UltFrequency)
-        eventPlayer.BotAbilityLock[4] = false
-    
+        smallMessage(hostPlayer, "Debug: Doomfist ult Rh")
+        DoomfistUltimate()
+
+
+def DoomfistUltimate():
+    @Name "SUB: Doomfist Ultimate"
+
+    eventPlayer.BotAbilityLock[4] = true
+    eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
+    eventPlayer.forceButtonPress(Button.ULTIMATE)
+    wait(1)
+    eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
+    wait(10 / UltFrequency)
+    eventPlayer.BotAbilityLock[4] = false
+
 
 ### Junker Queen Bot Abilities
 rule "Bot Abilities: Junker Queen Primary (P)":
@@ -3396,7 +3517,7 @@ rule "Bot Abilities: Junker Queen Ability 2 (P)":
 
     eventPlayer.AbilityAcc = 2
     eventPlayer.MvmtTypeLock = true
-    eventPlayer.MvmtType = 3
+    eventPlayer.MvmtType = 5
     wait(random.uniform(0,3))
     eventPlayer.forceButtonPress(Button.ABILITY_2)
     wait(3)
@@ -3979,7 +4100,7 @@ rule "Bot Abilities: Reinhardt Ability 1 (BB1 + P)":
     wait(random.uniform(0, 5), Wait.ABORT_WHEN_FALSE)
     eventPlayer.BotAbilityLock[2] = true
     eventPlayer.MvmtTypeLock = true
-    eventPlayer.MvmtType = 3
+    eventPlayer.MvmtType = 5
     eventPlayer.forceButtonPress(Button.ABILITY_1)
     eventPlayer.Randomizer = random.uniform(0,1)
     if eventPlayer.Randomizer >= 0.80:
@@ -4478,24 +4599,7 @@ rule "Bot Abilities: Winston Ultimate Random (BB1)":
     @Condition eventPlayer.BotAbilityLock[4] == false
 
     wait(10 / UltFrequency)
-    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
-    if eventPlayer.Randomizer < 3:
-        smallMessage(hostPlayer, "Debug: Angry Monke 1")
-        eventPlayer.BotAbilityLock[4] = true
-        eventPlayer.MvmtTypeLock = true
-        eventPlayer.MvmtType = 3
-        eventPlayer.forceButtonPress(Button.ULTIMATE)
-        eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
-        eventPlayer.BotAbilityLock[2] = true
-        eventPlayer.forceButtonPress(Button.ABILITY_1)
-        while eventPlayer.isUsingUltimate():
-            wait(random.uniform(2,3))
-            eventPlayer.forceButtonPress(Button.ABILITY_1)
-        eventPlayer.MvmtType = DefaultMvmtType
-        eventPlayer.MvmtTypeLock = false
-        eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
-        eventPlayer.BotAbilityLock[4] = false
-        wait(10 / UltFrequency)
+    WinstonUltimate()
         
     if RULE_CONDITION:
         goto RULE_START
@@ -4513,12 +4617,17 @@ rule "Bot Abilities: Winston Ultimate (BB1 + R)":
     @Condition eventPlayer.getNormalizedHealth() <= 0.25
     @Condition eventPlayer.BotAbilityLock[4] == false
 
-    eventPlayer.Randomizer = random.randint(0,9) / UltFrequency
-    if eventPlayer.Randomizer < 3:
-        smallMessage(hostPlayer, "Debug: Angry Monke 2")
+    WinstonUltimate()
+
+
+def WinstonUltimate():
+    @Name "WinstonUltimate"
+
+    if random.randint(0,9) / UltFrequency < 3:
+        smallMessage(hostPlayer, "Debug: Angry Monke 1")
         eventPlayer.BotAbilityLock[4] = true
         eventPlayer.MvmtTypeLock = true
-        eventPlayer.MvmtType = 3
+        eventPlayer.MvmtType = 5
         eventPlayer.forceButtonPress(Button.ULTIMATE)
         eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
         eventPlayer.BotAbilityLock[2] = true
@@ -4529,8 +4638,10 @@ rule "Bot Abilities: Winston Ultimate (BB1 + R)":
         eventPlayer.MvmtType = DefaultMvmtType
         eventPlayer.MvmtTypeLock = false
         eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
+        eventPlayer.BotAbilityLock[4] = false
         wait(10 / UltFrequency)
         eventPlayer.BotAbilityLock[4] = false
+
 
 ### Wrecking Ball Bot Abilities
 rule "Bot Pressure: Wrecking Ball Primary (P)":
@@ -5118,7 +5229,7 @@ rule "Bot Abilities: Bastion Ultimate":
         eventPlayer.forceButtonPress(Button.ULTIMATE)
         wait(1)
         eventPlayer.MvmtTypeLock = true
-        eventPlayer.MvmtType = 3
+        eventPlayer.MvmtType = 5
         eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
         wait(random.uniform(0.5,1))
         eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
@@ -5574,7 +5685,7 @@ rule "Bot Abilities: Genji Ultimate (All)":
             eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
             eventPlayer.forceButtonPress(Button.ULTIMATE)
             eventPlayer.MvmtTypeLock = true
-            eventPlayer.MvmtType = 3
+            eventPlayer.MvmtType = 2
         while eventPlayer.isUsingUltimate():
             wait(random.uniform(0,1))
             if eventPlayer.ApplyPressure == false:
@@ -7483,60 +7594,191 @@ rule "Bot Abilities: Brig Primary":
     @Hero brigitte
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 7
-    @Condition eventPlayer.hasSpawned() == true
+    @Condition eventPlayer.BotAbilitySignal[1] == false
+    @Condition eventPlayer.BotAbilitySignal[2] == false
+    @Condition distance(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition()) < 7
     
     eventPlayer.AbilityAcc = 2
     SetDefaultFacing()
     eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
     wait(9999, Wait.ABORT_WHEN_FALSE)
+
     if RULE_CONDITION:
         goto RULE_START
 
-
-rule "Bot Abilities: Bash":
+        
+rule "Bot Abilities: Secondary (Rh)":
     @Event eachPlayer
     @Team 2
     @Hero brigitte
-    @Condition eventPlayer.ApplyPressure == true
-    @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
     @Condition BotsUseAbilities == true
-    
-    wait(random.uniform(0,5), Wait.ABORT_WHEN_FALSE)
+    @Condition BotsReact == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[1] == false
+    @Condition eventPlayer.getNormalizedHealth() <= 0.25
+
+    smallMessage(hostPlayer, "Debug: Brig Shield Rh")
+    wait(random.uniform(0.25,1))
+    eventPlayer.BotAbilitySignal[1] = true
     eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
     eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
-    wait(random.uniform(0.1, 0.5))
-    eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
-    wait(random.uniform(1,2))
+    wait(random.uniform(3,7))
     eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
-    if distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 7:
-        eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
-    wait(5)
+    eventPlayer.BotAbilitySignal[1] = false
+    wait(random.uniform(2,5))
+
     if RULE_CONDITION:
         goto RULE_START
 
 
-rule "Bot Abilities: Brigitte Ability 1":
+rule "Bot Abilities: Secondary (Rb)":
     @Event eachPlayer
     @Team 2
     @Hero brigitte
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[1] == false
+    @Condition eventPlayer.LookTarget.PlayerUsedBlockCD > 0
+    @Condition eventPlayer.LookTarget.PlayerUsedBlockCD >= eventPlayer.LookTarget.AbilityReactChance
+    
+    if eventPlayer.LookOffset.PlayerUsedStunCD == 0 or eventPlayer.BotAbilityLock[1] == true:
+        smallMessage(hostPlayer, "Debug: Brig Shield Rb")
+        wait(random.uniform(0.25,1))
+        eventPlayer.BotAbilitySignal[1] = true
+        eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
+        eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
+        wait(random.uniform(1, eventPlayer.LookOffset.PlayerReactTime * 2))
+        eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
+        eventPlayer.BotAbilitySignal[1] = false
+    wait(random.uniform(3,7))
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Abilities: Secondary Combo Random (P)":
+    @Event eachPlayer
+    @Team 2
+    @Hero brigitte
+    @Condition BotsUseAbilities == true
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 20
-    @Condition eventPlayer.hasSpawned() == true
-    @Condition BotsUseAbilities == true
+    @Condition eventPlayer.BotAbilityLock[1] == false
     
-    wait(random.uniform(0, 8), Wait.ABORT_WHEN_FALSE)
+    wait(random.uniform(3,7), Wait.ABORT_WHEN_FALSE)
+    smallMessage(hostPlayer, "Debug: Brig Bash P")
+    eventPlayer.BotAbilityLock[1] = true
+    BrigBashCombo()
+    eventPlayer.BotAbilityLock[1] = false
+    if random.randint(0,3) == 0 and eventPlayer.BotAbilityLock[2] == false and eventPlayer.LookTarget.getNormalizedHealth() <= 0.5:
+        smallMessage(hostPlayer, "Debug: Brig Bash P w")
+        eventPlayer.BotAbilityLock[2] = true
+        BrigWhipShot()
+        wait(4)
+        eventPlayer.BotAbilityLock[2] = false
+        wait(1)
+    else:
+        wait(5)
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Abilities: Secondary Combo (Rd Rs)":
+    @Event eachPlayer
+    @Team 2
+    @Hero brigitte
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[1] == false
+    @Condition (eventPlayer.LookTarget.PlayerUsedDodgeCD > 0 or eventPlayer.LookTarget.PlayerUsedStunCD > 0)
+    @Condition (eventPlayer.LookTarget.PlayerUsedDodgeCD >= eventPlayer.LookTarget.AbilityReactChance or eventPlayer.LookTarget.PlayerUsedStunCD >= eventPlayer.LookTarget.AbilityReactChance )
+    
+    smallMessage(hostPlayer, "Debug: Brig Bash Rd/s")
+    eventPlayer.BotAbilityVar = distance(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition())
+    if eventPlayer.LookTarget.PlayerUsedStunCD == 0 or eventPlayer.BotAbilityVar > 12:
+        wait(random.uniform(0.25, eventPlayer.LookTarget.PlayerReactTime))
+        eventPlayer.startFacing(vect(eventPlayer.getEyePosition().x + random.uniform(-20,20), eventPlayer.getEyePosition().y + random.uniform(-5,20), eventPlayer.getEyePosition().z + random.uniform(-20,20)), 3000, Relativity.TO_WORLD, FacingReeval.NONE)
+    else:
+        wait(random.uniform(eventPlayer.LookTarget.PlayerReactTime / 2, eventPlayer.LookTarget.PlayerReactTime * 2))
+    eventPlayer.BotAbilityLock[1] = true
+    BrigBashCombo()
+    wait(5)
+    eventPlayer.BotAbilityLock[1] = false
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Abilities: Brigitte Ability 1 (P)":
+    @Event eachPlayer
+    @Team 2
+    @Hero brigitte
+    @Condition BotsUseAbilities == true
+    @Condition eventPlayer.ApplyPressure == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[2] == false
+    @Condition distance(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition()) < 20
+
+    
+    wait(random.uniform(3, 7), Wait.ABORT_WHEN_FALSE)
+    smallMessage(hostPlayer, "Debug: Brig a1 p")
+    eventPlayer.BotAbilityLock[2] = true
+    BrigWhipShot()
+    eventPlayer.BotAbilityLock[2] = false
+    wait(4)
+
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Abilities: Brigitte Ability 1 (P + Rh)":
+    @Event eachPlayer
+    @Team 2
+    @Hero brigitte
+    @Condition BotsUseAbilities == true
+    @Condition eventPlayer.ApplyPressure == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[2] == false
+    @Condition eventPlayer.getNormalizedHealth() <= 0.5
+    @Condition distance(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition()) < 7
+
+    wait(random.uniform(1, 3), Wait.ABORT_WHEN_FALSE)
+
+    smallMessage(hostPlayer, "Debug: Brig a1 p rh")
+    eventPlayer.BotAbilityLock[2] = true
+    BrigWhipShot()
+    eventPlayer.BotAbilityLock[2] = false
+    wait(4)
+
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+def BrigBashCombo():
+    @Name "SUB: BrigBashCombo"
+
+    eventPlayer.BotAbilitySignal[1] = true
+    eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
+    eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
+    wait(0.1)
+    eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
+    SetDefaultFacing()
+    eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
+    eventPlayer.BotAbilitySignal[1] = false
+
+
+def BrigWhipShot():
+    @Name "SUB: BrigWhipShot"
+
+    eventPlayer.BotAbilitySignal[2] = true
     eventPlayer.ProjType = "ability 1"
     SetProjectileFacing()
     wait(0.1)
     eventPlayer.forceButtonPress(Button.ABILITY_1)
     wait(0.1)
     SetDefaultFacing()
-    wait(4)
-    if RULE_CONDITION:
-        goto RULE_START
+    eventPlayer.BotAbilitySignal[2] = false
+    
 
 
 
@@ -7916,104 +8158,3 @@ rule "Bot Abilities: Zen Proximity Kick":
     if RULE_CONDITION:
         goto RULE_START
 
-def InitializeBotHero():
-    @Name "SUB: InitalizeBotHero"
-
-    eventPlayer.MvmtTypeLock = false
-    eventPlayer.MvmtType = DefaultMvmtType
-    eventPlayer.BotAbilitySignal = [false, false, false, false, false]
-    eventPlayer.BotAbilityLock  = [false, false, false, false, false]
-    eventPlayer.DisableJump = false
-    eventPlayer.DisableCrouch = false
-    eventPlayer.LtTime = 1
-    eventPlayer.LtRange = 0
-    SetDefaultFacing()
-
-    eventPlayer.CurrHero = eventPlayer.getCurrentHero()
-    if eventPlayer.CurrHero == Hero.DVA:
-        eventPlayer.startForcingName("ChoiHyoBin")
-    if eventPlayer.CurrHero == Hero.DOOMFIST:
-        eventPlayer.startForcingName("Danteh")
-    if eventPlayer.CurrHero == Hero.JUNKER_QUEEN:
-        eventPlayer.startForcingName("Hanbin")
-    if eventPlayer.CurrHero == Hero.ORISA:
-        eventPlayer.startForcingName("Gator")
-    if eventPlayer.CurrHero == Hero.RAMATTRA:
-        eventPlayer.startForcingName("Hawk")
-    if eventPlayer.CurrHero == Hero.REINHARDT:
-        eventPlayer.startForcingName("Super")
-    if eventPlayer.CurrHero == Hero.ROADHOG:
-        eventPlayer.startForcingName("Gesture")
-    if eventPlayer.CurrHero == Hero.SIGMA:
-        eventPlayer.startForcingName("Void")
-    if eventPlayer.CurrHero == Hero.HAMMOND:
-        eventPlayer.startForcingName("Ga9a")
-    if eventPlayer.CurrHero == Hero.WINSTON:
-        eventPlayer.startForcingName("Fearless")
-    if eventPlayer.CurrHero == Hero.ZARYA:
-        eventPlayer.startForcingName("Hotba")
-        eventPlayer.BotAbilityLock[2] = 2
-    if eventPlayer.CurrHero == Hero.ASHE:
-        eventPlayer.startForcingName("Shy")
-    if eventPlayer.CurrHero == Hero.BASTION:
-        eventPlayer.startForcingName("Architect")
-    if eventPlayer.CurrHero == Hero.MCCREE:
-        eventPlayer.startForcingName("Carpe")
-    if eventPlayer.CurrHero == Hero.ECHO:
-        eventPlayer.startForcingName("Speedily")
-        eventPlayer.DisableJump = true
-        eventPlayer.DisableCrouch = true
-    if eventPlayer.CurrHero == Hero.GENJI:
-        eventPlayer.startForcingName("Sp9rk1e")
-        eventPlayer.DisableJump = true
-    if eventPlayer.CurrHero == Hero.HANZO:
-        eventPlayer.startForcingName("Profit")
-        eventPlayer.DisableJump = true
-    if eventPlayer.CurrHero == Hero.JUNKRAT:
-        eventPlayer.startForcingName("Jake")
-        eventPlayer.BotAbilityLock[2] = 2
-    if eventPlayer.CurrHero == Hero.MEI:
-        eventPlayer.startForcingName("Pelican")
-    if eventPlayer.CurrHero == Hero.PHARAH:
-        eventPlayer.startForcingName("Jinmu")
-        eventPlayer.DisableCrouch = true
-    if eventPlayer.CurrHero == Hero.REAPER:
-        eventPlayer.startForcingName("Doha")
-    if eventPlayer.CurrHero == Hero.SOJOURN:
-        eventPlayer.startForcingName("Edison")
-    if eventPlayer.CurrHero == Hero.SOLDIER:
-        eventPlayer.startForcingName("Fleta")
-    if eventPlayer.CurrHero == Hero.SOMBRA:
-        eventPlayer.startForcingName("Lip")
-    if eventPlayer.CurrHero == Hero.SOMBRA: 
-        eventPlayer.startForcingName("Happy")
-    if eventPlayer.CurrHero == Hero.TORBJORN:
-        eventPlayer.startForcingName("Nero")
-    if eventPlayer.CurrHero == Hero.TRACER:
-        eventPlayer.startForcingName("Proper")
-        eventPlayer.BotAbilityLock[2] = 3
-    if eventPlayer.CurrHero == Hero.WIDOWMAKER:
-        eventPlayer.startForcingName("ANS")
-    if eventPlayer.CurrHero == Hero.ANA:
-        eventPlayer.startForcingName("Shu")
-    if eventPlayer.CurrHero == Hero.BAPTISTE:
-        eventPlayer.startForcingName("Alarm")
-        eventPlayer.DisableJump = true
-        eventPlayer.DisableCrouch = true
-    if eventPlayer.CurrHero == Hero.BRIGITTE:
-        eventPlayer.startForcingName("Skewed")
-    if eventPlayer.CurrHero == Hero.KIRIKO:
-        eventPlayer.startForcingName("Fielder")
-    if eventPlayer.CurrHero == Hero.LUCIO:
-        eventPlayer.startForcingName("FunnyAstro")
-    if eventPlayer.CurrHero == Hero.MERCY:
-        eventPlayer.startForcingName("Moth")
-        eventPlayer.DisableJump = true
-        eventPlayer.DisableCrouch = true
-        eventPlayer.LtRange = 5
-        eventPlayer.LtTime = 3
-        SetHealingFacing()
-    if eventPlayer.CurrHero == Hero.MOIRA:
-        eventPlayer.startForcingName("Viol2t")
-    if eventPlayer.CurrHero == Hero.ZENYATTA:
-        eventPlayer.startForcingName("Jjonak")
