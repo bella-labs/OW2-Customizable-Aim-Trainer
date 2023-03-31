@@ -119,6 +119,9 @@ globalvar MenuTogglePressureDiff
 globalvar MenuToggleBotDiff
 globalvar MenuToggleBotSpeed
 
+## Flavor Text
+globalvar SplashText
+
 #Player variables
 ## Player Stat Tracking Variables
 playervar Timer
@@ -601,6 +604,39 @@ rule "Initialize: Global Variables":
     HeroList.append(Hero.ZENYATTA)
 
 
+    SplashText = [
+        "Meow", 
+        "Taxi your mercy!", 
+        "Good Luck, Have Fun everyone!",
+        "Try TF2!", 
+        "you're swagging out!",
+        "Taxi your kiriko!",
+        "Also Try Kovaaks!",
+        "Remember to drink water!",
+        "Also Try Severed Steel!", 
+        "You can do it!", 
+        "Congratulations!", 
+        "Is that a Pro Genji?!", 
+        "9% bug free!", 
+        "Boop!", 
+        "A group of penguins is a waddle!", 
+        "Believe.", 
+        "I like seaweed!", 
+        "Nervous? Me? Never!",
+        "_A__ __FF",
+        "5 Gold Medals!",
+        "Hello? Hello Hello!",
+        "Greetings!",
+        "3:44!",
+        "Can we get a nano going?",
+        "5 Man Rez!",
+        "Can i get your autograph?",
+        "A Giant Gorilla!",
+        "Thank your tank!",
+        "Big Beat! Big Beat!",
+        "Your gun is so cute!",
+        ]
+
 rule "Initialize: Bot Hero Variables":
 
     # Wait to help reduce init load
@@ -628,6 +664,7 @@ rule "Player Joined: Team 1 Defaults":
     @Team 1
     
     # Default settings and hud generation
+    eventPlayer.disableGamemodeHud()
     eventPlayer.MovementSpeed = 100
     eventPlayer.BotSettingsChanged = false
     MenuHud()
@@ -735,7 +772,13 @@ def MenuHud():
     "Toggle Selection:  {0}/{1}".format(buttonString(Button.PRIMARY_FIRE),buttonString(Button.ABILITY_2)), HudPosition.LEFT, 0.9, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     # Help Header
     hudSubtext([i for i in eventPlayer if eventPlayer.Menu_On], 
-    "\n   For more info on settings \n Go to Workshop.codes/VXEAT  \n", HudPosition.TOP, 0, Color.ROSE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    "\n   For more info on settings \n Go to Workshop.codes/VXEAT", HudPosition.TOP, 1002, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    
+    hudSubtext([i for i in eventPlayer if eventPlayer.Menu_On], 
+    "       ∧,,,∧ 
+      ( •‿• )     ~ {0} ~
+      /つ   づ
+     /      /".format(SplashText[random.randint(0,29)]), HudPosition.RIGHT, 1000, Color.ROSE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     # Player Settings Header
     hudHeader([i for i in eventPlayer if eventPlayer.Menu_On], 
     "Player Settings", HudPosition.TOP, 0.1, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
@@ -1406,14 +1449,14 @@ def MenuAction8Diff():
         MoveMinWait = 0.25
         MoveMaxWait = 0.45
     elif MenuToggleBotDiff == 5:
-        smallMessage(getAllPlayers(), "    Very Hard movement pattern: Bots change direction 0.1 - 0.2")
+        smallMessage(getAllPlayers(), "    Very Hard movement pattern: Bots change direction 0.1 - 0.2s")
         MoveMinWait = 0.10
         MoveMaxWait = 0.35
     elif MenuToggleBotDiff == 6:
-        smallMessage(getAllPlayers(), "    Extreme movement pattern: glhf ♥")
+        smallMessage(getAllPlayers(), "    Extreme movement pattern: 0.05 - 0.35s + random strafes + crouch spam")
         MoveMinWait = 0.05
         MoveMaxWait = 0.35
-        CrouchMaxWait = 0.5
+        CrouchMaxWait = 1
         BotUncrouchMin = 0.05
         BotUncrouchMax = 0.1
         JumpMinWait = 5
@@ -1708,7 +1751,6 @@ def AssignNewHero():
 
 def CreateAllBots():
     @Name "SUB: BotGen: CreateAllBots"
-
     if NumberOfBots >= 1:
         BotSlot = 0
         CreateBot()
