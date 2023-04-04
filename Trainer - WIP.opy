@@ -1,6 +1,6 @@
 settings {
     "main": {
-        "description": "A very customizable aim trainer - VXEAT. Movement based off VAXTA, with a new menu system allowing for in-game customiztion. Features support for any map, various new player assists, and game mode to practice while under pressure.",
+        "description": "A very cool CAT.\n\n  ∧,,,∧\n ( •‿• )\n /つ   づ♡\n\nFind tutorials/help at workshop.codes/VXEAT\nReport bugs on my discord:discord.gg/YPQ5ETNT45\n\nFeatures:\n* Projectile Guide - Learn to lead projectiles\n* Pressure Mode - Bots shoot back!\n* Custom Spawn Location - Train on any map\n* Reactive Bots - Input Reading, just like Morgott!\n* And More... Check out the workshop settings page\n\nNote: There are hundereds of different combinations in this mode, if something feels unrealistic or unfun, let me know in my discord :)",
         "modeName": "Customizable Aim Trainer - VXEAT"
     },
     "lobby": {
@@ -109,6 +109,7 @@ globalvar ElimRefresh
 globalvar HealAfterNoDmg
 globalvar DeathPunishment
 globalvar ShowDebugInfo
+globalvar ShowStartMessage
 
 ## Global Menu Variables
 globalvar MenuSizeHost
@@ -156,11 +157,10 @@ playervar BotAbilityVar
 
 ## Bot Facing Variables
 playervar LookTarget
-playervar LtRange
+playervar HealingFacing
 playervar LtTime
 
 ## Player Modifiers
-playervar MovementSpeed
 playervar DefaultAmmo
 playervar BuffEffects
 
@@ -182,16 +182,15 @@ playervar AbilityReactChance
 ## Projectile Leading Variables
 playervar AimSpot
 playervar ProjSpeed
-playervar VarT
-playervar VarA
-playervar VarB
-playervar VarC
-playervar VarD
+playervar ProjVarT
+playervar ProjVarA
+playervar ProjVarB
+playervar ProjVarC
 playervar DisToTar
-playervar VarP
-playervar VarQ
-playervar VarT1
-playervar VarT2
+playervar ProjVarP
+playervar ProjVarQ
+playervar ProjVarT1
+playervar ProjVarT2
 playervar ProjEffects
 playervar CurrHero
 playervar ProjType
@@ -215,21 +214,21 @@ subroutine DestroyAllBots
 subroutine CreateBot
 subroutine DestroyBot
 subroutine ResetBotPathing
-subroutine MenuAction0
-subroutine MenuAction1
-subroutine MenuAction2
-subroutine MenuAction3
-subroutine MenuAction4
-subroutine MenuAction5 
-subroutine MenuAction6 
-subroutine MenuAction7 
-subroutine MenuAction8Diff
-subroutine MenuAction8Abilities
-subroutine MenuAction9Toggle
-subroutine MenuAction9Radius
-subroutine MenuAction10
-subroutine MenuAction11
-subroutine MenuAction12
+subroutine MenuChangeHeroes
+subroutine MenuMercyToggle
+subroutine MenuAnaToggle
+subroutine MenuKirikoToggle
+subroutine MenuPlayerSpeed
+subroutine MenuProjGuide 
+subroutine MenuInfAmmo 
+subroutine MenuBotSpeed 
+subroutine MenuBotDiff
+subroutine MenuMvmtType
+subroutine MenuCustSpawn
+subroutine MenuCustRadius
+subroutine MenuNumBots
+subroutine MenuHeroSelect
+subroutine MenuPressureMode
 subroutine SetMapSpawnPt
 subroutine ChangePathing
 subroutine MenuHud
@@ -248,6 +247,7 @@ subroutine DoomfistUltimate
 subroutine BrigBashCombo
 subroutine BrigWhipShot
 subroutine ResetPlayerResources
+
 
 
 #Activated extensions
@@ -391,19 +391,20 @@ rule "Initialize: Workshop Settings":
 
     ## UI Settings
     DamageNumbers = createWorkshopSetting(bool, "0. UI Settings", "Show Damage Numbers", false, 0)
-    ShowDebugInfo = createWorkshopSetting(bool, "0. UI Settings", "Show Server Load and Coordinates", true, 2)
+    ShowDebugInfo = createWorkshopSetting(bool, "0. UI Settings", "Show Server Load and Coordinates", false, 1)
+    ShowStartMessage = createWorkshopSetting(bool, "0. UI Settings", "Show Startup Message", true, 2)
 
     ## Number of Bots
-    NumberOfBots = createWorkshopSetting(int[1:12], "1. Number of Bots (Overridden by in-game changes to settings)", "Number of Bots", 1, 4)
+    NumberOfBots = createWorkshopSetting(int[1:12], "1. Number of Bots (Overridden by in-game changes to settings)", "Number of Bots", 6, 4)
 
     ## Bot Ability Settings
     BotsUseAbilities = createWorkshopSetting(bool, "2. Bot Ability Settings (Overridden by in-game changes to settings)", "Bots use abilities", true, 0)
-    BotsReact  = createWorkshopSetting(bool, "2. Bot Ability Settings (Overridden by in-game changes to settings)", "Bots react (to player input, health, range, etc.)", true, 1)
+    BotsReact  = createWorkshopSetting(bool, "2. Bot Ability Settings (Overridden by in-game changes to settings)", "Bots react (to player input, health, etc.)", true, 1)
     BotReactivity = createWorkshopSetting(float[0:5], "2. Bot Ability Settings (Overridden by in-game changes to settings)", "Multiplier for how often bots respond to the player input (2 = 2x often, etc.)", 1, 2)
     UltFrequency = createWorkshopSetting(float[0:5], "2. Bot Ability Settings (Overridden by in-game changes to settings)", "Multiplier for how often bots use ultimates (2 = 2x often, etc.)", 1, 3)
 
     ## Bot Movement Settings
-    DefaultMvmtType = createWorkshopSetting(enum["Seita Pathing", "Seita w/ Random Long Strafe", "AD Strafes", "8 Directional Strafes", "No Movement", "Forward AD Strafes (Not Recommended)", "Forward (Not Recommended)"], "3. Bot Movement (Overridden by in-game changes to movement)", "Strafe Pattern", 0, 0)
+    DefaultMvmtType = createWorkshopSetting(enum["Seita Pathing", "Seita w/ Random Long Strafes", "AD Strafes", "8 Directional Strafes", "No Movement", "Forward AD Strafes (Not Recommended)", "Forward (Not Recommended)"], "3. Bot Movement (Overridden by in-game changes to movement)", "Strafe Pattern", 0, 0)
     MenuToggleBotDiff = createWorkshopSetting(enum["custom", "very easy", "easy", "medium", "hard", "very hard", "extreme"], "3. Bot Movement (Overridden by in-game changes to movement)", "Difficulty", 4, 1)
     MenuToggleBotSpeed = createWorkshopSetting(enum["Normal", "lucio speed", "kitsune / shout", "lucio amp"],   "3. Bot Movement (Overridden by in-game changes to movement)", "Bot Movement Speed", 0, 2)
     DefaultRandomStrafes = createWorkshopSetting(bool, "3. Bot Movement (Overridden by in-game changes to movement)", "Randomly swap to alternative strafe patterns", false, 3)
@@ -420,9 +421,10 @@ rule "Initialize: Workshop Settings":
     # Pressure Mode
     MenuTogglePressureType = createWorkshopSetting(enum["off", "killable", "unkillable"], "4. Bot Pressure (Overridden by in-game changes to pressure)", "Bots Apply Pressure", 0, 0)
     MenuTogglePressureDiff = createWorkshopSetting(enum["easy", "medium", "hard", "aimbot"],  "4. Bot Pressure (Overridden by in-game changes to pressure)", "Bots Pressure Difficulty", 0, 1)
+    # Pressure Mode Modifiers
     ElimRefresh = createWorkshopSetting(bool, "4.1. Bot Pressure Modifiers (killable mode only)", "Eliminations / Deaths reset cooldowns", true, 0)
     HealAfterNoDmg = createWorkshopSetting(bool, "4.1. Bot Pressure Modifiers (killable mode only)", "Restore health after not taking damage", true, 1)
-    DeathPunishment = createWorkshopSetting(bool, "4.1. Bot Pressure Modifiers (killable mode only)", "Punish player deaths (player is stunned and bot recovers health)", true, 2)
+    DeathPunishment = createWorkshopSetting(bool, "4.1. Bot Pressure Modifiers (killable mode only)", "Punish player deaths (player is stunned and attacker recovers health)", true, 2)
 
     # Bot Spawn
     MenuToggleBotSpawn = createWorkshopSetting(bool, "5. Custom Bot Spawn (Overridden by in-game changes to spawn)", "Use Custom Spawn Point", false, 0)
@@ -445,75 +447,77 @@ rule "Initialize: Workshop Settings":
     DefaultHeroList.append(createWorkshopSetting(bool, "6.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Zarya", false, 10))
     
     ## Bot Damage Heroes Enabled
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Ashe", false, 0))
+    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Ashe", true, 0))
     DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Bastion", false, 1))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Cassidy", false, 2))
-	DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Echo", false, 3))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Genji", false, 4))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Hanzo", false, 5))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Junkrat", false, 6))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Mei", false, 7))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Pharah", false, 8))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Reaper", false, 9))
-	DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Sojourn", false, 10))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Soldier 76", false, 11))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Sombra", false, 12))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Symmetra", false, 13))
+    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Cassidy", true, 2))
+	DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Echo", true, 3))
+    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Genji", true, 4))
+    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Hanzo", true, 5))
+    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Junkrat", true, 6))
+    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Mei", true, 7))
+    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Pharah", true, 8))
+    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Reaper", true, 9))
+	DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Sojourn", true, 10))
+    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Soldier 76", true, 11))
+    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Sombra", true, 12))
+    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Symmetra", true, 13))
     DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Torbjörn", true, 14))
-	DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Tracer", false, 15))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Widowmaker", false, 16))
+	DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Tracer", true, 15))
+    DefaultHeroList.append(createWorkshopSetting(bool, "6.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Widowmaker", true, 16))
     
     ## Bot Support Heroes Enabled
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Ana", false, 0))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Baptiste", false, 1))
-	DefaultHeroList.append(createWorkshopSetting(bool, "6.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Brigitte", false, 2))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Kiriko", false, 3))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Lúcio", false, 4))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Mercy", false, 5))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Moira", false, 6))
-    DefaultHeroList.append(createWorkshopSetting(bool, "6.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Zenyatta", false, 7))
+    DefaultHeroList.append(createWorkshopSetting(bool, "6.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Ana", true, 0))
+    DefaultHeroList.append(createWorkshopSetting(bool, "6.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Baptiste", true, 1))
+	DefaultHeroList.append(createWorkshopSetting(bool, "6.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Brigitte", true, 2))
+    DefaultHeroList.append(createWorkshopSetting(bool, "6.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Kiriko", true, 3))
+    #LW DefaultHeroList.append(createWorkshopSetting(bool, "6.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Lifeweaver", true, 4))
+    DefaultHeroList.append(createWorkshopSetting(bool, "6.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Lúcio", true, 4))
+    DefaultHeroList.append(createWorkshopSetting(bool, "6.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Mercy", true, 5))
+    DefaultHeroList.append(createWorkshopSetting(bool, "6.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Moira", true, 6))
+    DefaultHeroList.append(createWorkshopSetting(bool, "6.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Zenyatta", true, 7))
     
     ## Bot tank Behavior (index 0 - 10)
-    BotBehavior = createWorkshopSetting(enum["Boosters, Missiles, Remech", "Boosters, Missiles, Remech, Matrix", "Boosters, Missiles, Remech, Matrix, Bomb"], "7.1. Tank Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Dva Bot Behavior", 2, 0)
-    BotBehavior.append(createWorkshopSetting(enum["Slam, Punch", "Slam, Punch, Block", "Slam, Punch, Block, Meteor"], "7.1. Tank Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Doomfist Bot Behavior", 2, 1))
-    BotBehavior.append(createWorkshopSetting(enum["Blade, Axe", "Blade, Axe, Shout", "Blade, Axe, Shout, Rampage"], "7.1. Tank Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Junker Queen Bot Behavior", 2, 2))
-    BotBehavior.append(createWorkshopSetting(enum["Javlin", "Javlin, Fortify, Spin", "Javlin, Fortify, Spin, Terra Surge"], "7.1. Tank Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Orisa Bot Behavior", 2, 3))
-    BotBehavior.append(createWorkshopSetting(enum["Omnic", "Omnic, Nemesis", "Omnic, Nemesis, Vortex, Shield, Block", "Omnic, Nemesis, Vortex, Shield, Block, Suffer"], "7.1. Tank Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Ramattra Bot Behavior", 3, 4))
-    BotBehavior.append(createWorkshopSetting(enum["Fire Strike", "Fire Strike, Pin, Shatter", "Fire Strike,Pin, Shatter, Shield"], "7.1. Tank Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Reinhardt Bot Behavior", 2, 5))
-    BotBehavior.append(createWorkshopSetting(enum["Hook", "Hook, Heal",  "Hook, Heal, Whole Hog"], "7.1. Tank Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Roadhog Bot Behavior", 2, 6))
-	BotBehavior.append(createWorkshopSetting(enum["Rock", "Rock, Flux", "Rock, Flux, Shield, Grasp"], "7.1. Tank Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Sigma Bot Behavior", 2, 7))
-    BotBehavior.append(createWorkshopSetting(enum["Leap", "Leap, Primal", "Leap, Primal, Bubble"], "7.1. Tank Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Winston Bot Behavior", 2, 8))
-    BotBehavior.append(createWorkshopSetting(enum["Roll", "Roll, Slam", "Roll, Slam, Shield", "Roll, Slam, Shields, Mines"], "7.1. Tank Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Wrecking Ball Bot Behavior", 3, 9))
-    BotBehavior.append(createWorkshopSetting(enum["Rocket Jump", "Rocket Jump, Self Bubble, Friendly Bubble", "Rocket Jump, Self Bubble, Friendly Bubble, Graviton Surge"], "7.1. Tank Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Zarya Bot Behavior", 2, 10))
+    BotBehavior = createWorkshopSetting(enum["Boosters, Missiles, Remech", "Boosters, Missiles, Remech, D. Matrix", "Boosters, Missiles, Remech, D. Matrix, Bomb"], "7.1. Tank Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Dva Bot Behavior", 0, 0)
+    BotBehavior.append(createWorkshopSetting(enum["Slam, Punch", "Slam, Punch, Block", "Slam, Punch, Block, Meteor Strike"], "7.1. Tank Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Doomfist Bot Behavior", 0, 1))
+    BotBehavior.append(createWorkshopSetting(enum["Jagged Blade, Carnage", "Jagged Blade, Carnage, Shout", "Jagged Blade, Carnage, Shout, Rampage"], "7.1. Tank Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Junker Queen Bot Behavior", 1, 2))
+    BotBehavior.append(createWorkshopSetting(enum["Javlin", "Javlin, Fortify, Spin", "Javlin, Fortify, Spin, Terra Surge"], "7.1. Tank Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Orisa Bot Behavior", 0, 3))
+    BotBehavior.append(createWorkshopSetting(enum["Omnic Form", "Omnic Form, Nemesis Form", "Omnic Form, Nemesis Form, Vortex, Shield, Block", "Omnic Form, Nemesis Form, Vortex, Shield, Block, Annihilation"], "7.1. Tank Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Ramattra Bot Behavior", 1, 4))
+    BotBehavior.append(createWorkshopSetting(enum["Fire Strike", "Fire Strike, Pin, Shatter", "Fire Strike,Pin, Shatter, Shield"], "7.1. Tank Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Reinhardt Bot Behavior", 1, 5))
+    BotBehavior.append(createWorkshopSetting(enum["Hook", "Hook, Heal",  "Hook, Heal, Whole Hog"], "7.1. Tank Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Roadhog Bot Behavior", 0, 6))
+	BotBehavior.append(createWorkshopSetting(enum["Rock", "Rock, Flux", "Rock, Flux, Shield, Grasp"], "7.1. Tank Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Sigma Bot Behavior", 1, 7))
+    BotBehavior.append(createWorkshopSetting(enum["Leap", "Leap, Primal", "Leap, Primal, Bubble"], "7.1. Tank Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Winston Bot Behavior", 1, 8))
+    BotBehavior.append(createWorkshopSetting(enum["Roll", "Roll, Slam", "Roll, Slam, Shield", "Roll, Slam, Shields, Mines"], "7.1. Tank Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Wrecking Ball Bot Behavior", 1, 9))
+    BotBehavior.append(createWorkshopSetting(enum["Rocket Jump", "Rocket Jump, Self Bubble", "Rocket Jump, Self Bubble, Grav"], "7.1. Tank Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Zarya Bot Behavior", 0, 10))
     
     ## Damage Bot Behavior (index 11 - 27)
-    BotBehavior.append(createWorkshopSetting(enum["Coach", "Coach, Dynamite", "Coach, Dynamite, Bob"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Ashe Bot Behavior", 2, 0))
-    BotBehavior.append(createWorkshopSetting(enum["Recon", "Recon, Assault", "Recon, Assault, Nade", "Recon, Assault, Nade, Artillary"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Bastion Bot Behavior", 3, 1))
-    BotBehavior.append(createWorkshopSetting(enum["Roll", "Roll, Nade", "Roll, Nade, Noon"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Cassidy Bot Behavior", 3, 2))
+    BotBehavior.append(createWorkshopSetting(enum["Coach Gun", "Coach Gun, Dynamite", "Coach GUn, Dynamite, B.O.B"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Ashe Bot Behavior", 1, 0))
+    BotBehavior.append(createWorkshopSetting(enum["Recon Form", "Recon Form, Assault Form", "Recon Form, Assault Form, Grenade", "Recon, Assault, Grenade, Artillery Form"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Bastion Bot Behavior", 2, 1))
+    BotBehavior.append(createWorkshopSetting(enum["Roll", "Roll, Mag Nade", "Roll, Mag Nade, High Noon"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Cassidy Bot Behavior", 1, 2))
 	BotBehavior.append(createWorkshopSetting(enum["Flight", "Flight, Stickies", "Flight, Stickies, Beam"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Echo Bot Behavior", 2, 3))
-    BotBehavior.append(createWorkshopSetting(enum["Dash", "Dash, Deflect", "Dash, Block, Blade"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Genji Bot Behavior", 2, 4))
-    BotBehavior.append(createWorkshopSetting(enum["Jump", "Jump, Storm", "Jump, Storm, Dragon"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Hanzo Bot Behavior", 2, 5))
-    BotBehavior.append(createWorkshopSetting(enum["Conc", "Conc, Trap", "Conc, Trap, Tire"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Junkrat Bot Behavior", 2, 6))
-    BotBehavior.append(createWorkshopSetting(enum["Cryo", "Cryo, Wall", "Cryo, Wall, Snowball"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Mei Bot Behavior", 2, 7))
-    BotBehavior.append(createWorkshopSetting(enum["Hover, Jump Jet", "Hover, Jump Jet, Conc", "Hover, Jump Jet, Conc, Barrage"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Pharah Bot Behavior", 2, 8))
-    BotBehavior.append(createWorkshopSetting(enum["Wraith", "Wraith, Teleport", "Wraith, Teleport, Blossom"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Reaper Bot Behavior", 2, 9))
-    BotBehavior.append(createWorkshopSetting(enum["Slide, Rail", "Slide, Rail, Orb", "Slide, Rail, Orb, Overclock"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Sojourn Bot Behavior", 2, 10))
-	BotBehavior.append(createWorkshopSetting(enum["Rocket", "Rocket, Sprint", "Rocket, Sprint, Heal", "Rocket, Sprint, Heal, Visor"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Soldier 76 Bot Behavior", 3, 11))
-    BotBehavior.append(createWorkshopSetting(enum["Translocate", "Translocate, Invisibility", "Translocate, Invisibility, Hack", "Translocate, Invisibility, Hack, EMP"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Sombra Bot Behavior", 3, 12))
-    BotBehavior.append(createWorkshopSetting(enum["Teleporter", "Teleporter, Wall"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Symmetra Bot Behavior ", 1, 13))
-    BotBehavior.append(createWorkshopSetting(enum["Overload", "Overload, Molten Core"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Torbjörn Bot Behavior", 1, 14))
-    BotBehavior.append(createWorkshopSetting(enum["Blink", "Blink, Recall", "Blink, Recall, Pulse"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Tracer Bot Behavior", 2, 15))
-	BotBehavior.append(createWorkshopSetting(enum["None", "Mine"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Widowmaker Bot Behavior", 1, 16))
+    BotBehavior.append(createWorkshopSetting(enum["Dash", "Dash, Deflect", "Dash, Deflect, Dragonblade"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Genji Bot Behavior", 1, 4))
+    BotBehavior.append(createWorkshopSetting(enum["Lunge", "Lunge, Storm", "Lunge, Storm, Dragonstrike"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Hanzo Bot Behavior", 1, 5))
+    BotBehavior.append(createWorkshopSetting(enum["Conc", "Conc, Trap", "Conc, Trap, Rip Tire"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Junkrat Bot Behavior", 0, 6))
+    BotBehavior.append(createWorkshopSetting(enum["Ice Block", "Ice Block, Wall", "Cryo, Wall, Blizzard"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Mei Bot Behavior", 0, 7))
+    BotBehavior.append(createWorkshopSetting(enum["Hover, Jump Jet", "Hover, Jump Jet, Conc", "Hover, Jump Jet, Conc, Rocket Barrage"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Pharah Bot Behavior", 0, 8))
+    BotBehavior.append(createWorkshopSetting(enum["Wraith", "Wraith, Teleport", "Wraith, Teleport, Blossom"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Reaper Bot Behavior", 1, 9))
+    BotBehavior.append(createWorkshopSetting(enum["Slide, Rail", "Slide, Rail, Orb", "Slide, Rail, Orb, Overclock"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Sojourn Bot Behavior", 1, 10))
+	BotBehavior.append(createWorkshopSetting(enum["Rocket", "Rocket, Sprint", "Rocket, Sprint, Heal", "Rocket, Sprint, Heal, Tac Visor"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Soldier 76 Bot Behavior", 1, 11))
+    BotBehavior.append(createWorkshopSetting(enum["Translocate", "Translocate, Invisibility", "Translocate, Invisibility, Hack", "Translocate, Invisibility, Hack, EMP"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Sombra Bot Behavior", 1, 12))
+    BotBehavior.append(createWorkshopSetting(enum["Teleporter", "Teleporter, Photon Barrier"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Symmetra Bot Behavior ", 0, 13))
+    BotBehavior.append(createWorkshopSetting(enum["Overload", "Overload, Molten Core"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Torbjörn Bot Behavior", 0, 14))
+    BotBehavior.append(createWorkshopSetting(enum["Blink", "Blink, Recall", "Blink, Recall, Pulse Bomb"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Tracer Bot Behavior", 1, 15))
+	BotBehavior.append(createWorkshopSetting(enum["None", "Venom Mine"], "7.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Widowmaker Bot Behavior", 0, 16))
     
     ## Bot Support Heroes (index 28 - 35)
-    BotBehavior.append(createWorkshopSetting(enum["Sleep", "Sleep, Damage Nade", "Sleep, Damage + Self Nade"], "7.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Ana Bot Behavior", 2, 0))
-    BotBehavior.append(createWorkshopSetting(enum["Exo Boots", "Exo Boots, Regen", "Exo Boots, Regen, Immo", "Exo Boots, Regen, Immo, Window"], "7.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Baptiste Bot Behavior", 3, 1))
-	BotBehavior.append(createWorkshopSetting(enum["Whip Shot, Bash", "Whip Shot, Bash, Shield", "Whip Shot, Bash, Shield, Rally"], "7.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Brigitte Bot Behavior", 2, 2))
-    BotBehavior.append(createWorkshopSetting(enum["Teleport", "Teleport, Suzu", "Teleport, Suzu, Kitsune"], "7.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Kiriko Bot Behavior", 2, 3))
-    BotBehavior.append(createWorkshopSetting(enum["Speed Aura", "Speed Aura, Amp", "Speed Aura, Boop, Amp", "Speed + Healing Aura, Boop, Amp", "Boop, Speed + Healing Aura, Amp, Beat"], "7.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Lúcio Bot Behavior", 3, 4))
-    BotBehavior.append(createWorkshopSetting(enum["GA, Damage Boost", "GA, Damage + Healing Boost", "GA, Damage + Healing Boost, Valkyrie"], "7.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Mercy Bot Behavior", 2, 5))
-    BotBehavior.append(createWorkshopSetting(enum["Fade", "Fade, Damage Orb", "Fade, Damage + Heal Orb", "Fade, Damage + Heal Orb, Coalescence"], "7.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Moira Bot Behavior", 3, 6))
-    BotBehavior.append(createWorkshopSetting(enum["Volley", "Volley, Discord", "Volley, Discord, Transcendence"], "7.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Zenyatta Bot Behavior", 0, 7))
+    BotBehavior.append(createWorkshopSetting(enum["Sleep", "Sleep, Damage Nade", "Sleep, Damage + Self Nade"], "7.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Ana Bot Behavior", 1, 0))
+    BotBehavior.append(createWorkshopSetting(enum["Exo Boots", "Exo Boots, Regen", "Exo Boots, Regen, Immo", "Exo Boots, Regen, Immo, Amp. Matrix"], "7.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Baptiste Bot Behavior", 0, 1))
+	BotBehavior.append(createWorkshopSetting(enum["Whip Shot, Bash", "Whip Shot, Bash, Shield", "Whip Shot, Bash, Shield, Rally"], "7.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Brigitte Bot Behavior", 0, 2))
+    BotBehavior.append(createWorkshopSetting(enum["Swift Step", "Swift Step, Suzu", "Swift Step, Suzu, Kitsune Rush"], "7.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Kiriko Bot Behavior", 1, 3))
+    #LW BotBehavior.append(createWorkshopSetting(enum["none", "ultimate"], "7.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Lifeweaver Bot Behavior", 3, 4))
+    BotBehavior.append(createWorkshopSetting(enum["Speed Aura", "Speed Aura, Amp", "Speed Aura, Amp, Boop", "Speed + Healing Aura, Amp, Boop", "Speed + Healing Aura, Amp, Boop, Beat"], "7.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Lúcio Bot Behavior", 1, 4))
+    BotBehavior.append(createWorkshopSetting(enum["GA, Damage Boost", "GA, Damage + Healing Boost", "GA, Damage + Healing Boost, Valkyrie"], "7.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Mercy Bot Behavior", 0, 5))
+    BotBehavior.append(createWorkshopSetting(enum["Fade", "Fade, Damage Orb", "Fade, Damage + Heal Orb", "Fade, Damage + Heal Orb, Coalescence"], "7.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Moira Bot Behavior", 1, 6))
+    BotBehavior.append(createWorkshopSetting(enum["Volley", "Volley, Discord", "Volley, Discord, Transcendence"], "7.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Zenyatta Bot Behavior", 1, 7))
 
 
 rule "Initialize: Global Variables":
@@ -528,13 +532,13 @@ rule "Initialize: Global Variables":
 
     if MenuTogglePressureDiff == 0:
         MenuTogglePressureDiff = "easy"
-        PressureDiff = 1.5
+        PressureDiff = 2.00
     elif MenuTogglePressureDiff == 1:
         MenuTogglePressureDiff = "medium"
-        PressureDiff = 1.00
+        PressureDiff = 1.50
     elif MenuTogglePressureDiff == 2:
         MenuTogglePressureDiff = "hard"
-        PressureDiff = 0.50
+        PressureDiff = 0.75
     elif MenuTogglePressureDiff == 3:
         MenuTogglePressureDiff = "aimbot"
         PressureDiff = 0.00
@@ -562,7 +566,7 @@ rule "Initialize: Global Variables":
         SetMapSpawnPt()
 
     ## Default Variables
-    MenuSizeHost = 12
+    MenuSizeHost = 13
     MenuSizePlayer = 6
     Playerlist = []
     NextHero = null
@@ -603,6 +607,7 @@ rule "Initialize: Global Variables":
     HeroList.append(Hero.BAPTISTE)
     HeroList.append(Hero.BRIGITTE)
     HeroList.append(Hero.KIRIKO)
+    #LW HeroList.append(Hero.LIFEWEAVER)
     HeroList.append(Hero.LUCIO)
     HeroList.append(Hero.MERCY)
     HeroList.append(Hero.MOIRA)
@@ -613,12 +618,12 @@ rule "Initialize: Global Variables":
         "Meow", 
         "Taxi your mercy!", 
         "Good Luck, Have Fun everyone!",
-        "Try TF2!", 
-        "you're swagging out!",
+        "Try Out Pressure Mode!", 
+        "You're Swagging Out!",
         "Taxi your kiriko!",
-        "Also Try Kovaaks!",
-        "Remember to drink water!",
-        "Also Try Severed Steel!", 
+        "Also Try TF2!",
+        "Water Makes Your Tracking Slaughter!",
+        "Made by Bella!", 
         "You can do it!", 
         "Congratulations!", 
         "Is that a Pro Genji?!", 
@@ -626,22 +631,21 @@ rule "Initialize: Global Variables":
         "Boop!", 
         "A group of penguins is a waddle!", 
         "Believe.", 
-        "I like seaweed!", 
+        "Un croissant, s'il vous plaît!", 
         "Nervous? Me? Never!",
         "_A__ __FF",
-        "5 Gold Medals!",
-        "Hello? Hello Hello!",
+        "I Like Seaweed!",
+        "Plentiful Sleep Make Your Flicks So Sleek!",
         "Greetings!",
-        "3:44!",
+        "Do you do posion?",
         "Can we get a nano going?",
         "5 Man Rez!",
         "Can i get your autograph?",
-        "A Giant Gorilla!",
-        "Thank your tank!",
-        "Big Beat! Big Beat!",
+        "I'm back, baby!",
+        "Remember To Thank Your Tank!",
+        "Also Try Kovaaks!",
         "Your gun is so cute!",
         ]
-
 rule "Initialize: Bot Hero Variables":
 
     # Wait to help reduce init load
@@ -658,7 +662,7 @@ rule "Initialize: Bot Hero Variables":
     del ActiveHeroList[0]
     ActiveHeroList = random.shuffle(ActiveHeroList)
     # Set Movement Settings
-    MenuAction8Diff()
+    MenuBotDiff()
     # Starts generating all the bots
     CreateAllBots()
 
@@ -670,17 +674,18 @@ rule "Player Joined: Team 1 Defaults":
     
     # Default settings and hud generation
     eventPlayer.disableGamemodeHud()
-    eventPlayer.MovementSpeed = 100
     eventPlayer.BotSettingsChanged = false
     MenuHud()
     GlobalHud()
+    wait(16)
+    if ShowStartMessage == true:
+        destroyHudText(eventPlayer.BotAbilityVar)
 
 rule "Player Joined: Team 2 Defaults":
     @Event playerJoined
     @Team 2
 
     # Set default mvmt speed
-    eventPlayer.MovementSpeed = 100
     eventPlayer.BotAbilitySignal = [false, false, false, false, false]
     eventPlayer.BotAbilityLock  = [false, false, false, false, false]
     eventPlayer.BotAbilityVar = false
@@ -724,7 +729,12 @@ rule "Player Left":
 
 # UI Elements
 def GlobalHud():
+
     @Name "SUB: GlobalHud"
+    # Settings Notice
+    if ShowStartMessage == true:
+        hudHeader(eventPlayer, "Bots will not use defensive abilities and ultimates unless you enable them!\nGo to settings-> workshop settings-> 7.x. Bot Behavior                     \nFor each bot hero select the list of abilities you would like to see used. ", HudPosition.TOP, -2, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+        eventPlayer.BotAbilityVar = getLastCreatedText()
     # Stats that are always displayed
     hudSubheader(eventPlayer, " \n", HudPosition.LEFT, -1, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     hudSubtext(eventPlayer, "Elims:  {0}".format(ceil(eventPlayer.Kills)), HudPosition.LEFT, 0.1, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
@@ -733,13 +743,13 @@ def GlobalHud():
     hudSubtext(eventPlayer, "Crit Accuracy:  {0}  %".format(ceil(100 * eventPlayer.getHeroStatistic(eventPlayer.getCurrentHero(), HeroStat.CRITICAL_HIT_ACCURACY))), HudPosition.LEFT, 0.4, Color.TURQUOISE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     hudSubtext(eventPlayer, "Target Distance:  {0} m".format(round(distance(eventPlayer.getPlayerClosestToReticle(Team.2).getEyePosition(), eventPlayer.getEyePosition()))), HudPosition.LEFT, 0.5, Color.BLUE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     # Code advertisement 
-    hudSubheader(eventPlayer, "CODE: VXEAT", HudPosition.RIGHT, 0, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubheader(eventPlayer, "CODE: VXEAT", HudPosition.RIGHT, -1, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     # Debug info toggled via workshop settings menu
     if ShowDebugInfo:
-        hudSubheader(hostPlayer, "Load (Curr/Avg/Peak):  {0}  /  {1}  /  {2}".format(getServerLoad(),getAverageServerLoad(),getPeakServerLoad()), HudPosition.RIGHT, 1, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-        hudSubheader(eventPlayer, "Coord: ({0},{1},{2})".format(eventPlayer.getPosition().x,eventPlayer.getPosition().y,eventPlayer.getPosition().z), HudPosition.RIGHT, 2, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-        hudSubheader(eventPlayer, "Ability Profile: ({0}%  E:{1}  B:{2}  D:{3}  S:{4})".format(hostPlayer.AbilityReactChance, hostPlayer.PlayerUsedEatCD, hostPlayer.PlayerUsedBlockCD, hostPlayer.PlayerUsedDodgeCD, hostPlayer.PlayerUsedStunCD), HudPosition.RIGHT, 3, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-        hudSubheader(eventPlayer, "Response Times: {0}/{1}/{2}/{3}/{4})".format(hostPlayer.PlayerReactMatrix[0], hostPlayer.PlayerReactMatrix[1], hostPlayer.PlayerReactMatrix[2], hostPlayer.PlayerReactMatrix[3], hostPlayer.PlayerReactMatrix[4]), HudPosition.RIGHT, 4, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+        hudSubheader(hostPlayer, "Load (Curr/Avg/Peak):  {0}  /  {1}  /  {2}".format(getServerLoad(),getAverageServerLoad(),getPeakServerLoad()), HudPosition.RIGHT, -0.9, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+        hudSubheader(eventPlayer, "Coord: ({0},{1},{2})".format(eventPlayer.getPosition().x,eventPlayer.getPosition().y,eventPlayer.getPosition().z), HudPosition.RIGHT, -0.8, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+        #hudSubheader(eventPlayer, "Ability Profile: ({0}%  E:{1}  B:{2}  D:{3}  S:{4})".format(hostPlayer.AbilityReactChance, hostPlayer.PlayerUsedEatCD, hostPlayer.PlayerUsedBlockCD, hostPlayer.PlayerUsedDodgeCD, hostPlayer.PlayerUsedStunCD), HudPosition.RIGHT, -0.7, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+        #hudSubheader(eventPlayer, "Response Times: {0}/{1}/{2}/{3}/{4})".format(hostPlayer.PlayerReactMatrix[0], hostPlayer.PlayerReactMatrix[1], hostPlayer.PlayerReactMatrix[2], hostPlayer.PlayerReactMatrix[3], hostPlayer.PlayerReactMatrix[4]), HudPosition.RIGHT, -0.6, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
         
 def MenuHud():
     @Name "MenuHUD"
@@ -775,15 +785,12 @@ def MenuHud():
     "Navigation: Movement Keys", HudPosition.LEFT, 0.8, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On], 
     "Toggle Selection:  {0}/{1}".format(buttonString(Button.PRIMARY_FIRE),buttonString(Button.ABILITY_2)), HudPosition.LEFT, 0.9, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-    # Help Header
+    # Help Text
     hudSubtext([i for i in eventPlayer if eventPlayer.Menu_On], 
     "\n   For more info on settings \n Go to Workshop.codes/VXEAT", HudPosition.TOP, 1002, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-    
+    # Kitty! + Splash text
     hudSubtext([i for i in eventPlayer if eventPlayer.Menu_On], 
-    "       ∧,,,∧ 
-      ( •‿• )     
-      /つ   づ♡  ~ {0} ~
-     /      /".format(SplashText[random.randint(0,29)]), HudPosition.RIGHT, 1000, Color.ROSE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    "  ∧,,,∧\n ( •‿• )\n /つ   づ♡  ~ {0} ~\n/      /".format(SplashText[random.randint(0,29)]), HudPosition.RIGHT, 1000, Color.ROSE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     # Player Settings Header
     hudHeader([i for i in eventPlayer if eventPlayer.Menu_On], 
     "Player Settings", HudPosition.TOP, 0.1, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
@@ -842,8 +849,7 @@ def MenuHud():
     hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 4 and eventPlayer.MenuToggleSelfSpeed == 160], 
     "■  ←  Lucio Amp Speed  →".format(eventPlayer.MenuToggleSelfSpeed), HudPosition.TOP, 5, Color.GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
 
-
-    # 10th Option - Projectile Leading Guide
+    # 5th Option - Projectile Leading Guide
         ## Case: Index Off
     hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex != 5], 
     "Projectile Guide", HudPosition.TOP, 6, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
@@ -857,7 +863,7 @@ def MenuHud():
     hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 5 and eventPlayer.MenuToggleProjectile != "off" and eventPlayer.ProjSpeed == 0], 
     "■  ←  {0}  → N/A".format(eventPlayer.ProjType), HudPosition.TOP, 6, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
 
-    # 11th Option - Inf Ammo
+    # 6th Option - Infinite Ammo
     ## Case: Index Off
     hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex != 6], 
     "Infinite Ammo", HudPosition.TOP, 7, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
@@ -867,110 +873,135 @@ def MenuHud():
         ## Case: Index On, setting on
     hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 6 and eventPlayer.MenuToggleInfAmmo == true], 
     "■  Infinite Ammo: on", HudPosition.TOP, 7, Color.GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-
-    if eventPlayer == hostPlayer:
-    # Header
+    
+    # Bot Settings
     hudHeader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer == hostPlayer], 
     "Bot Settings".format(buttonString(Button.ABILITY_2)), HudPosition.TOP, 8, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-    # 5th Option - Bot Speed
-        ## Case: index off / option off
+
+    # 7th Option - Increment Bot Count
+    ## Case: index off
     hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex != 7 and eventPlayer == hostPlayer], 
-    "Bot Movement Speed", HudPosition.TOP, 9, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-        ## Case: index on / option 100
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and  eventPlayer.MenuIndex == 7 and MenuToggleBotSpeed == 100], 
-    "■  Default Movement Speed".format(MenuToggleBotSpeed), HudPosition.TOP, 9, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-        ## Case: index on / option 125
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 7 and MenuToggleBotSpeed == 125], 
-    "■  ←  Lucio Passive Speed  →".format(MenuToggleBotSpeed), HudPosition.TOP, 9, Color.LIME_GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-        ## Case: index on / option 130
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 7 and MenuToggleBotSpeed == 130], 
-    "■  ←  Kitsune / Shout Speed  →".format(MenuToggleBotSpeed), HudPosition.TOP, 9, Color.ROSE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-        ## Case: index on / option 125
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 7 and MenuToggleBotSpeed == 160], 
-    "■  ←  Lucio Amp Speed  →".format(MenuToggleBotSpeed), HudPosition.TOP, 9, Color.GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-       
-    # 6th Option - Bot Difficulty
-        ## Case: index off / option off
+    "Change Bot Count", HudPosition.TOP, 9, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    ## Case: index on / default
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 7], 
+    "■  Bot Count: ←  {0}  →".format(NumberOfBots), HudPosition.TOP, 9, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+
+    # 8th Option - Bot Movement Pattern
+        ## Case: index off
     hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex != 8 and eventPlayer == hostPlayer], 
-    "Bot Movement", HudPosition.TOP, 10, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-        ## Case: index on / option long strafes
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 8 and MenuToggleBotDiff == 0], 
-    "■  Use Abilities:  {0}  |  ←  long strafes / custom  → ".format(BotsUseAbilities), HudPosition.TOP, 10, Color.SKY_BLUE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-        ## Case: index on / option very easy
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 8 and MenuToggleBotDiff == 1], 
-    "■  Use Abilities:  {0}  |  ←  very easy  → ".format(BotsUseAbilities), HudPosition.TOP, 10, Color.GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-        ## Case: index on / option easy
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 8 and MenuToggleBotDiff == 2], 
-    "■  Use Abilities:  {0}  |  ←  easy  → ".format(BotsUseAbilities), HudPosition.TOP, 10, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-        ## Case: index on / option medium
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 8 and MenuToggleBotDiff == 3], 
-    "■  Use Abilities:  {0}  |  ←  medium  → ".format(BotsUseAbilities), HudPosition.TOP, 10, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-        ## Case: index on / option hard
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 8 and MenuToggleBotDiff == 4], 
-    "■  Use Abilities:  {0}  |  ←  hard  → ".format(BotsUseAbilities), HudPosition.TOP, 10, Color.ROSE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-        ## Case: index on / option very hard
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 8 and MenuToggleBotDiff == 5], 
-    "■  Use Abilities:  {0}  |  ←  very hard  → ".format(BotsUseAbilities), HudPosition.TOP, 10, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-        ## Case: index on / option extreme
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 8 and MenuToggleBotDiff == 6], 
-    "■  Use Abilities:  {0}  |  ←  extreme  → ".format(BotsUseAbilities), HudPosition.TOP, 10, Color.BLACK, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    "Bot Movement Pattern", HudPosition.TOP, 10, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+        ## Case: index on / seita
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 8 and DefaultMvmtType == 0], 
+    "■  ←  Seita  → ", HudPosition.TOP, 10, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+        ## Case: index on / seita long
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 8 and DefaultMvmtType == 1], 
+    "■  ←  Seita /w Long Strafes  → ", HudPosition.TOP, 10, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+        ## Case: index on / ad
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 8 and DefaultMvmtType == 2], 
+    "■  ←  AD strafes  → ", HudPosition.TOP, 10, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+        ## Case: index on / 8 dir
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 8 and DefaultMvmtType == 3], 
+    "■  ←  8-Directional Strafes  → ", HudPosition.TOP, 10, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+        ## Case: index on / none
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 8 and DefaultMvmtType == 4], 
+    "■  ←  No Movement  → ", HudPosition.TOP, 10, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+        ## Case: index on / wad
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 8 and DefaultMvmtType == 5], 
+    "■  ←  Forward AD strafes (not recommended)  → ", HudPosition.TOP, 10, Color.BLACK, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+        ## Case: index on / w
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 8 and DefaultMvmtType == 6], 
+    "■  ←  Forward Movement (not recommended) → ", HudPosition.TOP, 10, Color.BLACK, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
 
-
-    # 7th Option - Bot Spawn Point
+    # 9th Option - Bot Difficulty
         ## Case: index off
     hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex != 9 and eventPlayer == hostPlayer], 
-    "Set Custom Spawn Point", HudPosition.TOP, 11, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-    ## Case: index on / default
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 9 and MenuToggleBotSpawn == "default"], 
-    "■ Custom Spawn Disabled", HudPosition.TOP, 11, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-        ## Case: index on / default
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 9 and MenuToggleBotSpawn == "custom"], 
-    "■  Custom Spawn Radius: ←  {0}  →".format(SpawnSize), HudPosition.TOP, 11, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    "Bot Movement Difficulty", HudPosition.TOP, 11, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+        ## Case: index on / option custom
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 9 and MenuToggleBotDiff == 0], 
+    "■  ←  custom  → ".format(BotsUseAbilities), HudPosition.TOP, 11, Color.SKY_BLUE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+        ## Case: index on / option very easy
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 9 and MenuToggleBotDiff == 1], 
+    "■  ←  very easy  → ".format(BotsUseAbilities), HudPosition.TOP, 11, Color.GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+        ## Case: index on / option easy
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 9 and MenuToggleBotDiff == 2], 
+    "■  ←  easy  → ".format(BotsUseAbilities), HudPosition.TOP, 11, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+        ## Case: index on / option medium
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 9 and MenuToggleBotDiff == 3], 
+    "■  ←  medium  → ".format(BotsUseAbilities), HudPosition.TOP, 11, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+        ## Case: index on / option hard
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 9 and MenuToggleBotDiff == 4], 
+    "■  ←  hard  → ".format(BotsUseAbilities), HudPosition.TOP, 11, Color.ROSE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+        ## Case: index on / option very hard
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 9 and MenuToggleBotDiff == 5], 
+    "■  ←  very hard  → ".format(BotsUseAbilities), HudPosition.TOP, 11, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+        ## Case: index on / option extreme
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 9 and MenuToggleBotDiff == 6], 
+    "■  ←  extreme  → ".format(BotsUseAbilities), HudPosition.TOP, 11, Color.BLACK, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
 
-    # 8th Option - Increment Bot Count
-    ## Case: index off
+    # 10th Option - Bot Speed
+        ## Case: index off / option off
     hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex != 10 and eventPlayer == hostPlayer], 
-    "Change Bot Count", HudPosition.TOP, 12, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-    ## Case: index on / default
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 10], 
-    "■  Bot Count: ←  {0}  →".format(NumberOfBots), HudPosition.TOP, 12, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    "Bot Movement Speed", HudPosition.TOP, 12, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+        ## Case: index on / option 100
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and  eventPlayer.MenuIndex == 10 and MenuToggleBotSpeed == 100], 
+    "■  Default Movement Speed".format(MenuToggleBotSpeed), HudPosition.TOP, 12, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+        ## Case: index on / option 125
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 10 and MenuToggleBotSpeed == 125], 
+    "■  ←  Lucio Passive Speed  →".format(MenuToggleBotSpeed), HudPosition.TOP, 12, Color.LIME_GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+        ## Case: index on / option 130
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 10 and MenuToggleBotSpeed == 130], 
+    "■  ←  Kitsune / Shout Speed  →".format(MenuToggleBotSpeed), HudPosition.TOP, 12, Color.ROSE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+        ## Case: index on / option 125
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 10 and MenuToggleBotSpeed == 160], 
+    "■  ←  Lucio Amp Speed  →".format(MenuToggleBotSpeed), HudPosition.TOP, 12, Color.GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
 
-    # 9th Option - Bot Heros
+    # 1th Option - Bot Spawn Point
         ## Case: index off
     hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex != 11 and eventPlayer == hostPlayer], 
-    "Select Bot Heroes", HudPosition.TOP, 13, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    "Set Custom Spawn Point", HudPosition.TOP, 13, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    ## Case: index on / default
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 11 and MenuToggleBotSpawn == "default"], 
+    "■ Custom Spawn Disabled", HudPosition.TOP, 13, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+        ## Case: index on / default
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 11 and MenuToggleBotSpawn == "custom"], 
+    "■  Custom Spawn Radius: ←  {0}  →".format(SpawnSize), HudPosition.TOP, 13, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+
+    # 12th Option - Bot Heros
+        ## Case: index off
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex != 12 and eventPlayer == hostPlayer], 
+    "Select Bot Heroes", HudPosition.TOP, 14, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
         ## Case: index on
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 11], 
-    "■  {0}  {1}".format(HeroList[eventPlayer.BotMenuIndex],HeroStatus[eventPlayer.BotMenuIndex]), HudPosition.TOP, 13, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 12], 
+    "■  {0}  {1}".format(HeroList[eventPlayer.BotMenuIndex],HeroStatus[eventPlayer.BotMenuIndex]), HudPosition.TOP, 14, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
         ## Submenu Hero Select Off
-    hudHeader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 11 and HeroStatus[eventPlayer.BotMenuIndex] == "off"], 
-    "←  {0}  →".format(heroIcon(HeroList[eventPlayer.BotMenuIndex])), HudPosition.TOP, 14, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudHeader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 12 and HeroStatus[eventPlayer.BotMenuIndex] == "off"], 
+    "←  {0}  →".format(heroIcon(HeroList[eventPlayer.BotMenuIndex])), HudPosition.TOP, 15, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
         ## Submenu Hero Select On
-    hudHeader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 11 and HeroStatus[eventPlayer.BotMenuIndex] == "on"], 
-    "←  {0}  →".format(heroIcon(HeroList[eventPlayer.BotMenuIndex])), HudPosition.TOP, 14, Color.GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudHeader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 12 and HeroStatus[eventPlayer.BotMenuIndex] == "on"], 
+    "←  {0}  →".format(heroIcon(HeroList[eventPlayer.BotMenuIndex])), HudPosition.TOP, 15, Color.GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
 
     # Header
     hudHeader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer == hostPlayer], 
-    "Game Modes".format(buttonString(Button.ABILITY_2)), HudPosition.TOP, 15, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-    # 12th Option - Pressure Mode
+    "Game Modes".format(buttonString(Button.ABILITY_2)), HudPosition.TOP, 16, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    # 13th Option - Pressure Mode
         ## Case: index off
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex != 12 and eventPlayer == hostPlayer], 
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex != 13 and eventPlayer == hostPlayer], 
     "Pressure mode", HudPosition.TOP, 16, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
         ## Case: index on / mode off
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 12 and MenuTogglePressureType == "off"], 
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 13 and MenuTogglePressureType == "off"], 
     "■  Pressure Mode: Off", HudPosition.TOP, 16, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
         ## Case: index on / mode on
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 12 and MenuTogglePressureType != "off" and MenuTogglePressureDiff == "easy"], 
-    "■  Bots  {0}  : ←  {1}  →".format(MenuTogglePressureType, MenuTogglePressureDiff), HudPosition.TOP, 16, Color.GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 13 and MenuTogglePressureType != "off" and MenuTogglePressureDiff == "easy"], 
+    "■  Bots  {0}  : ←  {1}  →".format(MenuTogglePressureType, MenuTogglePressureDiff), HudPosition.TOP, 17, Color.GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     ## Case: index on / mode on
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 12 and MenuTogglePressureType != "off" and MenuTogglePressureDiff == "medium"], 
-    "■  Bots  {0}  : ←  {1}  →".format(MenuTogglePressureType, MenuTogglePressureDiff), HudPosition.TOP, 16, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 13 and MenuTogglePressureType != "off" and MenuTogglePressureDiff == "medium"], 
+    "■  Bots  {0}  : ←  {1}  →".format(MenuTogglePressureType, MenuTogglePressureDiff), HudPosition.TOP, 17, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     ## Case: index on / mode on
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 12 and MenuTogglePressureType != "off" and MenuTogglePressureDiff == "hard"], 
-    "■  Bots  {0}  : ←  {1}  →".format(MenuTogglePressureType, MenuTogglePressureDiff), HudPosition.TOP, 16, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 13 and MenuTogglePressureType != "off" and MenuTogglePressureDiff == "hard"], 
+    "■  Bots  {0}  : ←  {1}  →".format(MenuTogglePressureType, MenuTogglePressureDiff), HudPosition.TOP, 17, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     ## Case: index on / mode on
-    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 12 and MenuTogglePressureType != "off" and MenuTogglePressureDiff == "aimbot"], 
-    "■  Bots  {0}  : ←  {1}  →".format(MenuTogglePressureType, MenuTogglePressureDiff), HudPosition.TOP, 16, Color.BLACK, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubheader([i for i in eventPlayer if eventPlayer.Menu_On and eventPlayer.MenuIndex == 13 and MenuTogglePressureType != "off" and MenuTogglePressureDiff == "aimbot"], 
+    "■  Bots  {0}  : ←  {1}  →".format(MenuTogglePressureType, MenuTogglePressureDiff), HudPosition.TOP, 17, Color.BLACK, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
 
 
 
@@ -984,7 +1015,7 @@ def AllowInput():
     eventPlayer.allowButton(Button.ABILITY_1)
     eventPlayer.allowButton(Button.ABILITY_2)
     eventPlayer.allowButton(Button.ULTIMATE)
-    eventPlayer.setMoveSpeed(eventPlayer.MovementSpeed)
+    eventPlayer.setMoveSpeed(eventPlayer.MenuToggleSelfSpeed)
 
 
 rule "Menu Controls: Toggle Menu":
@@ -1080,7 +1111,7 @@ rule "Menu Controls: Right":
             eventPlayer.MenuToggleSelfSpeed = 160
         else:
             eventPlayer.MenuToggleSelfSpeed = 125
-        MenuAction4()
+        MenuPlayerSpeed()
     elif eventPlayer.MenuIndex == 5 and eventPlayer.MenuToggleProjectile == "on":
         if eventPlayer.ProjType == "primary":
             eventPlayer.ProjType = "secondary"
@@ -1092,47 +1123,54 @@ rule "Menu Controls: Right":
             eventPlayer.ProjType = "ultimate"
         elif eventPlayer.ProjType == "ultimate":
             eventPlayer.ProjType = "primary"
-    elif eventPlayer.MenuIndex == 7 and MenuToggleBotSpeed != 100:
+    elif eventPlayer.MenuIndex == 7:
+        if NumberOfBots == 12:
+            NumberOfBots = 1
+        else:
+            NumberOfBots += 1 
+        MenuNumBots()
+    elif eventPlayer.MenuIndex == 8:
+        if DefaultMvmtType == 6:
+            DefaultMvmtType = 0
+        else:
+            DefaultMvmtType += 1 
+        MenuMvmtType()
+    elif eventPlayer.MenuIndex == 9:
+        if MenuToggleBotDiff == 6:
+            MenuToggleBotDiff = 0
+        else:
+            MenuToggleBotDiff += 1
+        MenuBotDiff()
+    elif eventPlayer.MenuIndex == 10 and MenuToggleBotSpeed != 100:
         if MenuToggleBotSpeed == 125:
             MenuToggleBotSpeed = 130
         elif MenuToggleBotSpeed == 130:
             MenuToggleBotSpeed = 160
         elif MenuToggleBotSpeed == 160:
             MenuToggleBotSpeed = 125
-        MenuAction7()
-    elif eventPlayer.MenuIndex == 8:
-        if MenuToggleBotDiff == 6:
-            MenuToggleBotDiff = 0
-        else:
-            MenuToggleBotDiff += 1
-        MenuAction8Diff()
-    elif eventPlayer.MenuIndex == 9 and MenuToggleBotSpawn == "custom":
+        MenuBotSpeed()
+    elif eventPlayer.MenuIndex == 11 and MenuToggleBotSpawn == "custom":
         SpawnSize += 1
-        MenuAction9Radius()
-    elif eventPlayer.MenuIndex == 10:
-        if NumberOfBots == 12:
-            NumberOfBots = 1
-        else:
-            NumberOfBots += 1 
-        MenuAction10()
-    elif eventPlayer.MenuIndex == 11:
+        MenuCustRadius()
+    elif eventPlayer.MenuIndex == 12:
+        #LW if eventPlayer.BotMenuIndex == 36:
         if eventPlayer.BotMenuIndex == 35:
             eventPlayer.BotMenuIndex = 0
         else:
             eventPlayer.BotMenuIndex += 1 
-    elif eventPlayer.MenuIndex == 12 and MenuTogglePressureType != "off":
+    elif eventPlayer.MenuIndex == 13 and MenuTogglePressureType != "off":
         if MenuTogglePressureDiff == "easy":
             MenuTogglePressureDiff = "medium"
-            PressureDiff = 0.75
+            PressureDiff = 1.50
         elif MenuTogglePressureDiff == "medium":
             MenuTogglePressureDiff = "hard"
-            PressureDiff = 0.50
+            PressureDiff = 0.75
         elif MenuTogglePressureDiff == "hard":
             MenuTogglePressureDiff = "aimbot"
             PressureDiff = 0.00
         elif MenuTogglePressureDiff == "aimbot":
             MenuTogglePressureDiff = "easy"
-            PressureDiff = 1.00
+            PressureDiff = 2.00
 
 
 rule "Menu Controls: Left":
@@ -1147,7 +1185,7 @@ rule "Menu Controls: Left":
             eventPlayer.MenuToggleSelfSpeed = 160
         else:
             eventPlayer.MenuToggleSelfSpeed = 125
-        MenuAction4()
+        MenuPlayerSpeed()
     elif eventPlayer.MenuIndex == 5 and eventPlayer.MenuToggleProjectile == "on":
         if eventPlayer.ProjType == "ultimate":
             eventPlayer.ProjType = "ability 2"
@@ -1159,44 +1197,51 @@ rule "Menu Controls: Left":
             eventPlayer.ProjType = "primary"
         elif eventPlayer.ProjType == "primary":
             eventPlayer.ProjType = "ultimate"
-    elif eventPlayer.MenuIndex == 7 and MenuToggleBotSpeed != 100:
+    elif eventPlayer.MenuIndex == 7:
+        if NumberOfBots == 1:
+            NumberOfBots = 12
+        else:
+            NumberOfBots -= 1
+        MenuNumBots()
+    elif eventPlayer.MenuIndex == 8:
+        if DefaultMvmtType == 0:
+            DefaultMvmtType = 6
+        else:
+            DefaultMvmtType -= 1
+        MenuMvmtType()
+    elif eventPlayer.MenuIndex == 9:
+        if MenuToggleBotDiff == 0:
+            MenuToggleBotDiff = 6
+        else:
+            MenuToggleBotDiff -= 1
+        MenuBotDiff()
+    elif eventPlayer.MenuIndex == 10 and MenuToggleBotSpeed != 100:
         if MenuToggleBotSpeed == 160:
             MenuToggleBotSpeed = 130
         elif MenuToggleBotSpeed == 130:
             MenuToggleBotSpeed = 125
         elif MenuToggleBotSpeed == 125:
             MenuToggleBotSpeed = 160
-        MenuAction7()
-    elif eventPlayer.MenuIndex == 8:
-        if MenuToggleBotDiff == 0:
-            MenuToggleBotDiff = 6
-        else:
-            MenuToggleBotDiff -= 1
-        MenuAction8Diff()
-    elif eventPlayer.MenuIndex == 9 and MenuToggleBotSpawn == "custom" and SpawnSize > 0:
+        MenuBotSpeed()
+    elif eventPlayer.MenuIndex == 11 and MenuToggleBotSpawn == "custom" and SpawnSize > 0:
         SpawnSize -= 1
-        MenuAction9Radius()
-    elif eventPlayer.MenuIndex == 10:
-        if NumberOfBots == 1:
-            NumberOfBots = 12
-        else:
-            NumberOfBots -= 1
-        MenuAction10()
-    elif eventPlayer.MenuIndex == 11:
+        MenuCustRadius()
+    elif eventPlayer.MenuIndex == 12:
         if eventPlayer.BotMenuIndex == 0:
+            #LW eventPlayer.BotMenuIndex = 36
             eventPlayer.BotMenuIndex = 35
         else:
             eventPlayer.BotMenuIndex -= 1
-    elif eventPlayer.MenuIndex == 12 and MenuTogglePressureType != "off":
+    elif eventPlayer.MenuIndex == 13 and MenuTogglePressureType != "off":
         if MenuTogglePressureDiff == "aimbot":
             MenuTogglePressureDiff = "hard"
-            PressureDiff = 0.50
+            PressureDiff = 0.75
         elif MenuTogglePressureDiff == "hard":
             MenuTogglePressureDiff = "medium"
-            PressureDiff = 0.75
+            PressureDiff = 1.50
         elif MenuTogglePressureDiff == "medium":
             MenuTogglePressureDiff = "easy"
-            PressureDiff = 1.00
+            PressureDiff = 2.00
         elif MenuTogglePressureDiff == "easy":
             MenuTogglePressureDiff = "aimbot"
             PressureDiff = 0.00
@@ -1208,19 +1253,19 @@ rule "Menu Control: Ability 2 / Primary Toggle":
     @Condition (eventPlayer.isHoldingButton(Button.ABILITY_2) == true or eventPlayer.isHoldingButton(Button.PRIMARY_FIRE) == true) == true
     
     if eventPlayer.MenuIndex == 0:
-        MenuAction0()
+        MenuChangeHeroes()
     elif eventPlayer.MenuIndex == 1:
-        MenuAction1()
+        MenuMercyToggle()
     elif eventPlayer.MenuIndex == 2:
-        MenuAction2()
+        MenuAnaToggle()
     elif eventPlayer.MenuIndex == 3:
-        MenuAction3()
+        MenuKirikoToggle()
     elif eventPlayer.MenuIndex == 4:
         if eventPlayer.MenuToggleSelfSpeed == 100:
             eventPlayer.MenuToggleSelfSpeed = 125
         else:
             eventPlayer.MenuToggleSelfSpeed = 100
-        MenuAction4()
+        MenuPlayerSpeed()
     elif eventPlayer.MenuIndex == 5:
         if eventPlayer.MenuToggleProjectile == "off":
             eventPlayer.MenuToggleProjectile = "on"
@@ -1228,33 +1273,31 @@ rule "Menu Control: Ability 2 / Primary Toggle":
         else:
             eventPlayer.MenuToggleProjectile = "off"
             eventPlayer.ProjType = "off"
-        MenuAction5()
+        MenuProjGuide()
     elif eventPlayer.MenuIndex == 6:
-        MenuAction6()
+        MenuInfAmmo()
     elif eventPlayer.MenuIndex == 7:
-        if MenuToggleBotSpeed == 100:
-            MenuToggleBotSpeed = 125
-        else:
-            MenuToggleBotSpeed = 100
-        MenuAction7()
-    elif eventPlayer.MenuIndex == 8:
-        MenuAction8Abilities()
-    elif eventPlayer.MenuIndex == 9:
-        MenuAction9Toggle()
-    elif eventPlayer.MenuIndex == 10:
         if NumberOfBots < 12:
             NumberOfBots += 1
         else:
             NumberOfBots = 1
-        MenuAction10()
+        MenuNumBots()
+    elif eventPlayer.MenuIndex == 10:
+        if MenuToggleBotSpeed == 100:
+            MenuToggleBotSpeed = 125
+        else:
+            MenuToggleBotSpeed = 100
+        MenuBotSpeed()
     elif eventPlayer.MenuIndex == 11:
-        MenuAction11()
+        MenuCustSpawn()
     elif eventPlayer.MenuIndex == 12:
-        MenuAction12()
+        MenuHeroSelect()
+    elif eventPlayer.MenuIndex == 13:
+        MenuPressureMode()
     
 
-def MenuAction0():
-    @Name "SUB: MenuAction0"
+def MenuChangeHeroes():
+    @Name "SUB: MenuChangeHeroes"
     
     #reset menu variables
     eventPlayer.MenuToggleProjectile = "off"
@@ -1265,6 +1308,8 @@ def MenuAction0():
     destroyEffect(eventPlayer.BuffEffects[1])
     eventPlayer.Menu_On = false
     eventPlayer.MenuToggleInfAmmo = false
+    eventPlayer.setDamageDealt(100)
+    eventPlayer.setDamageReceived(100)
 
     #Allow Player inputs
     AllowInput()
@@ -1286,8 +1331,8 @@ def MenuAction0():
     eventPlayer.setAllowedHeroes(getAllHeroes())     
 
 
-def MenuAction1():
-    @Name "SUB: MenuAction1 - Mercy Toggle"
+def MenuMercyToggle():
+    @Name "SUB: MenuMercyToggle"
     
     if eventPlayer.MenuToggleMercy == "on ":
         eventPlayer.MenuToggleMercy = "off"
@@ -1309,8 +1354,8 @@ def MenuAction1():
             eventPlayer.setDamageDealt(180)
 
 
-def MenuAction2():
-    @Name "SUB: MenuAction2 - Ana Toggle"
+def MenuAnaToggle():
+    @Name "SUB: MenuAnaToggle"
 
     if eventPlayer.MenuToggleAna == "on ":
         eventPlayer.MenuToggleAna = "off"
@@ -1324,7 +1369,7 @@ def MenuAction2():
         eventPlayer.setDamageReceived(100)
     else:
         eventPlayer.MenuToggleAna = "on "
-        smallMessage(eventPlayer, "    Activating Nano Boost")
+        smallMessage(eventPlayer, "    Activating Nano Boost. Damage Reduction may exceed cap if using DR abilities.")
         createEffect(eventPlayer, Effect.ANA_NANO_BOOSTED, Color.TEAM_1, eventPlayer, 1, EffectReeval.VISIBILITY)
         eventPlayer.BuffEffects[1] = getLastCreatedEntity()
         if eventPlayer.BuffEffects[0] == null:
@@ -1334,8 +1379,8 @@ def MenuAction2():
         eventPlayer.setDamageReceived(50)
 
 
-def MenuAction3():
-    @Name "SUB: MenuAction3 - Kiriko Toggle"
+def MenuKirikoToggle():
+    @Name "SUB: MenuKirikoToggle - Kiriko Toggle"
     
     if eventPlayer.MenuToggleKiriko == "on ":
         eventPlayer.MenuToggleKiriko = "off"
@@ -1367,15 +1412,15 @@ rule "Assist Bot: Kiriko Kitsune Rush":
     goto RULE_START
 
 
-def MenuAction4():
-    @Name "SUB: MenuAction4 - Player Speed Toggle"
+def MenuPlayerSpeed():
+    @Name "SUB: MenuPlayerSpeed - Player Speed Toggle"
     
     smallMessage(eventPlayer, "    Activating {0}% Player Speed boost".format(eventPlayer.MenuToggleSelfSpeed))
-    eventPlayer.MovementSpeed = eventPlayer.MovementSpeed
+    
 
 
-def MenuAction5():
-    @Name "SUB: MenuAction5 - Projectile Guide (KJRR5P) Toggle"
+def MenuProjGuide():
+    @Name "SUB: MenuProjGuide (KJRR5P)"
     destroyEffect(eventPlayer.ProjEffects[0])
     destroyEffect(eventPlayer.ProjEffects[1])
     if eventPlayer.MenuToggleProjectile == "on":
@@ -1385,8 +1430,8 @@ def MenuAction5():
         eventPlayer.ProjEffects[1] = getLastCreatedEntity()
   
     
-def MenuAction6():
-    @Name "SUB: MenuAction6 - Infinite Ammo Toggle"
+def MenuInfAmmo():
+    @Name "SUB: MenuInfAmmo - Infinite Ammo Toggle"
     if eventPlayer.MenuToggleInfAmmo == true:
         eventPlayer.MenuToggleInfAmmo = false
         eventPlayer.setAmmo(0, eventPlayer.DefaultAmmo)
@@ -1414,17 +1459,23 @@ rule "Infinite Ammo: Ammo Refresh":
     eventPlayer.setAmmo(1, 100000)
     eventPlayer.setMaxAmmo(1, 100000)
 
-    
-def MenuAction7():
-    @Name "SUB: MenuAction7 - Bot Speed Toggle"
-    
-    wait(0.1)
-    smallMessage(eventPlayer, "    {0}% bot speed".format(MenuToggleBotSpeed))
-    getPlayers(Team.2).setMoveSpeed(MenuToggleBotSpeed)
+
+def MenuNumBots():
+    @Name "SUB: MenuNumBots"
+
+    eventPlayer.BotSettingsChanged = true
+    smallMessage(eventPlayer, "    Bot count updated. Exit menu to refresh bots.".format(NumberOfBots))
+        
+
+def MenuMvmtType():
+    @Name "SUB: MenuMvmtType"
+
+    eventPlayer.BotSettingsChanged = true
+    smallMessage(eventPlayer, "    Bot movement pattern changed. Exit menu to refresh bots.".format(SpawnSize))
 
 
-def MenuAction8Diff():
-    @Name "SUB: MenuAction8Diff - Bot Difficulty Selection"
+def MenuBotDiff():
+    @Name "SUB: MenuBotDiff"
     RandomJumping = DefaultRandJump
     RandomCrouching = DefaultRandCrouch
     CrouchMaxWait = DefaultCrouchMax
@@ -1469,18 +1520,16 @@ def MenuAction8Diff():
         RandomStrafes = true
 
 
-def MenuAction8Abilities():
-    @Name "SUB: MenuAction8Abilities - Bot Abilities Toggle"
-
-    BotsUseAbilities = not BotsUseAbilities
-    if BotsUseAbilities:
-        smallMessage(eventPlayer, "    Bots will use movement abilities.")
-    else:
-        smallMessage(eventPlayer, "    Bots will not use movement abilities.")
+def MenuBotSpeed():
+    @Name "SUB: MenuBotSpeed"
+    
+    wait(0.1)
+    smallMessage(eventPlayer, "    {0}% bot speed".format(MenuToggleBotSpeed))
+    getPlayers(Team.2).setMoveSpeed(MenuToggleBotSpeed)
 
 
-def MenuAction9Toggle():
-    @Name "SUB: MenuAction9Toggle - Custom Spawn Toggle"
+def MenuCustSpawn():
+    @Name "SUB: MenuCustSpawn"
 
     eventPlayer.BotSettingsChanged = true
     if MenuToggleBotSpawn == "default":
@@ -1497,8 +1546,8 @@ def MenuAction9Toggle():
         smallMessage(eventPlayer, "    Spawn set to default. Exit menu to refresh bots.")
 
 
-def MenuAction9Radius():
-    @Name "SUB: MenuAction9Radius - Custom Spawn Boundary Selection"
+def MenuCustRadius():
+    @Name "SUB: MenuCustRadius"
 
     MvmtRad1 = SpawnSize
     MvmtRad2 = SpawnSize/2
@@ -1506,14 +1555,8 @@ def MenuAction9Radius():
     smallMessage(eventPlayer, "    Bot movement radius Set to {0}. Exit menu to refresh bots.".format(SpawnSize))
 
 
-def MenuAction10():
-    @Name "SUB: MenuAction10 Bot Count Selection"
-    eventPlayer.BotSettingsChanged = true
-    smallMessage(eventPlayer, "    Bot count updated. Exit menu to refresh bots.".format(NumberOfBots))
-        
-
-def MenuAction11():
-    @Name "SUB: MenuAction11 Bot Hero Pool Selection + Toggle"
+def MenuHeroSelect():
+    @Name "SUB: MenuHeroSelect Bot Hero Pool Selection + Toggle"
 
     if HeroStatus[eventPlayer.BotMenuIndex] == "on":
         if EnabledHeroCount > 1:
@@ -1532,8 +1575,8 @@ def MenuAction11():
         smallMessage(eventPlayer, "    {0}  added to the spawn pool. Exit menu to refresh bots.".format(HeroList[eventPlayer.BotMenuIndex]))
 
     
-def MenuAction12():
-    @Name "SUB: MenuAction12 Pressure Mode Toggle"
+def MenuPressureMode():
+    @Name "SUB: MenuPressureMode Pressure Mode Toggle"
 
     eventPlayer.Timer = 0
     eventPlayer.Kills = 0
@@ -1601,7 +1644,8 @@ rule "Player Ability: Punishment for Death":
     @Condition DeathPunishment == true
     
     eventPlayer.setStatusEffect(eventPlayer, Status.STUNNED, 0.5)
-    attacker.setHealth(attacker.getMaxHealth())
+    if attacker.isAlive():
+        attacker.setHealth(attacker.getMaxHealth())
 
 
 rule "Player Ability: Elimination refresh CDs":
@@ -1825,7 +1869,7 @@ def InitializeBotHero():
     eventPlayer.DisableJump = false
     eventPlayer.DisableCrouch = false
     eventPlayer.LtTime = 1
-    eventPlayer.LtRange = 0
+    eventPlayer.HealingFacing = false
     SetDefaultFacing()
 
     eventPlayer.CurrHero = eventPlayer.getCurrentHero()
@@ -1909,7 +1953,6 @@ def InitializeBotHero():
         eventPlayer.startForcingName("Moth")
         eventPlayer.DisableJump = true
         eventPlayer.DisableCrouch = true
-        eventPlayer.LtRange = 5
         eventPlayer.LtTime = 3
         SetHealingFacing()
     if eventPlayer.CurrHero == Hero.MOIRA:
@@ -1924,7 +1967,8 @@ rule "Bot Spawn: Setup":
     @Condition eventPlayer.isAlive() == true
 
     InitializeBotHero()
-    eventPlayer.teleport(random.choice(eventPlayer.PathLoc))
+    wait()
+    eventPlayer.teleport(eventPlayer.PathLoc[random.randint(0,7)])
 
 
 rule "Bot Died: Swap Hero":
@@ -1944,6 +1988,8 @@ rule "Bot Died: Swap Hero":
     eventPlayer.stopForcingButton(Button.RELOAD)
     eventPlayer.stopForcingButton(Button.ULTIMATE)
     wait(2)
+    if getNumberOfLivingPlayers(Team.2) > 1:
+        wait(2)
     # Select new hero
     if EnabledHeroCount != NumberOfBots:
         AssignNewHero()
@@ -2135,7 +2181,7 @@ rule "Bot Pathing: Randomized Strafes":
     eventPlayer.MvmtType = DefaultMvmtType
     # 50% chance to switch strafe pattern every 5 seconds.
     eventPlayer.Randomizer = random.randint(0, 9)
-    if eventPlayer.Randomizer <= 4:
+    if eventPlayer.Randomizer < 5:
         eventPlayer.MvmtType = random.randint(0,3)
     wait(5, Wait.ABORT_WHEN_FALSE)
     if RULE_CONDITION:
@@ -2452,8 +2498,8 @@ rule "Set Look Target":
     @Condition eventPlayer.isAlive()
 
     eventPlayer.OldLookTarget = eventPlayer.LookTarget
-    if eventPlayer.LtRange > 0:
-        eventPlayer.LookTarget = sorted([player for player in getLivingPlayers(Team.2) if distance(eventPlayer.getEyePosition(), player.getEyePosition()) > eventPlayer.LtRange], lambda i: distance(eventPlayer.getEyePosition(), i.getEyePosition()))[0]
+    if eventPlayer.HealingFacing == true:
+        eventPlayer.LookTarget = sorted([player for player in getLivingPlayers(Team.2) if distance(eventPlayer.getEyePosition(), player.getEyePosition()) > 2], lambda i: distance(eventPlayer.getEyePosition(), i.getEyePosition()))[0]
     else:
         eventPlayer.LookTarget = sorted(Playerlist, lambda player: distance(eventPlayer.getEyePosition(), player.getEyePosition()))[0]
     if eventPlayer.LookTarget == null:
@@ -2466,23 +2512,29 @@ rule "Set Look Target":
 def SetDefaultFacing():
     @Name "SUB: SetDefaultFacing"
 
+    eventPlayer.HealingFacing = false
     eventPlayer.startFacing(directionTowards(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition() + eventPlayer.LookOffset), DefaultTurnRate, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
 
 
 def SetProjectileFacing():
     @Name "SUB: SetProjectileFacing"
 
+    eventPlayer.HealingFacing = false
     eventPlayer.startFacing(directionTowards(eventPlayer.getEyePosition(), eventPlayer.AimSpot + eventPlayer.LookOffset), DefaultTurnRate, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
 
 
 def SetHealingFacing():
     @Name "SUB: SetHealingFacing"
 
+    eventPlayer.HealingFacing = true
+    eventPlayer.LookTarget = sorted([player for player in getLivingPlayers(Team.2) if distance(eventPlayer.getEyePosition(), player.getEyePosition()) > eventPlayer.HealingFacing], lambda i: distance(eventPlayer.getEyePosition(), i.getEyePosition()))[0]
     eventPlayer.startFacing(directionTowards(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition()), DefaultTurnRate, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
 
 
 def SetFloorFacing():
     @Name "SUB: SetFloorFacing"
+
+    eventPlayer.HealingFacing = false
     eventPlayer.startFacing(eventPlayer.getEyePosition() + vect(0,-100,0), DefaultTurnRate, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
 
 
@@ -2490,18 +2542,18 @@ def CalculateProjectileLead():
     @Name "SUB: CalculateProjectileLead (KJRR5P)"
     if eventPlayer.ProjSpeed != 0:
         eventPlayer.DisToTar = eventPlayer.LookTarget.getEyePosition() - eventPlayer.getEyePosition()
-        eventPlayer.VarA = dotProduct(eventPlayer.LookTarget.getVelocity(), eventPlayer.LookTarget.getVelocity()) - eventPlayer.ProjSpeed ** 2
-        eventPlayer.VarB = -2 * dotProduct(eventPlayer.LookTarget.getVelocity(), eventPlayer.DisToTar)
-        eventPlayer.VarC = dotProduct(eventPlayer.DisToTar, eventPlayer.DisToTar)
-        eventPlayer.VarP = eventPlayer.VarB * -1 / (2 * eventPlayer.VarA)
-        eventPlayer.VarQ = (sqrt(eventPlayer.VarB ** 2 - 4 * eventPlayer.VarA * eventPlayer.VarC)) / (2 * eventPlayer.VarA)
-        eventPlayer.VarT1 = eventPlayer.VarP - eventPlayer.VarQ
-        eventPlayer.VarT2 = eventPlayer.VarP + eventPlayer.VarQ
-        if eventPlayer.VarT1 > eventPlayer.VarT2 and eventPlayer.VarT2 > 0:
-            eventPlayer.VarT = eventPlayer.VarT2
+        eventPlayer.ProjVarA = dotProduct(eventPlayer.LookTarget.getVelocity(), eventPlayer.LookTarget.getVelocity()) - eventPlayer.ProjSpeed ** 2
+        eventPlayer.ProjVarB = -2 * dotProduct(eventPlayer.LookTarget.getVelocity(), eventPlayer.DisToTar)
+        eventPlayer.ProjVarC = dotProduct(eventPlayer.DisToTar, eventPlayer.DisToTar)
+        eventPlayer.ProjVarP = eventPlayer.ProjVarB * -1 / (2 * eventPlayer.ProjVarA)
+        eventPlayer.ProjVarQ = (sqrt(eventPlayer.ProjVarB ** 2 - 4 * eventPlayer.ProjVarA * eventPlayer.ProjVarC)) / (2 * eventPlayer.ProjVarA)
+        eventPlayer.ProjVarT1 = eventPlayer.ProjVarP - eventPlayer.ProjVarQ
+        eventPlayer.ProjVarT2 = eventPlayer.ProjVarP + eventPlayer.ProjVarQ
+        if eventPlayer.ProjVarT1 > eventPlayer.ProjVarT2 and eventPlayer.ProjVarT2 > 0:
+            eventPlayer.ProjVarT = eventPlayer.ProjVarT2
         else:
-            eventPlayer.VarT = eventPlayer.VarT1
-        eventPlayer.AimSpot = eventPlayer.LookTarget.getEyePosition() + eventPlayer.LookTarget.getVelocity() * eventPlayer.VarT
+            eventPlayer.ProjVarT = eventPlayer.ProjVarT1
+        eventPlayer.AimSpot = eventPlayer.LookTarget.getEyePosition() + eventPlayer.LookTarget.getVelocity() * eventPlayer.ProjVarT
 
 
 # Bot Pressure
@@ -2604,11 +2656,11 @@ rule "Player Ability Usage Tracker - Primary":
     @Condition eventPlayer.PlayerAbilityLock == 0
     
     eventPlayer.PlayerAbilityLock = 1
-    eventPlayer.PlayerReactTime   = eventPlayer.PlayerReactMatrix[0]
-    eventPlayer.PlayerUsedEatCD   = eventPlayer.PlayerEatCDMatrix[0]
-    eventPlayer.PlayerUsedBlockCD = eventPlayer.PlayerBlockCDMatrix[0]
-    eventPlayer.PlayerUsedDodgeCD = eventPlayer.PlayerDodgeCDMatrix[0]
-    eventPlayer.PlayerUsedStunCD  = eventPlayer.PlayerStunCDMatrix[0]
+    eventPlayer.PlayerReactTime   = eventPlayer.PlayerReactMatrix[0] * BotReactivity
+    eventPlayer.PlayerUsedEatCD   = eventPlayer.PlayerEatCDMatrix[0] * BotReactivity
+    eventPlayer.PlayerUsedBlockCD = eventPlayer.PlayerBlockCDMatrix[0] * BotReactivity
+    eventPlayer.PlayerUsedDodgeCD = eventPlayer.PlayerDodgeCDMatrix[0] * BotReactivity
+    eventPlayer.PlayerUsedStunCD  = eventPlayer.PlayerStunCDMatrix[0] * BotReactivity
     wait(eventPlayer.PlayerReactTime)
     eventPlayer.PlayerAbilityLock = 0
     eventPlayer.PlayerReactTime   = 0
@@ -2629,11 +2681,11 @@ rule "Player Ability Usage Tracker - Secondary":
 
     eventPlayer.PlayerAbilityLock = 2
     eventPlayer.AbilityReactChance = random.uniform(0,1)
-    eventPlayer.PlayerReactTime   = eventPlayer.PlayerReactMatrix[1]
-    eventPlayer.PlayerUsedEatCD = eventPlayer.PlayerEatCDMatrix[1]
-    eventPlayer.PlayerUsedBlockCD = eventPlayer.PlayerBlockCDMatrix[1]
-    eventPlayer.PlayerUsedDodgeCD = eventPlayer.PlayerDodgeCDMatrix[1]
-    eventPlayer.PlayerUsedStunCD  = eventPlayer.PlayerStunCDMatrix[1]
+    eventPlayer.PlayerReactTime   = eventPlayer.PlayerReactMatrix[1] * BotReactivity
+    eventPlayer.PlayerUsedEatCD = eventPlayer.PlayerEatCDMatrix[1] * BotReactivity
+    eventPlayer.PlayerUsedBlockCD = eventPlayer.PlayerBlockCDMatrix[1] * BotReactivity
+    eventPlayer.PlayerUsedDodgeCD = eventPlayer.PlayerDodgeCDMatrix[1] * BotReactivity
+    eventPlayer.PlayerUsedStunCD  = eventPlayer.PlayerStunCDMatrix[1] * BotReactivity
     wait(eventPlayer.PlayerReactTime)
     eventPlayer.PlayerAbilityLock = 0
     eventPlayer.PlayerReactTime   = 0
@@ -2654,11 +2706,11 @@ rule "Player Ability Usage Tracker - Ability 1":
 
     eventPlayer.PlayerAbilityLock = 3
     eventPlayer.AbilityReactChance = random.uniform(0,1)
-    eventPlayer.PlayerReactTime   = eventPlayer.PlayerReactMatrix[2]
-    eventPlayer.PlayerUsedEatCD   = eventPlayer.PlayerEatCDMatrix[2]
-    eventPlayer.PlayerUsedBlockCD = eventPlayer.PlayerBlockCDMatrix[2]
-    eventPlayer.PlayerUsedDodgeCD = eventPlayer.PlayerDodgeCDMatrix[2]
-    eventPlayer.PlayerUsedStunCD  = eventPlayer.PlayerStunCDMatrix[2]
+    eventPlayer.PlayerReactTime   = eventPlayer.PlayerReactMatrix[2] * BotReactivity
+    eventPlayer.PlayerUsedEatCD   = eventPlayer.PlayerEatCDMatrix[2] * BotReactivity
+    eventPlayer.PlayerUsedBlockCD = eventPlayer.PlayerBlockCDMatrix[2] * BotReactivity
+    eventPlayer.PlayerUsedDodgeCD = eventPlayer.PlayerDodgeCDMatrix[2] * BotReactivity
+    eventPlayer.PlayerUsedStunCD  = eventPlayer.PlayerStunCDMatrix[2] * BotReactivity
     wait(eventPlayer.PlayerReactTime)
     eventPlayer.PlayerAbilityLock = 0
     eventPlayer.PlayerReactTime   = 0
@@ -2680,11 +2732,11 @@ rule "Player Ability Usage Tracker - Ability 2":
 
     eventPlayer.PlayerAbilityLock = 4
     eventPlayer.AbilityReactChance = random.uniform(0,1)
-    eventPlayer.PlayerReactTime   = eventPlayer.PlayerReactMatrix[3]
-    eventPlayer.PlayerUsedEatCD = eventPlayer.PlayerEatCDMatrix[3]
-    eventPlayer.PlayerUsedBlockCD = eventPlayer.PlayerBlockCDMatrix[3]
-    eventPlayer.PlayerUsedDodgeCD = eventPlayer.PlayerDodgeCDMatrix[3]
-    eventPlayer.PlayerUsedStunCD  = eventPlayer.PlayerStunCDMatrix[3]
+    eventPlayer.PlayerReactTime   = eventPlayer.PlayerReactMatrix[3] * BotReactivity
+    eventPlayer.PlayerUsedEatCD = eventPlayer.PlayerEatCDMatrix[3] * BotReactivity
+    eventPlayer.PlayerUsedBlockCD = eventPlayer.PlayerBlockCDMatrix[3] * BotReactivity
+    eventPlayer.PlayerUsedDodgeCD = eventPlayer.PlayerDodgeCDMatrix[3] * BotReactivity
+    eventPlayer.PlayerUsedStunCD  = eventPlayer.PlayerStunCDMatrix[3] * BotReactivity
     wait(eventPlayer.PlayerReactTime)
     eventPlayer.PlayerAbilityLock = 0
     eventPlayer.PlayerReactTime   = 0
@@ -2706,11 +2758,11 @@ rule "Player Ability Usage Tracker - Ultimate":
 
     eventPlayer.PlayerAbilityLock = 5
     eventPlayer.AbilityReactChance = random.uniform(0,1)
-    eventPlayer.PlayerReactTime   = eventPlayer.PlayerReactMatrix[4]
-    eventPlayer.PlayerUsedEatCD = eventPlayer.PlayerEatCDMatrix[4]
-    eventPlayer.PlayerUsedBlockCD = eventPlayer.PlayerBlockCDMatrix[4]
-    eventPlayer.PlayerUsedDodgeCD = eventPlayer.PlayerDodgeCDMatrix[4]
-    eventPlayer.PlayerUsedStunCD  = eventPlayer.PlayerStunCDMatrix[4]
+    eventPlayer.PlayerReactTime   = eventPlayer.PlayerReactMatrix[4] * BotReactivity
+    eventPlayer.PlayerUsedEatCD = eventPlayer.PlayerEatCDMatrix[4] * BotReactivity
+    eventPlayer.PlayerUsedBlockCD = eventPlayer.PlayerBlockCDMatrix[4] * BotReactivity
+    eventPlayer.PlayerUsedDodgeCD = eventPlayer.PlayerDodgeCDMatrix[4] * BotReactivity
+    eventPlayer.PlayerUsedStunCD  = eventPlayer.PlayerStunCDMatrix[4] * BotReactivity
     wait(eventPlayer.PlayerReactTime)
     eventPlayer.PlayerAbilityLock = 0
     eventPlayer.PlayerReactTime   = 0
@@ -2733,8 +2785,8 @@ def PopulateAbilityMatrix():
     if eventPlayer.CurrHero == Hero.DVA:
         eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 7.00, 3.00]
         eventPlayer.PlayerEatCDMatrix   = [0.50, 0.00, 0.00, 2.00, 0.00]
-        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.00, 0.00, 2.00, 1.00]
-        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.00, 1.00]
+        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.00, 0.00, 2.00, 0.90]
+        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.00, 0.90]
         eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.25, 0.25, 0.00]
     elif eventPlayer.CurrHero == Hero.DOOMFIST:
         eventPlayer.PlayerReactMatrix   = [1.00, 1.60, 1.00, 1.00, 1.00]
@@ -2745,134 +2797,134 @@ def PopulateAbilityMatrix():
     elif eventPlayer.CurrHero == Hero.JUNKER_QUEEN:
         eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 3.00]
         eventPlayer.PlayerEatCDMatrix   = [0.50, 0.75, 0.00, 0.00, 0.00]
-        eventPlayer.PlayerBlockCDMatrix = [0.50, 1.00, 0.00, 0.00, 1.00]
-        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.50, 0.00, 0.50, 1.00]
-        eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.75, 1.00]
+        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.75, 0.00, 0.00, 0.90]
+        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.50, 0.00, 0.50, 0.90]
+        eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.75, 0.90]
     elif eventPlayer.CurrHero == Hero.ORISA:
         eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 5.00]
-        eventPlayer.PlayerEatCDMatrix   = [0.50, 1.00, 0.00, 0.00, 0.00]
-        eventPlayer.PlayerBlockCDMatrix = [0.50, 1.00, 0.00, 0.00, 0.00]
-        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 1.00, 1.00]
+        eventPlayer.PlayerEatCDMatrix   = [0.50, 0.75, 0.00, 0.00, 0.00]
+        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.75, 0.00, 0.00, 0.00]
+        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.75, 0.90]
         eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.00, 0.00]
     elif eventPlayer.CurrHero == Hero.RAMATTRA:
         eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 5.00]
-        eventPlayer.PlayerEatCDMatrix   = [0.50, 0.00, 0.00, 1.00, 0.00]
-        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.00, 0.00, 0.50, 1.00]
-        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 1.00, 1.00]
+        eventPlayer.PlayerEatCDMatrix   = [0.50, 0.00, 0.00, 0.75, 0.00]
+        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.00, 0.00, 0.50, 0.90]
+        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.75, 0.90]
         eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.00, 0.00]
     elif eventPlayer.CurrHero == Hero.REINHARDT:
         eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 1.00]
-        eventPlayer.PlayerEatCDMatrix   = [0.00, 0.00, 0.00, 1.00, 0.00]
-        eventPlayer.PlayerBlockCDMatrix = [0.25, 0.00, 0.00, 0.00, 1.00]
-        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 1.00, 1.00, 1.00]
-        eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 1.00, 0.00, 1.00]
+        eventPlayer.PlayerEatCDMatrix   = [0.00, 0.00, 0.00, 0.75, 0.00]
+        eventPlayer.PlayerBlockCDMatrix = [0.25, 0.00, 0.00, 0.00, 0.90]
+        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.75, 0.75, 0.90]
+        eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.75, 0.00, 0.90]
     elif eventPlayer.CurrHero == Hero.ROADHOG:
         eventPlayer.PlayerReactMatrix   = [5.00, 5.00, 5.00, 5.00, 9.00]
-        eventPlayer.PlayerEatCDMatrix   = [0.50, 0.50, 0.00, 0.00, 1.00]
-        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.50, 1.00, 0.00, 1.00]
-        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 1.00, 0.00, 1.00]
-        eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 1.00, 0.00]
+        eventPlayer.PlayerEatCDMatrix   = [0.50, 0.50, 0.00, 0.00, 0.90]
+        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.50, 0.75, 0.00, 0.90]
+        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.75, 0.00, 0.90]
+        eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.75, 0.00]
     elif eventPlayer.CurrHero == Hero.SIGMA:
         eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 3.00]
         eventPlayer.PlayerEatCDMatrix   = [0.50, 0.00, 0.00, 0.00, 0.00]
-        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.00, 0.00, 1.00, 0.00]
-        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 1.00, 1.00]
-        eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.00, 1.00]
+        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.00, 0.00, 0.75, 0.00]
+        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.75, 0.90]
+        eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.75, 0.00, 0.90]
     elif eventPlayer.CurrHero == Hero.WINSTON:
         eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 1.00]
         eventPlayer.PlayerEatCDMatrix   = [0.00, 0.00, 0.00, 0.00, 0.00]
         eventPlayer.PlayerBlockCDMatrix = [0.00, 0.00, 0.00, 0.00, 0.00]
-        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.25, 0.00, 1.00]
-        eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.50, 0.00, 1.00]
+        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.25, 0.00, 0.90]
+        eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.50, 0.00, 0.90]
     elif eventPlayer.CurrHero == Hero.HAMMOND:
         eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 1.00]
         eventPlayer.PlayerEatCDMatrix   = [0.50, 0.00, 0.00, 0.00, 0.00]
-        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.00, 0.00, 0.00, 1.00]
-        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.75, 0.00, 0.00, 1.00]
+        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.00, 0.00, 0.00, 0.90]
+        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.75, 0.00, 0.00, 0.90]
         eventPlayer.PlayerStunCDMatrix  = [0.00, 0.75, 0.00, 0.00, 0.00]
     elif eventPlayer.CurrHero == Hero.ZARYA:
         eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 1.00]
-        eventPlayer.PlayerEatCDMatrix   = [0.00, 0.50, 0.00, 0.00, 1.00]
-        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.50, 0.00, 0.00, 1.00]
-        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.00, 1.00]
+        eventPlayer.PlayerEatCDMatrix   = [0.00, 0.50, 0.00, 0.00, 0.90]
+        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.50, 0.00, 0.00, 0.90]
+        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.00, 0.90]
         eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.00, 0.00]
     elif eventPlayer.CurrHero == Hero.ASHE:
         eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 1.00]
-        eventPlayer.PlayerEatCDMatrix   = [0.50, 0.00, 0.00, 1.00, 0.00]
-        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.00, 0.00, 1.00, 1.00]
-        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 1.00, 1.00]
+        eventPlayer.PlayerEatCDMatrix   = [0.50, 0.00, 0.00, 0.75, 0.00]
+        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.00, 0.00, 0.75, 0.90]
+        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.75, 0.90]
         eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.00, 0.00]
     elif eventPlayer.CurrHero == Hero.BASTION:
         eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 6.00, 1.00, 5.00]
-        eventPlayer.PlayerEatCDMatrix   = [0.50, 1.00, 1.00, 0.00, 1.00]
-        eventPlayer.PlayerBlockCDMatrix = [0.50, 1.00, 1.00, 0.00, 1.00]
-        eventPlayer.PlayerDodgeCDMatrix = [0.00, 1.00, 1.00, 0.00, 1.00]
+        eventPlayer.PlayerEatCDMatrix   = [0.50, 0.75, 0.75, 0.00, 0.90]
+        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.75, 0.75, 0.00, 0.90]
+        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.75, 0.75, 0.00, 0.90]
         eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.00, 0.00]
     elif eventPlayer.CurrHero == Hero.MCCREE:
         eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 5.00]
-        eventPlayer.PlayerEatCDMatrix   = [0.50, 0.50, 0.00, 1.00, 1.00]
-        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.50, 0.00, 1.00, 1.00]
-        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 1.00, 1.00]
+        eventPlayer.PlayerEatCDMatrix   = [0.50, 0.50, 0.00, 1.00, 0.90]
+        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.50, 0.00, 1.00, 0.90]
+        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 1.00, 0.90]
         eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.00, 0.00]
     elif eventPlayer.CurrHero == Hero.ECHO:
         eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 2.00, 1.00]
-        eventPlayer.PlayerEatCDMatrix   = [0.50, 1.00, 0.00, 0.00, 0.00]
-        eventPlayer.PlayerBlockCDMatrix = [0.50, 1.00, 0.00, 1.00, 0.00]
-        eventPlayer.PlayerDodgeCDMatrix = [0.00, 1.00, 0.00, 1.00, 0.00]
+        eventPlayer.PlayerEatCDMatrix   = [0.50, 0.75, 0.00, 0.00, 0.00]
+        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.75, 0.00, 0.75, 0.00]
+        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.75, 0.00, 0.75, 0.00]
         eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.00, 0.00]
     elif eventPlayer.CurrHero == Hero.GENJI:
         eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 1.00]
         eventPlayer.PlayerEatCDMatrix   = [0.50, 0.50, 0.00, 0.00, 0.00]
         eventPlayer.PlayerBlockCDMatrix = [0.50, 0.50, 0.00, 0.00, 0.00]
-        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 1.00, 0.00, 1.00]
+        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.75, 0.00, 0.90]
         eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.00, 0.00]
     elif eventPlayer.CurrHero == Hero.HANZO:
         eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 2.00, 1.00]
-        eventPlayer.PlayerEatCDMatrix   = [0.50, 0.00, 0.00, 1.00, 1.00]
-        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.00, 0.00, 1.00, 0.00]
-        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 1.00, 1.00]
+        eventPlayer.PlayerEatCDMatrix   = [0.50, 0.00, 0.00, 0.75, 0.90]
+        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.00, 0.00, 0.75, 0.00]
+        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.75, 0.90]
         eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.00, 0.00]
     elif eventPlayer.CurrHero == Hero.JUNKRAT:
         eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 1.00]
-        eventPlayer.PlayerEatCDMatrix   = [0.50, 0.00, 1.00, 0.00, 0.00]
-        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.00, 1.00, 0.00, 0.00]
-        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 1.00, 0.00, 1.00]
+        eventPlayer.PlayerEatCDMatrix   = [0.50, 0.00, 0.75, 0.00, 0.00]
+        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.00, 0.75, 0.00, 0.00]
+        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.75, 0.00, 0.90]
         eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.00, 0.00]
     elif eventPlayer.CurrHero == Hero.MEI:
         eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 1.00]
-        eventPlayer.PlayerEatCDMatrix   = [0.00, 0.50, 0.00, 0.00, 1.00]
+        eventPlayer.PlayerEatCDMatrix   = [0.00, 0.50, 0.00, 0.00, 0.90]
         eventPlayer.PlayerBlockCDMatrix = [0.75, 0.50, 0.00, 0.00, 0.00]
-        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.00, 1.00]
+        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.00, 0.90]
         eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.00, 0.00]
     elif eventPlayer.CurrHero == Hero.PHARAH:
         eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 3.00]
-        eventPlayer.PlayerEatCDMatrix   = [0.75, 0.00, 0.00, 0.25, 1.00]
-        eventPlayer.PlayerBlockCDMatrix = [0.75, 0.00, 0.00, 0.25, 1.00]
-        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.00, 1.00]
-        eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.00, 1.00]
+        eventPlayer.PlayerEatCDMatrix   = [0.75, 0.00, 0.00, 0.25, 0.90]
+        eventPlayer.PlayerBlockCDMatrix = [0.75, 0.00, 0.00, 0.25, 0.90]
+        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.00, 0.90]
+        eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.00, 0.90]
     elif eventPlayer.CurrHero == Hero.REAPER:
         eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 3.00]
-        eventPlayer.PlayerEatCDMatrix   = [0.50, 0.00, 0.00, 0.00, 1.00]
-        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.00, 0.00, 0.00, 1.00]
-        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.00, 1.00]
-        eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.00, 1.00]
+        eventPlayer.PlayerEatCDMatrix   = [0.50, 0.00, 0.00, 0.00, 0.90]
+        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.00, 0.00, 0.00, 0.90]
+        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.00, 0.90]
+        eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.00, 0.90]
     elif eventPlayer.CurrHero == Hero.SOJOURN:
-        eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 1.00]
-        eventPlayer.PlayerEatCDMatrix   = [0.50, 0.50, 0.00, 1.00, 1.00]
-        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.50, 0.00, 1.00, 1.00]
-        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 1.00, 1.00]
+        eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 5.00]
+        eventPlayer.PlayerEatCDMatrix   = [0.50, 0.50, 0.00, 1.00, 0.90]
+        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.50, 0.00, 1.00, 0.90]
+        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 1.00, 0.90]
         eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.00, 0.00]
     elif eventPlayer.CurrHero == Hero.SOLDIER:
         eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 5.00]
-        eventPlayer.PlayerEatCDMatrix   = [0.50, 0.75, 0.00, 0.00, 1.00]
-        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.75, 0.00, 0.00, 1.00]
-        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.00, 1.00]
+        eventPlayer.PlayerEatCDMatrix   = [0.50, 0.75, 0.00, 0.00, 0.90]
+        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.75, 0.00, 0.00, 0.90]
+        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.00, 0.90]
         eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.00, 0.00]
     elif eventPlayer.CurrHero == Hero.SOMBRA:
         eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 1.00]
         eventPlayer.PlayerEatCDMatrix   = [0.50, 0.00, 0.00, 0.00, 0.00]
-        eventPlayer.PlayerBlockCDMatrix = [0.50, 1.00, 0.00, 0.00, 0.00]
-        eventPlayer.PlayerDodgeCDMatrix = [0.00, 1.00, 0.00, 0.00, 1.00]
+        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.75, 0.00, 0.00, 0.00]
+        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.75, 0.00, 0.00, 0.90]
         eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.00, 0.00]
     elif eventPlayer.CurrHero == Hero.SYMMETRA:
         eventPlayer.PlayerReactMatrix   = [5.00, 1.00, 1.00, 1.00, 1.00]
@@ -2882,43 +2934,43 @@ def PopulateAbilityMatrix():
         eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.00, 0.00]
     elif eventPlayer.CurrHero == Hero.TORBJORN:
         eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 3.00]
-        eventPlayer.PlayerEatCDMatrix   = [0.50, 0.50, 0.00, 0.00, 1.00]
-        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.50, 0.00, 0.00, 1.00]
-        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.00, 1.00]
+        eventPlayer.PlayerEatCDMatrix   = [0.50, 0.50, 0.00, 0.00, 0.90]
+        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.50, 0.00, 0.00, 0.90]
+        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.00, 0.90]
         eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.00, 0.00]
     elif eventPlayer.CurrHero == Hero.TRACER:
         eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 1.50]
-        eventPlayer.PlayerEatCDMatrix   = [0.50, 0.00, 0.00, 0.00, 1.00]
-        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.00, 0.00, 0.00, 1.00]
-        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.00, 1.00]
+        eventPlayer.PlayerEatCDMatrix   = [0.50, 0.00, 0.00, 0.00, 0.90]
+        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.00, 0.00, 0.00, 0.90]
+        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.00, 0.90]
         eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.00, 0.00]
     elif eventPlayer.CurrHero == Hero.WIDOWMAKER:
         eventPlayer.PlayerReactMatrix   = [2.00, 1.00, 1.00, 1.00, 1.00]
         eventPlayer.PlayerEatCDMatrix   = [0.50, 0.00, 0.00, 0.00, 0.00]
         eventPlayer.PlayerBlockCDMatrix = [0.50, 0.00, 0.00, 0.00, 0.00]
-        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.00, 0.00]
+        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.75, 0.00]
         eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.00, 0.00]
     elif eventPlayer.CurrHero == Hero.ANA:
         eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 1.00]
-        eventPlayer.PlayerEatCDMatrix   = [0.50, 0.00, 1.00, 1.00, 0.00]
-        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.00, 1.00, 1.00, 0.00]
-        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 1.00, 1.00, 0.00]
+        eventPlayer.PlayerEatCDMatrix   = [0.50, 0.00, 0.75, 0.75, 0.00]
+        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.00, 0.75, 0.75, 0.00]
+        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.75, 0.75, 0.00]
         eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.00, 0.00]
     elif eventPlayer.CurrHero == Hero.BAPTISTE:
         eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 9.00]
-        eventPlayer.PlayerEatCDMatrix   = [0.50, 0.00, 0.00, 0.00, 1.00]
-        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.00, 0.00, 0.00, 1.00]
-        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.00, 1.00]
+        eventPlayer.PlayerEatCDMatrix   = [0.50, 0.00, 0.00, 0.00, 0.90]
+        eventPlayer.PlayerBlockCDMatrix = [0.50, 0.00, 0.00, 0.00, 0.90]
+        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.00, 0.90]
         eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.00, 0.00]
     elif eventPlayer.CurrHero == Hero.BRIGITTE:
         eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 1.00]
         eventPlayer.PlayerEatCDMatrix   = [0.00, 0.00, 0.00, 0.00, 0.00]
-        eventPlayer.PlayerBlockCDMatrix = [0.00, 0.00, 1.00, 0.00, 0.00]
-        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 1.00, 0.00, 0.00]
+        eventPlayer.PlayerBlockCDMatrix = [0.00, 0.00, 0.75, 0.00, 0.00]
+        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.75, 0.00, 0.00]
         eventPlayer.PlayerStunCDMatrix  = [0.00, 0.50, 0.00, 0.00, 0.00]
     elif eventPlayer.CurrHero == Hero.KIRIKO:
         eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 1.00]
-        eventPlayer.PlayerEatCDMatrix   = [0.00, 0.50, 0.00, 1.00, 1.00]
+        eventPlayer.PlayerEatCDMatrix   = [0.00, 0.50, 0.00, 0.75, 1.00]
         eventPlayer.PlayerBlockCDMatrix = [0.00, 0.50, 0.00, 0.00, 1.00]
         eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.00, 1.00]
         eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.00, 0.00]
@@ -2935,10 +2987,10 @@ def PopulateAbilityMatrix():
         eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.00, 0.00]
         eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.00, 0.00]
     elif eventPlayer.CurrHero == Hero.MOIRA:
-        eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 1.00]
-        eventPlayer.PlayerEatCDMatrix   = [0.00, 0.00, 0.00, 1.00, 0.00]
-        eventPlayer.PlayerBlockCDMatrix = [0.00, 0.50, 0.00, 1.00, 0.00]
-        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 1.00, 1.00]
+        eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 2.00, 1.00]
+        eventPlayer.PlayerEatCDMatrix   = [0.00, 0.00, 0.00, 0.75, 0.00]
+        eventPlayer.PlayerBlockCDMatrix = [0.00, 0.50, 0.00, 0.00, 0.00]
+        eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.75, 0.90]
         eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.00, 0.00]
     elif eventPlayer.CurrHero == Hero.ZENYATTA:
         eventPlayer.PlayerReactMatrix   = [1.00, 5.00, 1.00, 1.00, 1.00]
@@ -2952,12 +3004,7 @@ def PopulateAbilityMatrix():
         eventPlayer.PlayerBlockCDMatrix = [0.00, 0.00, 0.00, 0.00, 0.00]
         eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.00, 0.00]
         eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.00, 0.00]
-        
-    eventPlayer.PlayerEatCDMatrix   = BotReactivity * eventPlayer.PlayerEatCDMatrix
-    eventPlayer.PlayerBlockCDMatrix = BotReactivity * eventPlayer.PlayerBlockCDMatrix
-    eventPlayer.PlayerDodgeCDMatrix = BotReactivity * eventPlayer.PlayerDodgeCDMatrix
-    eventPlayer.PlayerStunCDMatrix  = BotReactivity * eventPlayer.PlayerStunCDMatrix
-
+    
 
 # Bot Abilities
 ## Tank Bot Abilities
@@ -3314,7 +3361,6 @@ rule "Bot Abilities: Doomfist Secondary (Rs + P)":
         goto RULE_START
 
 
-
 rule "Bot Abilities: Doomfist Ability 1 (P)":
     @Event eachPlayer
     @Team 2
@@ -3384,7 +3430,7 @@ rule "Bot Abilities: Doomfist Ability 2 (BB1)":
         goto RULE_START
 
 
-rule "Bot Abilities: Doomfist Ability 2 (BB1 Rb)":
+rule "Bot Abilities: Doomfist Ability 2 (BB1 + Rb)":
     @Event eachPlayer
     @Team 2
     @Hero doomfist
@@ -3494,7 +3540,7 @@ rule "Bot Abilities: Junker Queen Secondary (P)":
         goto RULE_START
 
 
-rule "Bot Abilities: Junker Queen Ability 1 (BB1)":
+rule "Bot Abilities: Junker Queen Ability 1 Random (BB1)":
     @Event eachPlayer
     @Team 2
     @Hero junkerQueen
@@ -4390,7 +4436,7 @@ rule "Bot Abilities: Sigma Secondary (BB1 + Rb)":
     @Condition eventPlayer.LookTarget.PlayerUsedBlockCD >= eventPlayer.LookTarget.AbilityReactChance 
     
     eventPlayer.BotAbilityLock[1] = true
-    smallMessage(hostPlayer, "Debug: Sig Shield")
+    #smallMessage(hostPlayer, "Debug: Sig Shield")
     eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
     eventPlayer.Randomizer = random.randint(0,1)
     if eventPlayer.Randomizer == 0:
@@ -5963,13 +6009,13 @@ rule "Bot Abilities: Junkrat Ability 1 + Secondary Movement (All)":
     eventPlayer.BotAbilityLock[2] -= 1
     SetFloorFacing()
     eventPlayer.forceButtonPress(Button.ABILITY_1)
-    wait(random.uniform(0.1,1), Wait.ABORT_WHEN_FALSE)
+    wait(random.uniform(0.1,1))
     eventPlayer.forceButtonPress(Button.SECONDARY_FIRE)
     if eventPlayer.BotAbilityLock[2] > 0:
         eventPlayer.BotAbilityLock[2] -= 1
-        wait(random.uniform(0.1,0.5), Wait.ABORT_WHEN_FALSE)
+        wait(random.uniform(0.1,0.5))
         eventPlayer.forceButtonPress(Button.ABILITY_1)
-        wait(random.uniform(0.1,0.3), Wait.ABORT_WHEN_FALSE)
+        wait(random.uniform(0.1,0.3))
         eventPlayer.forceButtonPress(Button.SECONDARY_FIRE)
     if eventPlayer.ApplyPressure == true:
         SetProjectileFacing()
@@ -7051,12 +7097,13 @@ rule "Bot Abilities: Torbjorn Ability 2 (Rd)":
         goto RULE_START
 
 
-rule "Bot Abilities: Torbjorn Ultimate (BB1)":
+rule "Bot Abilities: Torbjorn Ultimate (BB1 + P)":
     @Event eachPlayer
     @Team 2
     @Hero torbjorn
     @Condition BotsUseAbilities == true
     @Condition BotBehavior[25] >= 1
+    @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.BotAbilityLock[4] == false
     @Condition eventPlayer.isAlive()
 
@@ -7066,8 +7113,6 @@ rule "Bot Abilities: Torbjorn Ultimate (BB1)":
         eventPlayer.BotAbilityLock[4] = true
         eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
         eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
-        eventPlayer.ProjType = "ultimate"
-        SetProjectileFacing()
         eventPlayer.forceButtonPress(Button.ULTIMATE)
         eventPlayer.BotAbilityVar = 0
         while eventPlayer.BotAbilityVar < 10:
@@ -7239,6 +7284,7 @@ rule "Bot Abilities: Tracer Ultimate (All)":
     @Hero tracer
     @Condition BotsUseAbilities == true
     @Condition BotBehavior[26] >= 2
+    @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
 
     wait(10 / UltFrequency)
@@ -7821,6 +7867,7 @@ rule "Bot Ablities: Brigitte Ultimate":
 
     wait(10 / UltFrequency)
     if random.randint(0,9) < 3:
+        smallMessage(hostPlayer, "Debug: Brig ult")
         eventPlayer.forceButtonPress(Button.ULTIMATE)
         wait(10 / UltFrequency)
     if RULE_CONDITION:
@@ -7861,7 +7908,7 @@ rule "Bot Abilities: Kiriko Secondary":
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
 
-    eventPlayer.AbilityAcc = 2
+    eventPlayer.AbilityAcc = 3
     eventPlayer.ProjType = "secondary"
     SetProjectileFacing()
     eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
@@ -7870,20 +7917,20 @@ rule "Bot Abilities: Kiriko Secondary":
         goto RULE_START
 
 
-rule "Bot Ablities: Kiriko Ability 1":
+rule "Bot Ablities: Kiriko Ability 1 (Rh)":
     @Event eachPlayer
     @Team 2
     @Hero kiriko
     @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.getNormalizedHealth() <= 0.7
     
     wait(random.uniform(0.5, 2.5), Wait.ABORT_WHEN_FALSE)
-    eventPlayer.LtRange = 30
+    smallMessage(hostPlayer, "Debug: Kiri a1 Rh")
     SetHealingFacing() 
-    wait(0.25)
+    wait(random.uniform(0.25,0.75))
     eventPlayer.forceButtonPress(Button.ABILITY_1)
-    eventPlayer.LtRange = 0
     if eventPlayer.ApplyPressure == true:
         SetProjectileFacing()
     else:
@@ -7893,7 +7940,7 @@ rule "Bot Ablities: Kiriko Ability 1":
         goto RULE_START
 
 
-rule "Bot Ablities: Kiriko Ability 2":
+rule "Bot Ablities: Kiriko Ability 2 (Rh)":
     @Event eachPlayer
     @Team 2
     @Hero kiriko
@@ -7903,6 +7950,7 @@ rule "Bot Ablities: Kiriko Ability 2":
     @Condition eventPlayer.getNormalizedHealth() <= 0.4
     
     wait(random.uniform(0.25, 1), Wait.ABORT_WHEN_FALSE)
+    smallMessage(hostPlayer, "Debug: Kiri a2 Rh")
     eventPlayer.forceButtonPress(Button.ABILITY_2)
     eventPlayer.startFacing(vect(0, -1, 0), DefaultTurnRate, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
     wait(0.5)
@@ -7925,6 +7973,7 @@ rule "Bot Ablities: Kiriko Ultimate":
 
     wait(10 / UltFrequency)
     if random.randint(0,9) < 3:
+        smallMessage(hostPlayer, "Debug: Kiri ult")
         eventPlayer.forceButtonPress(Button.ULTIMATE)
         wait(10 / UltFrequency)
     if RULE_CONDITION:
@@ -7932,6 +7981,9 @@ rule "Bot Ablities: Kiriko Ultimate":
 
 
 ### Lucio Bot Abilities
+
+
+
 rule "Bot Abilities: Lucio Primary":
     @Event eachPlayer
     @Team 2
@@ -7954,17 +8006,28 @@ rule "Bot Abilities: Lucio Secondary (BB2)":
     @Team 2
     @Hero lucio
     @Condition BotsUseAbilities == true
-    @Condition BotsReact == true
     @Condition BotBehavior[32] >= 2
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.getNormalizedHealth() != 1
     @Condition distance(eventPlayer.getEyePosition(), eventPlayer.LookTarget.getEyePosition()) < 7.75
     
     wait(random.uniform(0.25, 1.5), Wait.ABORT_WHEN_FALSE)
+    smallMessage(hostPlayer, "Debug: Lucio m2")
     eventPlayer.forceButtonPress(Button.SECONDARY_FIRE)
     wait(6)
     if RULE_CONDITION:
         goto RULE_START
+
+
+rule "Bot Abilities: Lucio Ability 1 Reset to Speed (All)":
+    @Event eachPlayer
+    @Team 2
+    @Hero lucio
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isUsingAbility1() == false
+
+    wait(3)
+    eventPlayer.forceButtonPress(Button.ABILITY_1)
 
 
 rule "Bot Abilities: Lucio Ability 2 Random (BB1)":
@@ -7974,9 +8037,10 @@ rule "Bot Abilities: Lucio Ability 2 Random (BB1)":
     @Condition BotsUseAbilities == true
     @Condition BotBehavior[32] >= 1
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.BotAbilityLock[2] == false
+    @Condition eventPlayer.BotAbilityLock[3] == false
     
     wait(random.uniform(5, 10), Wait.ABORT_WHEN_FALSE)
+    smallMessage(hostPlayer, "Debug: Lucio a2 rand")
     eventPlayer.BotAbilityLock[3] = true
     eventPlayer.forceButtonPress(Button.ABILITY_2)
     wait(15)
@@ -7995,22 +8059,18 @@ rule "Bot Abilities: Lucio Ability 2 Heal (BB1)":
     @Condition eventPlayer.BotAbilityLock[3] == false
     @Condition eventPlayer.getNormalizedHealth() <= 0.5
 
-    if eventPlayer.BotAbilityLock[2] == false:
-        eventPlayer.forceButtonPress(Button.ABILITY_1)
-        eventPlayer.BotAbilityLock[2] = true
-    eventPlayer.BotAbilityLock[2] = true
+    wait(random.uniform(0.5,2), Wait.ABORT_WHEN_FALSE)
+    smallMessage(hostPlayer, "Debug: Lucio a2 Heal")
+    eventPlayer.BotAbilityLock[3] = true
+    eventPlayer.forceButtonPress(Button.ABILITY_1)
     eventPlayer.forceButtonPress(Button.ABILITY_2)
-    wait(3)
-    if eventPlayer.BotAbilityLock[2] == true:
-        eventPlayer.forceButtonPress(Button.ABILITY_1)
-        eventPlayer.BotAbilityLock[2] = false
-    wait(12)
-    eventPlayer.BotAbilityLock[2] = false
+    wait(5)
+    eventPlayer.BotAbilityLock[3] = false
     if RULE_CONDITION:
         goto RULE_START
 
 
-rule "Bot Ablities: Lucio Ultimate Rand":
+rule "Bot Ablities: Lucio Ultimate Random (BB4)":
     @Event eachPlayer
     @Team 2
     @Hero lucio
@@ -8029,7 +8089,7 @@ rule "Bot Ablities: Lucio Ultimate Rand":
         goto RULE_START
 
 
-rule "Bot Ablities: Lucio Ultimate AJAX Simulator (Rh)":
+rule "Bot Ablities: Lucio Ultimate AJAX Simulator (BB4 + Rh)":
     @Event eachPlayer
     @Team 2
     @Hero lucio
@@ -8037,7 +8097,7 @@ rule "Bot Ablities: Lucio Ultimate AJAX Simulator (Rh)":
     @Condition BotsReact == true
     @Condition BotBehavior[32] >= 4
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.getNormalizedHealth()
+    @Condition eventPlayer.getNormalizedHealth() <= 0.25
     @Condition eventPlayer.BotAbilityLock[4] == false
 
     wait(10 / UltFrequency)
@@ -8188,7 +8248,7 @@ rule "Bot Abilities: Moira Secondary":
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
 
-    eventPlayer.AbilityAcc = 2
+    eventPlayer.AbilityAcc = 3
     SetDefaultFacing()
     eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
     wait(9999,Wait.ABORT_WHEN_FALSE)
@@ -8294,7 +8354,7 @@ rule "Bot Pressure: Zenyatta Primary":
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.BotAbilitySignal[1] == false
 
-    eventPlayer.AbilityAcc = 2
+    eventPlayer.AbilityAcc = 3
     eventPlayer.ProjType = "primary"
     SetProjectileFacing()
     eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
@@ -8311,14 +8371,14 @@ rule "Bot Abilities: Zenyatta Secondary":
     @Condition eventPlayer.isAlive() == true
     
     wait(random.uniform(5,10), Wait.ABORT_WHEN_FALSE)
-    eventPlayer.BotAbilitySignal[1] = false
+    eventPlayer.BotAbilitySignal[1] = true
     eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
     eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
     wait(random.uniform(1,2.5))
     if eventPlayer.ApplyPressure == false:
         eventPlayer.forceButtonPress(Button.MELEE)
     eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
-    eventPlayer.BotAbilitySignal[1] = true
+    eventPlayer.BotAbilitySignal[1] = false
     if RULE_CONDITION:
         goto RULE_START
 
@@ -8328,10 +8388,11 @@ rule "Bot Abilities: Zenyatta Ability 2":
     @Team 2
     @Hero zenyatta
     @Condition BotsUseAbilities == true
+    @Condition BotBehavior[35] >= 1
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isUsingAbility2() == false
     
-    wait(random.uniform(1,5))
     eventPlayer.forceButtonPress(Button.ABILITY_2)
     wait(2)
     if RULE_CONDITION:
