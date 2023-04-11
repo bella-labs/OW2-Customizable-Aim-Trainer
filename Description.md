@@ -1,23 +1,20 @@
-# A very customizable aim trainer. 
+# Customizable Aim Trainer. 
 
 A very cool CAT.
-
-&nbsp; ∧,,,∧\
-( •‿• )\
-&nbsp;/つ   づ♡
-
-
+&nbsp;∧,,,∧
+( •‿• )
+/つ   づ
 
 ## Features
-* Projectile guide - Learn to lead projectiles
-* Pressure mode - Bots shoot back! Select from 4 difficulty levels
-* Custom spawn location - Train on any map
-* Reactive bots - Input Reading, just like Morgott!
-* Customizable movement
-* Bots use offensive, defensive, and ultimate abilities for every hero
+* ==Projectile guide== - Learn to lead projectiles
+* ==Pressure mode== - Bots shoot back! Select from 4 difficulty levels
+* ==Custom spawn location== - Train on any map
+* ==Reactive bots== - Input Reading, just like Morgott!
+* ==Customizable movement== - Choose between different strafe patterns, strafe timing and movement speeds.
+* ==Bots can use offensive, defensive, and ultimate abilities for nearly every hero.==
 
 ## Settings
-*PICTURE OF SETTINGS MENU!
+![](https://cdn.workshop.codes/60zbu917mheaggb02gk9ay916fwi)
 
 ### Player Settings
 These settings are available to all players in the lobby.
@@ -52,7 +49,7 @@ This setting is only available to the host of the lobby.
 | ==Pressure Mode== | Toggle to start a game mode where the bot closest to your crosshair will attack you. Additional stats will be added to the top left HUD. Use left/right movement to change bot accuracy.|
 
 ## Controls
-![](https://cdn.workshop.codes/u008tppgb6xg9vqf11bk97xws39w)
+![](https://cdn.workshop.codes/8w7j3vghbw6yos6mclqjk5v36235)
 
 | Button | Action |
 | -------- | -------- |
@@ -96,8 +93,9 @@ Using the ==Projectile Guide== option creates a predictive target for projctile 
 9. A black dot outlined by a yellow orb should now appear near the target closest to your crosshair. Aiming for the black dot will result in a hit, assuming the target does not change the direction it is strafing.
 
 
-* I recommend navigating to the ==Bot Movement== menu and using left movement inputs to set it to "Long Strafes" on to test out this feature.
-* Note: Unlike Yurodd's workshop mode, The target does not account for the effect on gravity on projectiles. Yurodd's mode has a more accurate target for Hanzo's arrows and Ana's biotic grenade.
+* I recommend navigating to the ==Bot Movement== menu and using left movement inputs to set it to "Custom" on to test out this feature.
+* Note: The target aims for the targets camera, which may slightly different from the targets crit box.
+* Bug: The target is slightly too low for arcing projectiles at ranges greater than 20 meters.
 
 ### Bots Shoot at You During Training (Pressure Mode)
 ![](https://cdn.workshop.codes/mwk2qaotpbwtub307bumjkbm17yi)
@@ -113,8 +111,9 @@ Using the ==Projectile Guide== option creates a predictive target for projctile 
 * Projectile heroes will try to read your movement and lead their shots when aiming for you, though it will not account for gravity on projectiles.
 * Bots will use react to your input if ==Bots React== is set to on in the workshop settings menu.
 * Bots will use offensive abilities if the setting "Use Abilities" is set to true under the ==Bot Movement== menu option.
-* Bots will use defensive abilities and ultimates if enabled in under the setting 7.1-3. in the workshop settings menu.
-
+* Bots will use defensive abilities and ultimates if enabled in under the setting 7.x. in the workshop settings menu.
+* By default this code has no cooldowns for abilities. If you want to use this setting I recommend setting under 'Heroes -> General -> Ability Cooldown Time' to 100% so that your cooldown timers will be similar to an actual game. 
+* Also note that Echo's flight and Doomfist's slam are set to 10% by default because of a weird interaction when canceling these abilties with 0% cooldowns. If practicing these heroes go to 'Heroes -> Doomfist  / Echo-> Seismic Slam Cooldown Time / Flight Cooldown Time' and set them to 100%
 
 ## Workshop Settings Menu
 ### UI Settings
@@ -124,13 +123,15 @@ Using the ==Projectile Guide== option creates a predictive target for projctile 
 | ==Show Server Load and Coordinates== | Shows the server load and the player's current coordinates. Useful for getting the numbers for the Custom Bot Spawn setting. |
 | ==Show Startup Message== | Toggle to disable the help message that appears at the start of the game mode. |
 ### Number of Bot Setting
+| Setting | Description |
+| -------- | -------- |
 | ==Number of Bots== | The default number of bots that will spawn when you start the game mode. |
 ### Bot Ability Settings
 | Setting | Description |
 | -------- | -------- |
 | ==Bots will use abilities== | Toggle for bots to use abilities. |
 | ==Bots React== | Bots will read the players input and have a chance of using their own abilities in response. |
-| ==Multiplier for Bots React= | Modifies how likely bots will use their abilities in response to thei player's input |
+| ==Multiplier for Bots React== | Modifies how likely bots will use their abilities in response to thei player's input |
 | ==Multiplier for Bot Ultimates== | Modifies how often bots use their ultimates. The default is a 30% chance every 10 seconds for most bots. |
 ### Bot Movement Settings
 | Setting | Description |
@@ -140,6 +141,8 @@ Using the ==Projectile Guide== option creates a predictive target for projctile 
 | ==Bot Movement Speed== | Lets you change the movement speed for the bots, as if they were under the effect of one of the abilities in the list. |
 | ==Randomly Change Strafe Patterns== | Every 5 seconds there is a 50% chance for bots to switch to one of the first 4 strafe pattern options. |
 ### Bot Movement Modifiers Settings
+| Setting | Description |
+| -------- | -------- |
 | ==Custom Strafe Pattern - Minimum Wait== | The min time for a bot to wait before changing direction in the 'long strafe / custom' difficulty. |
 | ==Custom Strafe Pattern - Maximum Wait== | The max time for a bot to wait before changing direction in the 'long strafe / custom' difficulty. |
 | ==Bot Jumping== | Toggle for bots to randomly jump. |
@@ -161,6 +164,14 @@ Using the ==Projectile Guide== option creates a predictive target for projctile 
 | ==Reset Health After Not Taking Damage== | Resets your health to full after not taking damage for 4 second in the killable bots pressure mode. |
 | ==Punish Player Deaths== | The player is stunned for 0.5 seconds and the attacker is healed to full when the player dies in the killable bots pressure mode. |
 
+### Speed Mode Settings
+| Setting | Description |
+| -------- | -------- |
+| ==Increment Bot Movement Speed Every Elimination (JPYHG)== | A toggle to recreate a gamemode similar to ioStux DPO Aim Trainer |
+| ==Speed Mode Timer== | How long to wait before going down a level. |
+| ==Speed Mode Increment Percent Amount== | The percent amount to increase bot speed after an elimination. |
+| ==Speed Mode Decrement Percent Amount== | The percent amount to decrease bot speed after failing to achieve an elimination. If set to zero the decrement amount will be the same as the increment amount. |
+
 ### Custom Spawn Settings
 | Setting | Description |
 | -------- | -------- |
@@ -179,18 +190,21 @@ Using the ==Projectile Guide== option creates a predictive target for projctile 
 ### Bot Support Heroes Settings
 * Toggles for all Support heroes to be included in the hero pool when first starting up
 
+
+### Bot Behavior Settings
+| Setting | Description |
+| -------- | -------- |
+| ==Enable All Abilities== | Enables all bot abilities and ultimates regardless of what they are set to in the menu. |
+
 ### Bot Tank Hero Behavior Settings
-* Menus to select which abilities should be enabled for every tank hero.
+* Menus to select which abilities should be enabled for every tank hero. Defensive abilities and ultimates disabled by default.
 
 ### Bot Damage Hero Behavior Settings
-* Menus to select which abilities should be enabled for every damage hero.
+* Menus to select which abilities should be enabled for every damage hero. Defensive abilities and ultimates disabled by default.
 
 ### Bot Support Hero Behavior Settings
-* Menus to select which abilities should be enabled for every support hero.
+* Menus to select which abilities should be enabled for every support hero. Defensive abilities and ultimates disabled by default.
 
-
-* By default this code has no cooldowns for all abilities. If you want to use this setting I recommend setting under 'Heroes -> General -> Ability Cooldown Time' to 100% so that your cooldown timers will be similar to an actual game. 
-* Also note that Echo's flight and Doomfist's slam are set to 10% by default because of a weird interaction when canceling these abilties with no cooldowns. If practicing these heroes go to 'Heroes -> Doomfist  / Echo-> Seismic Slam Cooldown Time / Flight Cooldown Time' and set them to 100%
 
 ## Other Random Functions
 * When not using pressure mode Zarya will generate charge when using her personal bubble.
@@ -208,7 +222,7 @@ Using the ==Projectile Guide== option creates a predictive target for projctile 
 | ==Forward Movement== | Same as above, except the bots just press W key.
 
 **Discord**
-* Report bugs on my discord:discord.gg/YPQ5ETNT45
+* Report bugs on my discord: discord.gg/YPQ5ETNT45
 
 
 **Github**
@@ -216,6 +230,7 @@ Using the ==Projectile Guide== option creates a predictive target for projctile 
 * You can find the script to compile the workshop mode yourself here: https://github.com/a-bella-ciao/VXEAT-OW2-Aim-Trainer
 
 **Credits**
-* [VAXTA](https://workshop.codes/VAXTA) - Original Aim Trainer
-* [GGSYK](https://workshop.codes/GGSYK) - Kiriko and Sojourn Ability Usage
-* KJRR5P -  Predictive Projectile Trainer by Yurodd
+* [VAXTA](https://workshop.codes/VAXTA) - Seita's original aim trainer
+* [GGSYK](https://workshop.codes/GGSYK) - Kiriko and Sojourn ability usage
+* KJRR5P -  Predictive projectile trainer by Yurodd
+* [JPYHG](https://workshop.codes/JPYHG) - ioStux DPO Aim Trainer
