@@ -1,8 +1,8 @@
 # Customizable Aim Trainer. 
 
-A very cool CAT.
-&nbsp;∧,,,∧
-( •‿• )
+A very cool CAT.\
+&nbsp;∧,,,∧\
+( •‿• )\
 /つ   づ
 
 ## Features
