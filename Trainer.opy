@@ -75,6 +75,8 @@ globalvar RandomStrafes
 globalvar DefaultRandomStrafes
 globalvar DefaultTurnRate
 globalvar DefaultMvmtType
+globalvar MvmtType3MinDist
+globalvar MvmtType3MaxDist
 
 ## Bot Hero Lists 
 globalvar HeroList
@@ -130,6 +132,7 @@ globalvar SplashText
 ## Speed Mode Variables
 globalvar SpeedTimer
 globalvar SpeedMulti
+globalvar SpeedModeBase
 globalvar SpeedModeIncrement
 globalvar SpeedModeDecrement
 globalvar SpeedModeMaxTime
@@ -150,7 +153,7 @@ playervar PathIndex
 playervar PathDirection
 playervar PathOldDirection
 playervar BotMvmtRandomizer
-playervar MvmtIndex
+playervar MvmtVar
 playervar MvmtType
 playervar MvmtTypeLock
 playervar DisableJump
@@ -432,7 +435,8 @@ rule "Initialize: Workshop Settings":
     DefaultJumpMax = createWorkshopSetting(float[1.5:20], "3.1. Bot Movement Modifiers", "Bot Jumping - Maximum wait", 10, 8)
     DefaultRandCrouch = createWorkshopSetting(bool, "3.1. Bot Movement Modifiers", "Bot Crouching", true, 9)
     DefaultCrouchMax = createWorkshopSetting(float[0.25:10], "3.1. Bot Movement Modifiers", "Bot Crouching - Maximum wait", 3, 10)
-
+    MvmtType3MinDist = createWorkshopSetting(int[0:500], "3.1. Bot Movement Modifiers", "8 Directional Strafe Pattern Minimum Distance", 0, 11)
+    MvmtType3MaxDist = createWorkshopSetting(int[1:500], "3.1. Bot Movement Modifiers", "8 Directional Strafe Pattern Maximum Distance", 100, 12)
     # Pressure Mode
     MenuTogglePressureType = createWorkshopSetting(enum["off", "killable", "unkillable"], "4. Bot Pressure (Overridden by in-game changes to pressure)", "Bots Apply Pressure", 0, 0)
     MenuTogglePressureDiff = createWorkshopSetting(enum["easy", "medium", "hard", "aimbot"],  "4. Bot Pressure (Overridden by in-game changes to pressure)", "Bots Pressure Difficulty", 0, 1)
@@ -444,8 +448,9 @@ rule "Initialize: Workshop Settings":
     # Speed Mode
     MenuToggleSpeedMode = createWorkshopSetting(bool, "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Increase Bots Movement Speed Every Elimination (JPYHG)", false, 0)
     SpeedModeMaxTime = createWorkshopSetting(int[1:100], "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Speed Mode Timer", 10, 1)
-    SpeedModeIncrement = createWorkshopSetting(int[0:100], "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Speed Mode Increment Percent Amount", 10, 2)
-    SpeedModeDecrement = createWorkshopSetting(int[0:100], "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Speed Mode Decrement Percent Amount (0 = same as increment)", 0, 3)
+    SpeedModeBase = createWorkshopSetting(int[0:1000], "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Speed Mode Base Speed", 100, 2)
+    SpeedModeIncrement = createWorkshopSetting(int[0:100], "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Speed Mode Increment Percent Amount", 10, 3)
+    SpeedModeDecrement = createWorkshopSetting(int[0:100], "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Speed Mode Decrement Percent Amount (0 = same as increment)", 0, 4)
 
     # Bot Spawn
     MenuToggleBotSpawn = createWorkshopSetting(bool, "6. Custom Bot Spawn (Overridden by in-game changes to spawn)", "Use Custom Spawn Point", false, 0)
@@ -491,7 +496,7 @@ rule "Initialize: Workshop Settings":
     DefaultHeroList.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Baptiste", true, 1))
 	DefaultHeroList.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Brigitte", true, 2))
     DefaultHeroList.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Kiriko", true, 3))
-    #LW DefaultHeroList.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Lifeweaver", true, 4))
+    DefaultHeroList.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Lifeweaver", true, 4))
     DefaultHeroList.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Lúcio", true, 4))
     DefaultHeroList.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Mercy", true, 5))
     DefaultHeroList.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Moira", true, 6))
@@ -536,7 +541,7 @@ rule "Initialize: Workshop Settings":
     BotBehavior.append(createWorkshopSetting(enum["Exo Boots", "Exo Boots, Regen", "Exo Boots, Regen, Immo", "Exo Boots, Regen, Immo, Amp. Matrix"], "8.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Baptiste Bot Behavior", 0, 1))
 	BotBehavior.append(createWorkshopSetting(enum["Whip Shot, Bash", "Whip Shot, Bash, Shield", "Whip Shot, Bash, Shield, Rally"], "8.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Brigitte Bot Behavior", 0, 2))
     BotBehavior.append(createWorkshopSetting(enum["Swift Step", "Swift Step, Suzu", "Swift Step, Suzu, Kitsune Rush"], "8.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Kiriko Bot Behavior", 1, 3))
-    BotBehavior.append(createWorkshopSetting(enum["Dash", "Dash, Platform", "Dash, Platform, Life Grip", "Dash, Platform, Life Grip, Tree"], "8.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Lifeweaver Bot Behavior (Not Implemented)", 3, 4))
+    BotBehavior.append(createWorkshopSetting(enum["Dash", "Dash, Platform", "Dash, Platform, Life Grip", "Dash, Platform, Life Grip, Tree"], "8.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Lifeweaver Bot Behavior", 1, 4))
     BotBehavior.append(createWorkshopSetting(enum["Speed Aura", "Speed Aura, Amp", "Speed Aura, Amp, Boop", "Speed + Healing Aura, Amp, Boop", "Speed + Healing Aura, Amp, Boop, Beat"], "8.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Lúcio Bot Behavior", 1, 4))
     BotBehavior.append(createWorkshopSetting(enum["GA, Damage Boost", "GA, Damage + Healing Boost", "GA, Damage + Healing Boost, Valkyrie"], "8.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Mercy Bot Behavior", 0, 5))
     BotBehavior.append(createWorkshopSetting(enum["Fade", "Fade, Damage Orb", "Fade, Damage + Heal Orb", "Fade, Damage + Heal Orb, Coalescence"], "8.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Moira Bot Behavior", 1, 6))
@@ -635,7 +640,7 @@ rule "Initialize: Global Variables":
     HeroList.append(Hero.BAPTISTE)
     HeroList.append(Hero.BRIGITTE)
     HeroList.append(Hero.KIRIKO)
-    #LW HeroList.append(Hero.LIFEWEAVER)
+    HeroList.append(Hero.LIFEWEAVER)
     HeroList.append(Hero.LUCIO)
     HeroList.append(Hero.MERCY)
     HeroList.append(Hero.MOIRA)
@@ -674,10 +679,7 @@ rule "Initialize: Global Variables":
         "Also Try Kovaaks!",
         "Your gun is so cute!",
         ]
-
-        SpeedMulti = 100
-        SpeedTimer = 10
-        chase(SpeedTimer, 0, rate=1, ChaseReeval.NONE)
+        
 rule "Initialize: Bot Hero Variables":
 
     # Wait to help reduce init load
@@ -1208,8 +1210,7 @@ rule "Menu Controls: Right":
         SpawnSize += 1
         MenuCustRadius()
     elif eventPlayer.MenuIndex == 12:
-        #LW if eventPlayer.BotMenuIndex == 36:
-        if eventPlayer.BotMenuIndex == 35:
+        if eventPlayer.BotMenuIndex == 36:
             eventPlayer.BotMenuIndex = 0
         else:
             eventPlayer.BotMenuIndex += 1 
@@ -1286,8 +1287,7 @@ rule "Menu Controls: Left":
         MenuCustRadius()
     elif eventPlayer.MenuIndex == 12:
         if eventPlayer.BotMenuIndex == 0:
-            #LW eventPlayer.BotMenuIndex = 36
-            eventPlayer.BotMenuIndex = 35
+            eventPlayer.BotMenuIndex = 36
         else:
             eventPlayer.BotMenuIndex -= 1
     elif eventPlayer.MenuIndex == 13 and MenuTogglePressureType != "off":
@@ -1666,6 +1666,9 @@ def MenuSpeedMode():
         getPlayers(Team.2).setMoveSpeed(eventPlayer.MenuToggleSelfSpeed)
         smallMessage(eventPlayer, "    Speed Mode disabled")
     else:
+        SpeedMulti = SpeedModeBase
+        SpeedTimer = SpeedModeMaxTime
+        getPlayers(Team.2).setMoveSpeed(SpeedModeBase)
         MenuToggleSpeedMode = true
         smallMessage(eventPlayer, "    Speed Mode enabled")
 # Player Abiltity Modifiers
@@ -2028,8 +2031,8 @@ def InitializeBotHero():
         eventPlayer.startForcingName("Skewed")
     elif eventPlayer.CurrHero == Hero.KIRIKO:
         eventPlayer.startForcingName("Fielder")
-    elif eventPlayer.CurrHero == Hero.LUCIO: #lw
-        eventPlayer.startForcingName("FunnyAstro")
+    elif eventPlayer.CurrHero == Hero.LIFEWEAVER:
+        eventPlayer.startForcingName("Guxue")
     elif eventPlayer.CurrHero == Hero.LUCIO:
         eventPlayer.startForcingName("FunnyAstro")
     elif eventPlayer.CurrHero == Hero.MERCY:
@@ -2185,24 +2188,42 @@ rule "Bot Pathing: Movement Handler - MvmtType 3 8-direction Strafes":
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.MvmtType == 3
 
-    eventPlayer.BotMvmtRandomizer = random.randint(0, 7)
-    if eventPlayer.BotMvmtRandomizer == 0:
-        eventPlayer.startThrottleInDirection(Vector.FORWARD, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.NONE)
-    elif eventPlayer.BotMvmtRandomizer == 1:
-        eventPlayer.startThrottleInDirection(Vector.FORWARD + Vector.LEFT, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
-    elif eventPlayer.BotMvmtRandomizer == 2:
-        eventPlayer.startThrottleInDirection(Vector.LEFT, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
-    elif eventPlayer.BotMvmtRandomizer == 3:
-        eventPlayer.startThrottleInDirection(Vector.BACKWARD + Vector.LEFT, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
-    elif eventPlayer.BotMvmtRandomizer == 4:
-        eventPlayer.startThrottleInDirection(Vector.BACKWARD, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
-    elif eventPlayer.BotMvmtRandomizer == 5:
-        eventPlayer.startThrottleInDirection(Vector.BACKWARD + Vector.RIGHT, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
-    elif eventPlayer.BotMvmtRandomizer == 6:
-        eventPlayer.startThrottleInDirection(Vector.RIGHT, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
+    eventPlayer.MvmtVar = distance(eventPlayer.LookTarget.getPosition(), eventPlayer.getPosition())
+    if eventPlayer.MvmtVar < MvmtType3MinDist:
+        eventPlayer.BotMvmtRandomizer = random.randint(0, 2)
+        if eventPlayer.BotMvmtRandomizer == 0:
+            eventPlayer.startThrottleInDirection(Vector.BACKWARD + Vector.LEFT, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
+        elif eventPlayer.BotMvmtRandomizer == 1:
+            eventPlayer.startThrottleInDirection(Vector.BACKWARD + Vector.RIGHT, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
+        else:
+            eventPlayer.startThrottleInDirection(Vector.BACKWARD, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.NONE)
+    elif eventPlayer.MvmtVar > MvmtType3MaxDist:
+        eventPlayer.BotMvmtRandomizer = random.randint(0, 2)
+        if eventPlayer.BotMvmtRandomizer == 0:
+            eventPlayer.startThrottleInDirection(Vector.FORWARD + Vector.LEFT, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
+        elif eventPlayer.BotMvmtRandomizer == 1:
+            eventPlayer.startThrottleInDirection(Vector.FORWARD + Vector.RIGHT, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
+        else:
+            eventPlayer.startThrottleInDirection(Vector.FORWARD, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.NONE)
     else:
-        eventPlayer.startThrottleInDirection(Vector.FORWARD + Vector.RIGHT, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
-    
+        eventPlayer.BotMvmtRandomizer = random.randint(0, 7)
+        if eventPlayer.BotMvmtRandomizer == 0:
+            eventPlayer.startThrottleInDirection(Vector.LEFT, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
+        elif eventPlayer.BotMvmtRandomizer == 1:
+            eventPlayer.startThrottleInDirection(Vector.RIGHT, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
+        elif eventPlayer.BotMvmtRandomizer == 2:
+            eventPlayer.startThrottleInDirection(Vector.FORWARD + Vector.LEFT, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
+        elif eventPlayer.BotMvmtRandomizer == 3:
+            eventPlayer.startThrottleInDirection(Vector.FORWARD + Vector.RIGHT, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
+        elif eventPlayer.BotMvmtRandomizer == 4:
+            eventPlayer.startThrottleInDirection(Vector.FORWARD, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.NONE)
+        elif eventPlayer.BotMvmtRandomizer == 5:
+            eventPlayer.startThrottleInDirection(Vector.BACKWARD + Vector.LEFT, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
+        elif eventPlayer.BotMvmtRandomizer == 6:
+            eventPlayer.startThrottleInDirection(Vector.BACKWARD + Vector.RIGHT, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
+        else:
+            eventPlayer.startThrottleInDirection(Vector.BACKWARD, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.NONE)
+
     wait(random.uniform(MoveMinWait, MoveMaxWait), Wait.ABORT_WHEN_FALSE)
 
     if RULE_CONDITION:
@@ -2407,8 +2428,8 @@ rule "Set Proj Speed - Primary":
         eventPlayer.ProjSpeed = 125
     elif eventPlayer.CurrHero == Hero.KIRIKO:
         eventPlayer.ProjSpeed = 20
-    elif eventPlayer.CurrHero == Hero.LUCIO: #LW
-        eventPlayer.ProjSpeed = 50
+    elif eventPlayer.CurrHero == Hero.LIFEWEAVER:
+        eventPlayer.ProjSpeed = 70
     elif eventPlayer.CurrHero == Hero.LUCIO:
         eventPlayer.ProjSpeed = 50
     elif eventPlayer.CurrHero == Hero.MERCY:
@@ -2463,8 +2484,8 @@ rule "Set Proj Speed - Secondary":
         eventPlayer.ProjSpeed = 60
         eventPlayer.ProjGrav = 20.1
         #eventPlayer.ProjDelta = 0.007
-    elif eventPlayer.CurrHero == Hero.LUCIO: #LW
-        eventPlayer.ProjSpeed = 999
+    elif eventPlayer.CurrHero == Hero.LIFEWEAVER:
+        eventPlayer.ProjSpeed = 40
     elif eventPlayer.CurrHero == Hero.KIRIKO:
         eventPlayer.ProjSpeed = 90
     elif eventPlayer.CurrHero == Hero.ZENYATTA:
@@ -2826,13 +2847,13 @@ rule "Speed Mode: Timer Action (JPYHG)":
     @Condition SpeedTimer == 0
     @Condition MenuToggleSpeedMode == true
 
-    if SpeedMulti > 100:
+    if SpeedMulti > SpeedModeBase:
         if SpeedModeDecrement == 0:
             SpeedMulti -= SpeedModeIncrement
         else:
             SpeedMulti -= SpeedModeDecrement
     else:
-        SpeedMulti = 100
+        SpeedMulti = SpeedModeBase
     SpeedModeAction()
     
         
@@ -3171,7 +3192,7 @@ def PopulateAbilityMatrix():
         eventPlayer.PlayerBlockCDMatrix = [0.00, 0.50, 0.00, 0.00, 1.00]
         eventPlayer.PlayerDodgeCDMatrix = [0.00, 0.00, 0.00, 0.00, 1.00]
         eventPlayer.PlayerStunCDMatrix  = [0.00, 0.00, 0.00, 0.00, 0.00]
-    elif eventPlayer.CurrHero == Hero.LUCIO: #LW
+    elif eventPlayer.CurrHero == Hero.LIFEWEAVER:
         eventPlayer.PlayerReactMatrix   = [1.00, 1.00, 1.00, 1.00, 1.00]
         eventPlayer.PlayerEatCDMatrix   = [0.50, 0.00, 0.00, 0.00, 0.00]
         eventPlayer.PlayerBlockCDMatrix = [0.50, 0.00, 0.00, 0.00, 0.00]
@@ -6846,16 +6867,16 @@ rule "Bot Abilities: Soldier Ability 1 (Rd)":
     #smallMessage(hostPlayer, "Debug: S76 a1 Rd")
     eventPlayer.MvmtTypeLock = true
     eventPlayer.MvmtType = 6
-    eventPlayer.MvmtIndex = 0
+    eventPlayer.MvmtVar = 0
     eventPlayer.DisableJump = true
     eventPlayer.DisableCrouch = true
     eventPlayer.startForcingButton(Button.ABILITY_1)
-    while eventPlayer.isAlive() and eventPlayer.MvmtIndex < 3:
+    while eventPlayer.isAlive() and eventPlayer.MvmtVar < 3:
         eventPlayer.startFacing(vect(eventPlayer.getPosition().x + 500, eventPlayer.getPosition().x - 10, eventPlayer.getPosition().x + 500), 500, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
         wait(random.uniform(0.25,0.75))
         eventPlayer.startFacing(vect(eventPlayer.getPosition().x - 500, eventPlayer.getPosition().x - 10, eventPlayer.getPosition().x - 500), 500, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
         wait(random.uniform(0.25,0.75))
-        eventPlayer.MvmtIndex += 1
+        eventPlayer.MvmtVar += 1
     SetDefaultFacing()
     eventPlayer.stopForcingButton(Button.ABILITY_1)
     eventPlayer.MvmtType = DefaultMvmtType
@@ -7881,7 +7902,7 @@ rule "Bot Abilities: Baptiste Jump":
     else:
         eventPlayer.MvmtTypeLock = true
         eventPlayer.MvmtType = 2
-        for eventPlayer.MvmtIndex in range(0,20):
+        for eventPlayer.MvmtVar in range(0,20):
             eventPlayer.startForcingButton(Button.CROUCH)
             wait(random.uniform(0.05,0.35))
             eventPlayer.stopForcingButton(Button.CROUCH)
@@ -8222,121 +8243,136 @@ rule "Bot Ablities: Kiriko Ultimate (BB2)":
         goto RULE_START
 
 
-#LW
-### Lifeweaver Bot Abilities
-# rule "Bot Abilities Lifeweaver 2nd Weapon Primary (P)":
-#   @Event eachPlayer
-#   @Team 2
-#   @Hero lifeweaver
-#   @Condition eventPlayer.ApplyPressure == true
-#   @Condition eventPlayer.isAlive() == true
-#   @Condition eventPlayer.BotAbilitySignal[1] == false
-#
-#   eventPlayer.AbilityAcc = 2
-#   eventPlayer.ProjType = "primary"
-#   setWeapon(1)
-#   SetProjectileFacing()
-#   eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
-#   wait(9999, Wait.ABORT_WHEN_FALSE)
-#   if RULE_CONDITION:
-#       goto RULE_START
-
 
 ### Lifeweaver Bot Abilities
-# rule "Bot Abilities Lifeweaver Secondary (BB1)":
-#   @Event eachPlayer
-#   @Team 2
-#   @Hero lifeweaver
-#   @Condition BotsUseAbilities == true
-#   @Condition BotBehavior[32] >= 1
-#   @Condition eventPlayer.isAlive() == true
-#
-#   wait(random.uniform(5,10), Wait.ABORT_WHEN_FALSE)
-#   eventPlayer.BotAbilitySignal[1] = true
-#   SetFloorFacing()
-#   wait(0.1)
-#   eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
-#   wait(0.1)
-#   eventPlayer.BotAbilitySignal[1] = false
-#   wait(12)
-#   if RULE_CONDITION:
-#       goto RULE_START
+rule "Bot Abilities Lifeweaver 2nd Weapon Primary (P)":
+    @Event eachPlayer
+    @Team 2
+    @Hero lifeweaver
+    @Condition eventPlayer.ApplyPressure == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilitySignal[1] == false
+
+   eventPlayer.AbilityAcc = 2
+   eventPlayer.ProjType = "primary"
+   eventPlayer.setWeapon(1)
+   SetProjectileFacing()
+   eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
+   wait(9999, Wait.ABORT_WHEN_FALSE)
+   if RULE_CONDITION:
+       goto RULE_START
 
 
-# rule "Bot Abilities Lifeweaver Ability 1 (All)":
-#   @Event eachPlayer
-#   @Team 2
-#   @Hero lifeweaver
-#   @Condition BotsUseAbilities == true
-#   @Condition eventPlayer.isAlive() == true
-#   @Condition eventPlayer.BotAbilityLock[2] == false
-#
-#   wait(random.uniform(3,7), Wait.ABORT_WHEN_FALSE)
-#   eventPlayer.BotAbilityLock[2] = true
-#   eventPlayer.forceButtonPress(Button.ABILITY_1)
-#   wait(5)
-#   eventPlayer.BotAbilityLock[2] = false
-#   if RULE_CONDITION:
-#       goto RULE_START
+rule "Bot Abilities Lifeweaver Secondary (BB1)":
+    @Event eachPlayer
+    @Team 2
+    @Hero lifeweaver
+    @Condition BotsUseAbilities == true
+    @Condition BotBehavior[32] >= 1
+    @Condition eventPlayer.isAlive() == true
+ 
+    wait(random.uniform(5,10), Wait.ABORT_WHEN_FALSE)
+    eventPlayer.BotAbilitySignal[1] = true
+    SetFloorFacing()
+    wait(0.1)
+    eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
+    wait(0.1)
+    if eventPlayer.ApplyPressure == true:
+        SetProjectileFacing()
+    else:
+        SetDefaultFacing()
+    eventPlayer.BotAbilitySignal[1] = false
+    wait(12)
+    if RULE_CONDITION:
+        goto RULE_START
 
 
-# rule "Bot Abilities Lifeweaver Ability 1 (Rd)":
-#   @Event eachPlayer
-#   @Team 2
-#   @Hero lifeweaver
-#   @Condition BotsUseAbilities == true
-#   @Condition BotsReact == true
-#   @Condition eventPlayer.isAlive() == true
-#   @Condition eventPlayer.BotAbilityLock[2] == false
-#   @Condition eventPlayer.LookTarget.PlayerUsedDodgeCD > 0
-#   @Condition eventPlayer.LookTarget.PlayerUsedDodgeCD >= eventPlayer.LookTarget.AbilityReactChance
-#
-#   wait(random.uniform(0.25,1), Wait.ABORT_WHEN_FALSE)
-#   eventPlayer.BotAbilityLock[2] = true
-#   eventPlayer.forceButtonPress(Button.ABILITY_1)
-#   wait(5)
-#   eventPlayer.BotAbilityLock[2] = false
-#   if RULE_CONDITION:
-#       goto RULE_START
-
-# rule "Bot Abilities Lifeweaver Ability 2 (BB2)":
-#   @Event eachPlayer
-#   @Team 2
-#   @Hero lifeweaver
-#   @Condition BotsUseAbilities == true
-#   @Condition BotBehavior[32] >= 2
-#   @Condition eventPlayer.isAlive() == true
-#   @Condition eventPlayer.BotAbilityLock[3] == false
-#
-#   wait(random.uniform(5,10), Wait.ABORT_WHEN_FALSE)
-#   eventPlayer.BotAbilityLock[3] = true
-#   SetHealingFacing()
-#   wait(0.1)
-#   eventPlayer.forceButtonPress(Button.ABILITY_2)
-#   wait(20)
-#   eventPlayer.BotAbilityLock[3] = false
-#   if RULE_CONDITION:
-#       goto RULE_START
+rule "Bot Abilities Lifeweaver Ability 1 (All)":
+    @Event eachPlayer
+    @Team 2
+    @Hero lifeweaver
+    @Condition BotsUseAbilities == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[2] == false
+ 
+    wait(random.uniform(3,7), Wait.ABORT_WHEN_FALSE)
+    eventPlayer.BotAbilityLock[2] = true
+    eventPlayer.forceButtonPress(Button.ABILITY_1)
+    wait(5)
+    eventPlayer.BotAbilityLock[2] = false
+    if RULE_CONDITION:
+        goto RULE_START
 
 
-# rule "Bot Abilities Lifeweaver Ultimate (BB3)":
-#   @Event eachPlayer
-#   @Team 2
-#   @Hero lifeweaver
-#   @Condition BotsUseAbilities == true
-#   @Condition BotBehavior[32] >= 3
-#   @Condition eventPlayer.ApplyPressure == true
-#   @Condition eventPlayer.isAlive() == true
-#   @Condition eventPlayer.BotAbilityLock[4] == false
-#
-#   wait(10 / UltFrequency)
-#   if random.randint(0,9) < 3:
-#       eventPlayer.BotAbilityLock[4] = true
-#       eventPlayer.forceButtonPress(Button.ULTIMATE)
-#       wait(10 / UltFrequency)
-#       eventPlayer.BotAbilityLock[4] = false
-#   if RULE_CONDITION:
-#       goto RULE_START
+rule "Bot Abilities Lifeweaver Ability 1 (Rd)":
+    @Event eachPlayer
+    @Team 2
+    @Hero lifeweaver
+    @Condition BotsUseAbilities == true
+    @Condition BotsReact == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[2] == false
+    @Condition eventPlayer.LookTarget.PlayerUsedDodgeCD > 0
+    @Condition eventPlayer.LookTarget.PlayerUsedDodgeCD >= eventPlayer.LookTarget.AbilityReactChance
+ 
+    wait(random.uniform(0.25,1), Wait.ABORT_WHEN_FALSE)
+    eventPlayer.BotAbilityLock[2] = true
+    eventPlayer.forceButtonPress(Button.ABILITY_1)
+    wait(5)
+    eventPlayer.BotAbilityLock[2] = false
+    if RULE_CONDITION:
+        goto RULE_START
+
+rule "Bot Abilities Lifeweaver Ability 2 (BB2)":
+    @Event eachPlayer
+    @Team 2
+    @Hero lifeweaver
+    @Condition BotsUseAbilities == true
+    @Condition BotBehavior[32] >= 2
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[3] == false
+ 
+    wait(random.uniform(5,10), Wait.ABORT_WHEN_FALSE)
+    eventPlayer.BotAbilityLock[3] = true
+    eventPlayer.BotAbilitySignal[1] = true
+    SetHealingFacing()
+    wait(0.1)
+    eventPlayer.forceButtonPress(Button.ABILITY_2)
+    wait(0.1)
+    if eventPlayer.ApplyPressure == true:
+        SetProjectileFacing()
+    else:
+        SetDefaultFacing()
+    eventPlayer.BotAbilitySignal[1] = false
+    wait(20)
+    eventPlayer.BotAbilityLock[3] = false
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Abilities Lifeweaver Ultimate (BB3)":
+    @Event eachPlayer
+    @Team 2
+    @Hero lifeweaver
+    @Condition BotsUseAbilities == true
+    @Condition BotBehavior[32] >= 3
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[4] == false
+ 
+    wait(10 / UltFrequency)
+    if random.randint(0,9) < 3:
+        #smallMessage(hostPlayer, "debug: lifeweaver ult")
+        eventPlayer.BotAbilityLock[4] = true
+        eventPlayer.BotAbilitySignal[1] = true
+        eventPlayer.forceButtonPress(Button.ULTIMATE)
+        wait(0.5)
+        eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
+        wait(0.5)
+        eventPlayer.BotAbilitySignal[1] = false
+        wait(10 / UltFrequency)
+        eventPlayer.BotAbilityLock[4] = false
+    if RULE_CONDITION:
+        goto RULE_START
 
 
 ### Lucio Bot Abilities
@@ -8499,19 +8535,19 @@ rule "Bot Abilities: Lucio AD Turnaround (Random Strafe)":
     
     eventPlayer.MvmtTypeLock = true
     eventPlayer.MvmtType = 2
-    eventPlayer.MvmtIndex = 0
+    eventPlayer.MvmtVar = 0
     wait(random.uniform(5,20), Wait.ABORT_WHEN_FALSE)
         if eventPlayer.ApplyPressure == true:
             eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
             eventPlayer.ProjType = "off"
-        while eventPlayer.MvmtIndex < 15:
+        while eventPlayer.MvmtVar < 15:
             if not RULE_CONDITION:
                 return   
             eventPlayer.startFacing(vect(eventPlayer.getPosition().x + 1000, eventPlayer.getPosition().x - 10, eventPlayer.getPosition().x + 1000), 1000, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
             wait(random.uniform(0.25,0.5), Wait.ABORT_WHEN_FALSE)
             eventPlayer.startFacing(vect(eventPlayer.getPosition().x - 1000, eventPlayer.getPosition().x - 10, eventPlayer.getPosition().x - 1000), 1000, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
             wait(random.uniform(0.25,0.5), Wait.ABORT_WHEN_FALSE)
-            eventPlayer.MvmtIndex += 1  
+            eventPlayer.MvmtVar += 1  
         eventPlayer.MvmtType = DefaultMvmtType
         eventPlayer.MvmtTypeLock = false
         if eventPlayer.ApplyPressure == true:
