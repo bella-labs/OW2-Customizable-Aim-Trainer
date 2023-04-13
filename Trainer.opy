@@ -436,7 +436,7 @@ rule "Initialize: Workshop Settings":
     DefaultRandCrouch = createWorkshopSetting(bool, "3.1. Bot Movement Modifiers", "Bot Crouching", true, 9)
     DefaultCrouchMax = createWorkshopSetting(float[0.25:10], "3.1. Bot Movement Modifiers", "Bot Crouching - Maximum wait", 3, 10)
     MvmtType3MinDist = createWorkshopSetting(int[0:500], "3.1. Bot Movement Modifiers", "8 Directional Strafe Pattern Minimum Distance", 0, 11)
-    MvmtType3MaxDist = createWorkshopSetting(int[1:500], "3.1. Bot Movement Modifiers", "8 Directional Strafe Pattern Maximum Distance", 100, 12)
+    MvmtType3MaxDist = createWorkshopSetting(int[0:500], "3.1. Bot Movement Modifiers", "8 Directional Strafe Pattern Maximum Distance", 500, 12)
     # Pressure Mode
     MenuTogglePressureType = createWorkshopSetting(enum["off", "killable", "unkillable"], "4. Bot Pressure (Overridden by in-game changes to pressure)", "Bots Apply Pressure", 0, 0)
     MenuTogglePressureDiff = createWorkshopSetting(enum["easy", "medium", "hard", "aimbot"],  "4. Bot Pressure (Overridden by in-game changes to pressure)", "Bots Pressure Difficulty", 0, 1)
@@ -775,7 +775,7 @@ rule "Player Set LookTarget":
 # UI Elements
 def GlobalHud():
 
-    @Name "SUB: GlobalHud"
+    @Name "SUB: GlobalHUD"
     # Settings Notice
     if ShowStartMessage == true:
         hudHeader(eventPlayer, "Bots will not use defensive abilities and ultimates unless you enable them!\nGo to settings-> workshop settings-> 8.x. Bot Behavior                     \nFor each bot hero select the list of abilities you would like to see used. ", HudPosition.TOP, -2, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
@@ -797,7 +797,7 @@ def GlobalHud():
         #hudSubheader(eventPlayer, "Response Times: {0}/{1}/{2}/{3}/{4})".format(hostPlayer.PlayerReactMatrix[0], hostPlayer.PlayerReactMatrix[1], hostPlayer.PlayerReactMatrix[2], hostPlayer.PlayerReactMatrix[3], hostPlayer.PlayerReactMatrix[4]), HudPosition.RIGHT, -0.6, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
         
 def MenuHud():
-    @Name "MenuHUD"
+    @Name "SUB: MenuHUD"
     # Default MenuHUD variables on init
     eventPlayer.MenuIndex = 0
     eventPlayer.BotMenuIndex = 0
@@ -823,7 +823,7 @@ def MenuHud():
     hudSubtext([i for i in eventPlayer if MenuToggleSpeedMode == true], 
     "Speed Timer:  {0}".format(SpeedTimer), HudPosition.TOP, -0.2, Color.BLACK, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     hudSubtext([i for i in eventPlayer if MenuToggleSpeedMode == true], 
-    "Speed Force:  {0}".format(SpeedMulti), HudPosition.TOP, -0.1, Color.LIME_GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    "Speed Force:  {0}".format(SpeedMulti), HudPosition.TOP, -0.1, Color.GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     # Settings Headers
     hudSubheader([i for i in eventPlayer if not eventPlayer.Menu_On], 
     "Press  {0}  to change settings".format(buttonString(Button.INTERACT)), HudPosition.LEFT, 0.6, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
@@ -1065,7 +1065,7 @@ def MenuHud():
 
 # Player Menu
 def AllowInput():
-    @Name "SUB: Allow Input:"
+    @Name "SUB: Allow Input"
     eventPlayer.allowButton(Button.PRIMARY_FIRE)
     eventPlayer.allowButton(Button.SECONDARY_FIRE)
     eventPlayer.allowButton(Button.JUMP)
@@ -2055,9 +2055,9 @@ rule "Bot Spawn: Setup":
     InitializeBotHero()
     wait()
     if DefaultMvmtType <= 1:
-        eventPlayer.teleport(eventPlayer.PathLoc[random.randint(0,7)])
+        eventPlayer.teleport(nearestWalkablePosition(eventPlayer.PathLoc[random.randint(0,7)]))
     else:
-        eventPlayer.teleport(vect(SpawnPt.X + random.uniform(-MvmtRad1,MvmtRad1), SpawnPt.Y, SpawnPt.Z + random.uniform(-MvmtRad1,MvmtRad1)))
+        eventPlayer.teleport(nearestWalkablePosition(vect(SpawnPt.X + random.uniform(-MvmtRad1,MvmtRad1), SpawnPt.Y, SpawnPt.Z + random.uniform(-MvmtRad1,MvmtRad1))))
 
 rule "Bot Died: Swap Hero":
     @Event eachPlayer
@@ -2856,7 +2856,27 @@ rule "Speed Mode: Timer Action (JPYHG)":
         SpeedMulti = SpeedModeBase
     SpeedModeAction()
     
-        
+
+rule "Speed Mode: Hack Lucio (JPYHG)":
+    @Event eachPlayer
+    @Team 2
+    @Hero lucio
+    @Condition eventPlayer.isAlive() == true
+    @Condition MenuToggleSpeedMode == true
+
+    eventPlayer.setStatusEffect(eventPlayer,Status.HACKED,9999)
+
+
+rule "Speed Mode: Clear Hack Lucio (JPYHG)":
+    @Event eachPlayer
+    @Team 2
+    @Hero lucio
+    @Condition eventPlayer.isDead() == true
+    @Condition eventPlayer.hasStatusEffect(Status.HACKED)
+
+    eventPlayer.clearStatusEffect(Status.HACKED)
+
+
 def SpeedModeAction():
     @Name "SUB: SpeedModeAction (JPYHG)"
     
@@ -8610,7 +8630,11 @@ rule "Bot Ablities: Mercy Ability 1 (All)":
         if eventPlayer.Randomizer < 3:
             eventPlayer.forceButtonPress(Button.CROUCH)
         elif eventPlayer.Randomizer < 6:
+            eventPlayer.startFacing(vect(eventPlayer.getEyePosition().x + random.uniform(-100,100), eventPlayer.getEyePosition().y + random.uniform(-5,20), eventPlayer.getEyePosition().z + random.uniform(-100,100)), 3000, Relativity.TO_WORLD, FacingReeval.NONE)
+            wait(0.1)
             eventPlayer.forceButtonPress(Button.JUMP)
+            wait(0.1)
+            SetHealingFacing()
     eventPlayer.stopForcingButton(Button.ABILITY_1)
     if RULE_CONDITION:
         goto RULE_START
@@ -8677,11 +8701,14 @@ rule "Bot Abilities: Moira Ability 1":
     @Hero moira
     @Condition BotsUseAbilities == true
     @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[2] == false
     @Condition eventPlayer.getNormalizedHealth() <= 0.33
     
     wait(random.uniform(0, 3), Wait.ABORT_WHEN_FALSE)
+    eventPlayer.BotAbilityLock[2] = true
     eventPlayer.forceButtonPress(Button.ABILITY_1)
     wait(7)
+    eventPlayer.BotAbilityLock[2] = false
     if RULE_CONDITION:
         goto RULE_START
 
@@ -8694,13 +8721,16 @@ rule "Bot Abilities: Moira Ability 1 (Rd)":
     @Condition BotsReact == true
     @Condition eventPlayer.ApplyPressure == true
     @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.BotAbilityLock[2] == false
     @Condition eventPlayer.LookTarget.PlayerUsedDodgeCD > 0
     @Condition eventPlayer.LookTarget.PlayerUsedDodgeCD > eventPlayer.LookTarget.AbilityReactChance * 2
 
     
     wait(random.uniform(0.25, 1), Wait.ABORT_WHEN_FALSE)
+    eventPlayer.BotAbilityLock[2] = true
     eventPlayer.forceButtonPress(Button.ABILITY_1)
     wait(7)
+    eventPlayer.BotAbilityLock[2] = false
     if RULE_CONDITION:
         goto RULE_START
 
