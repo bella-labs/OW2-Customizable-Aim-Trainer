@@ -1,11 +1,6 @@
 # Customizable Aim Trainer. 
-
-A very cool CAT.\
-&nbsp;∧,,,∧\
-( •‿• )\
-/つ   づ
-
 ## Features
+* ==A Lifeweaver Bot== - Best femboy
 * ==Projectile guide== - Learn to lead projectiles
 * ==Pressure mode== - Bots shoot back! Select from 4 difficulty levels
 * ==Custom spawn location== - Train on any map
@@ -111,7 +106,7 @@ Using the ==Projectile Guide== option creates a predictive target for projctile 
 * Projectile heroes will try to read your movement and lead their shots when aiming for you, though it will not account for gravity on projectiles.
 * Bots will use react to your input if ==Bots React== is set to on in the workshop settings menu.
 * Bots will use offensive abilities if the setting "Use Abilities" is set to true under the ==Bot Movement== menu option.
-* Bots will use defensive abilities and ultimates if enabled in under the setting 7.x. in the workshop settings menu.
+* Bots will use defensive abilities and ultimates if enabled in under the setting 8.x. in the workshop settings menu.
 * By default this code has no cooldowns for abilities. If you want to use this setting I recommend setting under 'Heroes -> General -> Ability Cooldown Time' to 100% so that your cooldown timers will be similar to an actual game. 
 * Also note that Echo's flight and Doomfist's slam are set to 10% by default because of a weird interaction when canceling these abilties with 0% cooldowns. If practicing these heroes go to 'Heroes -> Doomfist  / Echo-> Seismic Slam Cooldown Time / Flight Cooldown Time' and set them to 100%
 
@@ -150,6 +145,9 @@ Using the ==Projectile Guide== option creates a predictive target for projctile 
 | ==Bot Jumping - Maximum Wait== | The max time for a bot to wait before jumping. |
 | ==Bot Crouching== | Toggle for bots to randomly jump. |
 | ==Bot Crouching - Maximum Wait== | The max time for a bot to wait before crouching. |
+| ==8 Directional Strafe Pattern Minimum Distance== | The closest bots are allowed near the player with the 8-directional strafe pattern. Can be bugged by map geometry. |
+| ==8 Directional Strafe Pattern Maximum Distance== | The farthest bots are allowed away from the player with the 8-directional strafe pattern. Can be bugged by map geometry. |
+
 
 ### Pressure Mode Settings
 | Setting | Description |
@@ -169,6 +167,7 @@ Using the ==Projectile Guide== option creates a predictive target for projctile 
 | -------- | -------- |
 | ==Increment Bot Movement Speed Every Elimination (JPYHG)== | A toggle to recreate a gamemode similar to ioStux DPO Aim Trainer |
 | ==Speed Mode Timer== | How long to wait before going down a level. |
+| ==Speed Mode Base Speed== | The starting and lowest speed possible for speed mode. |
 | ==Speed Mode Increment Percent Amount== | The percent amount to increase bot speed after an elimination. |
 | ==Speed Mode Decrement Percent Amount== | The percent amount to decrease bot speed after failing to achieve an elimination. If set to zero the decrement amount will be the same as the increment amount. |
 
@@ -216,7 +215,7 @@ Using the ==Projectile Guide== option creates a predictive target for projctile 
 | ==Seita== | A recreation of the movement seen in vaxta, adapted to work with custom spawn points. |
 | ==Seita w/ long strafes== | The same as above, but every time the bots swap strafe directions there is a 20% chance that the bots strafe for longer than the difficulty setting assigned. The idea is to mess with your ability to predict when the bot is going to swap strafe directions.
 | ==AD Strafes== | Classic ADAD spam. Ignores the boundaries set by the custom strafe option.
-| ==8 Directional Strafes== | Similar to Seita's Pathing, except bots will simply input 1 one the 8 possible strafe directions. Ignores the boundaries set by the custom strafe option.
+| ==8 Directional Strafes== | Similar to Seita's Pathing, except bots will simply input 1 one the 8 possible strafe directions. Allows you to set a minimum and maximum range for bots to path between. Ignores the boundaries set by the custom strafe option.
 | ==No Movement== | Bots don't move. They will still jump, crouch and use abilities if enabled.
 | ==Forward AD Strafes== | Bots AD strafe towards a player. I don't recommend this setting for general practice but the code for it is used for certain bot abilities so I thought I might as well leave it as an option if someone might have a specific senario they want to practice. Ignores the boundaries set by the custom strafe option.
 | ==Forward Movement== | Same as above, except the bots just press W key.
