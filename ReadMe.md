@@ -1,17 +1,16 @@
-# A Super Customizable Aim Trainer 4.0
+# A Super Customizable Aim Trainer
 ## Features
 
 * ==Projectile guide== - Learn to lead projectiles
 * ==Pressure mode== - Bots shoot back with customizable accuracy
-* ==Custom spawn location== - Train on any location on any map. Place bots at different locations and have them strafe around a set area.
+* ==Custom spawn location== - Train on any location on any map. Multiple spawn bots for bots.
 * ==Reactive bots== - Bots will react to your actions
 * ==Customizable movement== - Configure strafe pattern, frequency, and movement speed
 * ==In-game menu== - Make small adjustments to your game quickly without need to restart the mode.
 * ==Offensive, defensive, and ultimate ability usage for nearly every hero.==
 
 ## In-Game Menu
-![]()
-
+![](https://cdn.workshop.codes/pskvotd38zlrvbfzmleob3tgxo8g)
 ### Player Settings
 These settings are available to all players in the lobby.
 
@@ -95,11 +94,10 @@ These settings are only avalaible to the host.
 
 ## Feature Tutorials
 ### Custom Aim Training Location
-
+![](https://cdn.workshop.codes/mqaewp2iiholetna2rf91tz9z66z)
 Using the ==Set Custom Spawn Point== option you can set bots to spawn at any point on any map. Perfect for practicing cover usage and shooting at different elevation.
 
 #### Single Point Spawn
-![]()
 
 1. Import this code into a custom game lobby.
 2. Select the map tile in the custom game settings menu.
@@ -134,9 +132,7 @@ You can also set bots to have unique spawn points, radii, and hero pools for eac
 14. The bots will now respawn at the location you have assigned.
 
 ### Leading Target for Projectile Abilities
-
-![](https://cdn.workshop.codes/vvvwlwtv6covzu5ezpy6wuhmb37b)
-
+![](https://cdn.workshop.codes/7k51c1r0ywp1sevnniiw55wlxyda)
 Using the ==Projectile Guide== option creates a predictive target for projctile aim.
 
 1. Import this code into a custom game lobby.
@@ -152,7 +148,7 @@ Using the ==Projectile Guide== option creates a predictive target for projctile 
 * Bug: The target is slightly too low for arcing projectiles at ranges greater than 20 meters.
 
 ### Bots Shoot at You During Training (Pressure Mode)
-![]()
+![](https://cdn.workshop.codes/9irj2ve2yfp2kdyxu73wj1lx5gll)
 1. Import this code into a custom game lobby.
 2. Start the game mode.
 3. Select a hero.
