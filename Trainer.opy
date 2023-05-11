@@ -1,6 +1,6 @@
 settings {
     "main": {
-        "description": "Customizable Aim Trainer 4.0\n\nFeatures:\n◆ Customization for almost any setting\n◆ Pressure Mode: Bots shoot back at you\n◆ Multiple Bot Spawn Points\n◆ Reactive Bot AI\n◆ Choose from several different strafe patterns\n◆ And more...\n\nFind tutorials/help at workshop.codes/VXEAT\nReport bugs on my discord:discord.gg/YPQ5ETNT45\n",
+        "description": "Customizable Aim Trainer 4.1\n\nFeatures:\n◆ Customization for almost any setting\n◆ Pressure Mode: Bots shoot back at you\n◆ Multiple Bot Spawn Points\n◆ Reactive Bot AI\n◆ Choose from several different strafe patterns\n◆ And more...\n\nFind tutorials/help at workshop.codes/VXEAT\nReport bugs on my discord:discord.gg/YPQ5ETNT45\n",
         "modeName": "Customizable Aim Trainer - VXEAT"
     },
     "lobby": {
@@ -126,6 +126,7 @@ globalvar dmg_to_slot_array
 globalvar refresh_on_elim
 globalvar heal_over_time
 globalvar punish_deaths
+globalvar show_recall
 ## Global Menu Variables
 ### UI Options
 globalvar show_debug_info
@@ -261,7 +262,8 @@ playervar ability_acc
 playervar bot_ability_lock
 playervar bot_ability_signal
 playervar bot_ability_var
-
+playervar recall_pos_array
+playervar recall_effect
 # Subroutine Names
 ## Bot Generation
 subroutine create_all_bots
@@ -327,6 +329,7 @@ subroutine menu_act_proj_guide
 subroutine menu_act_toggle_mercy
 subroutine menu_act_toggle_nano
 subroutine menu_act_toggle_kitsune
+subroutine menu_act_toggle_recall
 #### Submenu 2
 subroutine menu_act_toggle_ammo 
 subroutine menu_act_cycle_player_speed
@@ -536,8 +539,8 @@ rule "Initialize: Workshop Settings":
     default_crouch_max = createWorkshopSetting(float[0:10], "3.1. Bot Movement Modifiers", "Bot Crouching - Maximum wait", 3, 5)
     default_uncrouch_min = createWorkshopSetting(float[0:10], "3.1. Bot Movement Modifiers", "Bot Uncrouching - Minimum wait", 0.25, 6)
     default_uncrouch_max = createWorkshopSetting(float[0:10], "3.1. Bot Movement Modifiers", "Bot Uncrouching - Maximum wait", 0.65, 7)
-    custom_min_wait = createWorkshopSetting(float[0.1:10], "3.1. Bot Movement Modifiers", "Custom Strafe Difficulty - Minimum Wait", 1, 8)
-    custom_max_wait = createWorkshopSetting(float[0.1:10], "3.1. Bot Movement Modifiers", "Custom Strafe Difficulty - Maximum Wait", 10, 9)
+    custom_min_wait = createWorkshopSetting(float[0:10], "3.1. Bot Movement Modifiers", "Custom Strafe Difficulty - Minimum Wait", 1, 8)
+    custom_max_wait = createWorkshopSetting(float[0:10], "3.1. Bot Movement Modifiers", "Custom Strafe Difficulty - Maximum Wait", 10, 9)
     custom_min_dist = createWorkshopSetting(int[0:200], "3.1. Bot Movement Modifiers", "Custom Distance Minimum Distance", 0, 10)
     custom_max_dist = createWorkshopSetting(int[0:200], "3.1. Bot Movement Modifiers", "Custom Distance Maximum Distance", 200, 11)
     custom_strafe_points = createWorkshopSetting(int[1:8], "3.1. Bot Movement Modifiers", "Fixed Shape Points", 2, 12)
@@ -578,34 +581,34 @@ rule "Initialize: Workshop Settings":
     default_hero_array.append(createWorkshopSetting(bool, "7.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Zarya", false, 10))
     
     ## Bot Damage Heroes Enabled
-    default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Ashe", false, 0))
+    default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Ashe", true, 0))
     default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Bastion", false, 1))
-    default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Cassidy", false, 2))
-	default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Echo", false, 3))
-    default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Genji", false, 4))
-    default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Hanzo", false, 5))
-    default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Junkrat", false, 6))
-    default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Mei", false, 7))
-    default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Pharah", false, 8))
-    default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Reaper", false, 9))
-	default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Sojourn", false, 10))
-    default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Soldier 76", false, 11))
-    default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Sombra", false, 12))
-    default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Symmetra", false, 13))
-    default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Torbjörn", false, 14))
+    default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Cassidy", true, 2))
+	default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Echo", true, 3))
+    default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Genji", true, 4))
+    default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Hanzo", true, 5))
+    default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Junkrat", true, 6))
+    default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Mei", true, 7))
+    default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Pharah", true, 8))
+    default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Reaper", true, 9))
+	default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Sojourn", true, 10))
+    default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Soldier 76", true, 11))
+    default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Sombra", true, 12))
+    default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Symmetra", true, 13))
+    default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Torbjörn", true, 14))
 	default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Tracer", true, 15))
-    default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Widowmaker", false, 16))
+    default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Widowmaker", true, 16))
     
     ## Bot Support Heroes Enabled
-    default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Ana", false, 0))
-    default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Baptiste", false, 1))
-	default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Brigitte", false, 2))
-    default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Kiriko", false, 3))
-    default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Lifeweaver", false, 4))
-    default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Lúcio", false, 4))
-    default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Mercy", false, 5))
-    default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Moira", false, 6))
-    default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Zenyatta", false, 7))
+    default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Ana", true, 0))
+    default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Baptiste", true, 1))
+	default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Brigitte", true, 2))
+    default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Kiriko", true, 3))
+    default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Lifeweaver", true, 4))
+    default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Lúcio", true, 4))
+    default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Mercy", true, 5))
+    default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Moira", true, 6))
+    default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Zenyatta", true, 7))
     
     # Bot Behavior
     enable_all_abilities = createWorkshopSetting(bool, "8. Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Enable All Bot Abilities", false, 0)
@@ -1129,7 +1132,7 @@ rule "Initialize Dynamic Global Variables":
         "Drink Water to Make Your Tracking Slaughter!",
         "You can do it!", 
         "Congratulations!", 
-        "I'm a pengiun!", 
+        "Fighting!", 
         "Boop!", 
         "A group of penguins is a waddle!", 
         "Believe",  
@@ -1268,11 +1271,11 @@ rule "Player Spawned":
     eventPlayer.stat_dmg_taken = 0
     # Variables to track player inputs and the response sensitivities to each of their abilities
     eventPlayer.player_ability_lock = 0
-    eventPlayer.react_matrix   = hero_react_response[hero_array_index][eventPlayer.curr_hero_index][0]
-    eventPlayer.eat_cd_matrix   = hero_react_response[hero_array_index][eventPlayer.curr_hero_index][1]
-    eventPlayer.block_cd_matrix = hero_react_response[hero_array_index][eventPlayer.curr_hero_index][2]
-    eventPlayer.dodge_cd_matrix = hero_react_response[hero_array_index][eventPlayer.curr_hero_index][3]
-    eventPlayer.stun_cd_matrix  = hero_react_response[hero_array_index][eventPlayer.curr_hero_index][4]
+    eventPlayer.react_matrix   = hero_react_response[eventPlayer.curr_hero_index]
+    eventPlayer.eat_cd_matrix   = hero_react_eat[eventPlayer.curr_hero_index]
+    eventPlayer.block_cd_matrix = hero_react_block[eventPlayer.curr_hero_index]
+    eventPlayer.dodge_cd_matrix = hero_react_dodge[eventPlayer.curr_hero_index]
+    eventPlayer.stun_cd_matrix  = hero_react_stun[eventPlayer.curr_hero_index]
 
     eventPlayer.teleport(default_spawn_pt)
 
@@ -1411,7 +1414,7 @@ def ring_check():
 
     if ring_effect != null:
         destroyEffect(ring_effect)
-    if  eventPlayer.menu_visible == true and (eventPlayer.menu_index == 30 or eventPlayer.menu_index == 31):
+    if  eventPlayer.menu_visible == true and (eventPlayer.menu_index == 31 or eventPlayer.menu_index == 32):
         createEffect(eventPlayer, Effect.LIGHT_SHAFT, Color.ROSE,bot_spawn_array[bot_slot], bot_radius_array[bot_slot], EffectReeval.POSITION_AND_RADIUS)
         ring_effect = getLastCreatedEntity()
 
@@ -1711,9 +1714,9 @@ def misc_hud():
         
         #hudSubheader(eventPlayer, 
         #"Debug Values: {0}/{1}/{2}".format(
-        #    default_spawn_pt,
-        #    hero_array_status[0],
-        #    nearestWalkablePosition(getPlayersInSlot(1, Team.2).getPosition())),
+        #    eventPlayer.player_used_dodge_cd,
+        #    eventPlayer.ability_react_chance,
+        #    hero_react_dodge[hero_array_index][4]),
         #HudPosition.RIGHT,
         #-0.6,
         #Color.WHITE,
@@ -1874,6 +1877,15 @@ def menu_hud():
     increment_for_menu_item()
     eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Kiriko Kitsune"
     eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Kitsune: "
+    eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = "off"
+    eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = Color.RED
+    eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = 0
+    new_menu_item_toggle()
+
+    ## Show Recall
+    increment_for_menu_item()
+    eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Bot Recall Location"
+    eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Show Recall: "
     eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = "off"
     eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = Color.RED
     eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = 0
@@ -2131,7 +2143,7 @@ def menu_hud():
 
         ## Modes Submenu Header
         increment_for_menu_label()
-        eventPlayer.menu_label[eventPlayer.menu_label_size] = "Game Modes"
+        eventPlayer.menu_label[eventPlayer.menu_label_size] = "Game Mode Settings"
         eventPlayer.menu_label_color[eventPlayer.menu_label_size] = default_menu_label_color
         new_menu_label_header()
         
@@ -2295,6 +2307,8 @@ rule "Menu Actions: Input Read":
             menu_act_toggle_nano()
         elif eventPlayer.menu_index == 4 + eventPlayer.menu_substart_value:
             menu_act_toggle_kitsune()
+        elif eventPlayer.menu_index == 5 + eventPlayer.menu_substart_value:
+            menu_act_toggle_recall()
     elif eventPlayer.submenu_index == 2:
         if eventPlayer.menu_index == 0 + eventPlayer.menu_substart_value:
             menu_act_toggle_modifiers_menu()
@@ -2489,16 +2503,22 @@ def menu_act_toggle_nano():
 def menu_act_toggle_kitsune():
     @Name "SUB: menu_act_toggle_kitsune"
 
-    if eventPlayer.menu_opt_value == 1:
-        menu_status_io_toggle()
+    menu_status_io_toggle()
+    if eventPlayer.menu_opt_value == 0:
         smallMessage(eventPlayer, "    Deactivating Kitsune Rush")
         destroyDummy(Team.1, eventPlayer.getSlot() + 6)
-    else:
-        menu_status_io_toggle()
         smallMessage(eventPlayer, "    Activating Kitsune Rush")
         createDummy(Hero.KIRIKO, Team.1, eventPlayer.getSlot() + 6, vect(0, 1000, 0), vect(0, 0, 0))
 
+def menu_act_toggle_recall():
+    @Name "SUB: menu_act_toggle_recall"
 
+    menu_status_io_toggle()
+    if eventPlayer.menu_opt_value == 0:
+        show_recall.remove(eventPlayer)
+    else:
+        show_recall.append(eventPlayer)
+        
 rule "Assist Bot: Kiriko Kitsune Rush":
     @Event eachPlayer
     @Team 1
@@ -2715,7 +2735,6 @@ def menu_act_cycle_difficulty():
     menu_status_cycle()
     eventPlayer.menu_opt_var[eventPlayer.menu_index] = opt_array_movement[1][eventPlayer.menu_opt_value]
     eventPlayer.menu_on_opt_color[eventPlayer.menu_index] = opt_array_movement[2][eventPlayer.menu_opt_value]
-    smallMessage(eventPlayer, eventPlayer.menu_opt_value)
     eventPlayer.item_visible[eventPlayer.menu_index+1] = true
     if eventPlayer.menu_opt_value == 0:
         eventPlayer.item_visible[eventPlayer.menu_index+1] = true
@@ -2727,6 +2746,8 @@ def menu_act_cycle_difficulty():
         eventPlayer.item_visible[eventPlayer.menu_index+2] = false
         mvmt_min_wait = opt_array_movement[3][eventPlayer.menu_opt_value]
         mvmt_max_wait = opt_array_movement[4][eventPlayer.menu_opt_value]
+
+    smallMessage(eventPlayer, "Bots will change directions every {0} - {1} seconds.".format(mvmt_min_wait, mvmt_max_wait))
 
 
 def menu_act_cycle_min_wait():
@@ -2742,8 +2763,8 @@ def menu_act_cycle_min_wait():
         custom_min_wait -= 1
 
     if custom_min_wait > custom_max_wait:
-        custom_min_wait = 0.1
-    if custom_min_wait < 0.1:
+        custom_min_wait = 0.01
+    if custom_min_wait < 0.01:
         custom_min_wait = custom_max_wait
             
     eventPlayer.menu_opt_var[eventPlayer.menu_index] = "{0} s".format(custom_min_wait)
@@ -3355,15 +3376,6 @@ rule "Bot Died: Swap Hero":
     @Team 2
     @Condition eventPlayer.isDead() == true
     
-    eventPlayer.stopForcingButton(Button.ABILITY_1)
-    eventPlayer.stopForcingButton(Button.ABILITY_2)
-    eventPlayer.stopForcingButton(Button.CROUCH)
-    eventPlayer.stopForcingButton(Button.JUMP)
-    eventPlayer.stopForcingButton(Button.MELEE)
-    eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
-    eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
-    eventPlayer.stopForcingButton(Button.RELOAD)
-    eventPlayer.stopForcingButton(Button.ULTIMATE)
     # Select new hero
     bot_pool_array[eventPlayer.getSlot()] = random.shuffle(bot_pool_array[eventPlayer.getSlot()])
     eventPlayer.least_hero = 9999
@@ -3383,9 +3395,17 @@ rule "Bot Died: Swap Hero":
     else:
         eventPlayer.startForcingHero(bot_pool_array[eventPlayer.getSlot()][eventPlayer.next_hero_index])
 
+    eventPlayer.stopForcingButton(Button.ABILITY_1)
+    eventPlayer.stopForcingButton(Button.ABILITY_2)
+    eventPlayer.stopForcingButton(Button.CROUCH)
+    eventPlayer.stopForcingButton(Button.JUMP)
+    eventPlayer.stopForcingButton(Button.MELEE)
+    eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
+    eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
+    eventPlayer.stopForcingButton(Button.RELOAD)
+    eventPlayer.stopForcingButton(Button.ULTIMATE)
     teleport_bot()
     eventPlayer.setHealth(eventPlayer.getMaxHealth())
-    # Fix for Dva spawning outisde of mech with the unintended side effect of giving players a way to practice canceling remech.
 
 
 rule "Teleport out of Spawn":
@@ -3897,6 +3917,7 @@ rule "Bot Pressure: Toggle Off if not in los":
     @Event eachPlayer
     @Team 2
     @Condition eventPlayer.apply_pressure == true
+    @Condition len(player_list) == 1
 
     if getPlayersInRadius(eventPlayer.getPosition(), 200, Team.1, LosCheck.SURFACES) != eventPlayer.pressure_target:
         eventPlayer.apply_pressure = false
@@ -7802,7 +7823,7 @@ rule "Bot Abilities: Sombra Primary (P)":
     eventPlayer.ability_acc = 2
     set_default_facing()
     eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
-    wait(10 / ability_freq)
+    wait(9999, Wait.ABORT_WHEN_FALSE)
     if RULE_CONDITION:
         goto RULE_START
 
@@ -8138,23 +8159,6 @@ rule "Bot Abilities: Torbjorn Secondary (P)":
         goto RULE_START
 
 
-rule "Bot Abilities: Torbjorn Ability 2 (All)":
-    @Event eachPlayer
-    @Team 2
-    @Hero torbjorn
-    @Condition bots_use_abilities == true
-    @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.bot_ability_lock[3] == false
-    
-    wait(random.uniform(5,10) / ability_freq, Wait.ABORT_WHEN_FALSE)
-    eventPlayer.bot_ability_lock[3] = true
-    eventPlayer.forceButtonPress(Button.ABILITY_2)
-    wait(10 / ability_freq)
-    eventPlayer.bot_ability_lock[3] = false
-    if RULE_CONDITION:
-        goto RULE_START
-
-
 rule "Bot Abilities: Torbjorn Ability 2 (R)":
     @Event eachPlayer
     @Team 2
@@ -8168,7 +8172,7 @@ rule "Bot Abilities: Torbjorn Ability 2 (R)":
     wait(random.uniform(0.5,2) / ability_freq, Wait.ABORT_WHEN_FALSE)
     eventPlayer.bot_ability_lock[3] = true
     eventPlayer.forceButtonPress(Button.ABILITY_2)
-    wait(10 / ability_freq)
+    wait(15 / ability_freq)
     eventPlayer.bot_ability_lock[3] = false
     if RULE_CONDITION:
         goto RULE_START
@@ -8188,7 +8192,7 @@ rule "Bot Abilities: Torbjorn Ability 2 (Rd)":
     wait(random.uniform(0.5,2) / ability_freq, Wait.ABORT_WHEN_FALSE)
     eventPlayer.bot_ability_lock[3] = true
     eventPlayer.forceButtonPress(Button.ABILITY_2)
-    wait(10 / ability_freq)
+    wait(15 / ability_freq)
     eventPlayer.bot_ability_lock[3] = false
     if RULE_CONDITION:
         goto RULE_START
@@ -8410,6 +8414,34 @@ rule "Bot Abilities: Tracer Ultimate (All)":
         goto RULE_START
 
 
+rule "Tracer: Recall Tracker":
+    @Event eachPlayer
+    @Team 2
+    @Hero tracer
+    @Condition len(show_recall) > 0
+
+    eventPlayer.recall_pos_array.append(eventPlayer.getPosition())
+    if len(eventPlayer.recall_pos_array) >= 30:
+        eventPlayer.recall_pos_array.remove(eventPlayer.recall_pos_array[0])
+    wait(0.1)
+
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Tracer: Recall Tracker Display":
+    @Event eachPlayer
+    @Team 2
+    @Hero tracer
+    @Condition len(show_recall) > 0
+    @Condition eventPlayer.isUsingAbility2() == true
+
+    createEffect(show_recall, Effect.LIGHT_SHAFT, Color.ORANGE, eventPlayer.recall_pos_array[1], 0.5, EffectReeval.NONE)
+    eventPlayer.recall_effect = getLastCreatedEntity()
+    wait(1)
+    destroyEffect(eventPlayer.recall_effect)
+
+
 ### Widowmaker Bot Abilities
 rule "Bot Abilities: Widowmaker Primary Close (P)":
     @Event eachPlayer
@@ -8435,7 +8467,7 @@ rule "Bot Abilities: Widowmaker Primary + Secondary Far (P)":
     @Condition eventPlayer.isAlive() == true
     @Condition distance(eventPlayer.getEyePosition(), eventPlayer.look_target.getEyePosition())  >= 7.5
 
-    eventPlayer.ability_acc = 2
+    eventPlayer.ability_acc = 1.75
     eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
     eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
     wait(random.uniform(0.75,1.5), Wait.ABORT_WHEN_FALSE)
