@@ -1,6 +1,6 @@
 settings {
     "main": {
-        "description": "Customizable Aim Trainer 4.1\n\nFeatures:\n◆ Customization for almost any setting\n◆ Pressure Mode: Bots shoot back at you\n◆ Multiple Bot Spawn Points\n◆ Reactive Bot AI\n◆ Choose from several different strafe patterns\n◆ And more...\n\nFind tutorials/help at workshop.codes/VXEAT\nReport bugs on my discord:discord.gg/YPQ5ETNT45\n",
+        "description": "Customizable Aim Trainer 4.1.3\n\nFeatures:\n◆ Customization for almost any setting\n◆ Pressure Mode: Bots shoot back at you\n◆ Multiple Bot Spawn Points\n◆ Reactive Bot AI\n◆ Choose from several different strafe patterns\n◆ And more...\n\nFind tutorials/help at workshop.codes/VXEAT\nReport bugs on my discord:discord.gg/YPQ5ETNT45\n",
         "modeName": "Customizable Aim Trainer - VXEAT"
     },
     "lobby": {
@@ -363,6 +363,7 @@ subroutine menu_status_io_toggle
 subroutine menu_status_cycle
 subroutine menu_hero_bar_color_set
 subroutine menu_pressure_cycle_color_set
+subroutine menu_speed_set_text_and_color
 ## Bot Abilities
 subroutine winston_ult
 subroutine dva_ult
@@ -374,6 +375,75 @@ subroutine brig_whip_shot
 
 #!extension spawnMoreDummyBots
 #!extension buffStatusEffects
+
+
+rule "---->    Multipoint Spawn Settings: (Edit here for multipoint spawn preset)    <----":
+
+    #Slot 0
+    #Edit the number field to change the radius.
+    bot_radius_array[0] = 5
+    #To add a new entry select the plus sign on the value row, then type Hero in the new [x] row, then select the hero you want to add to the spawn pool.
+    bot_pool_array[0] = [Hero.ANA, Hero.BAPTISTE]
+    #Modify the X, Y, and Z coordinate values with the coordinates you would like your bots to spawn at.
+    bot_spawn_array[0] = vect(0,0,0)
+
+    #Slot 1
+    bot_radius_array[1] = 5
+    bot_pool_array[1] = [Hero.ANA, Hero.BAPTISTE]
+    bot_spawn_array[1] = vect(0,0,0)
+
+    #Slot 2
+    bot_radius_array[2]  = 5
+    bot_pool_array[2] = [Hero.ANA, Hero.BAPTISTE]
+    bot_spawn_array[2] = vect(0,0,0)
+    
+    #Slot 3
+    bot_radius_array[3]  = 5
+    bot_pool_array[3] = [Hero.ANA, Hero.BAPTISTE]
+    bot_spawn_array[3] = vect(0,0,0)
+
+    #Slot 4
+    bot_radius_array[4]  = 5
+    bot_pool_array[4] = [Hero.ANA, Hero.BAPTISTE]
+    bot_spawn_array[4] = vect(0,0,0)
+
+    #Slot 5
+    bot_radius_array[5]  = 5
+    bot_pool_array[5] = [Hero.ANA, Hero.BAPTISTE]
+    bot_spawn_array[5] = vect(0,0,0)
+
+    #Slot 6
+    bot_radius_array[6]  = 5
+    bot_pool_array[6] = [Hero.ANA, Hero.BAPTISTE]
+    bot_spawn_array[6] = vect(0,0,0)
+
+    #Slot 7
+    bot_radius_array[7]  = 5
+    bot_pool_array[7] = [Hero.ANA, Hero.BAPTISTE]
+    bot_spawn_array[7] = vect(0,0,0)
+
+    #Slot 8
+    bot_radius_array[8]  = 5
+    bot_pool_array[8] = [Hero.ANA, Hero.BAPTISTE]
+    bot_spawn_array[8] = vect(0,0,0)
+
+    #Slot 9
+    bot_radius_array[9]  = 5
+    bot_pool_array[9] = [Hero.ANA, Hero.BAPTISTE]
+    bot_spawn_array[9] = vect(0,0,0)
+
+    #Slot 10
+    bot_radius_array[10]  = 5
+    bot_pool_array[10] = [Hero.ANA, Hero.BAPTISTE]
+    bot_spawn_array[10] = vect(0,0,0)
+
+    #Slot 11
+    bot_radius_array[11]  = 5
+    bot_pool_array[11] = [Hero.ANA, Hero.BAPTISTE]
+    bot_spawn_array[11] = vect(0,0,0)
+
+    data_loaded[2] = true
+
 
 # Workshop Initialization Rules
 def set_map_default_spawn_pt():
@@ -527,8 +597,8 @@ rule "Initialize: Workshop Settings":
     ult_freq = createWorkshopSetting(float[0.1:5], "2. Bot Ability Settings (Overridden by in-game changes to settings)", "Multiplier for how often bots use ultimates (2 = 2x often, etc.)", 1, 4)
     ## Bot Movement Settings
     default_mvmt_type = createWorkshopSetting(enum["Random", "Default", "Random Long Strafes", "AD Strafes", "Custom Distance", "Fixed Shapes (CW)", "Fixed Shapes (CCW)", "No Movement", "Forward AD Strafes (Not Recommended)", "Forward (Not Recommended)"], "3. Bot Movement (Overridden by in-game changes to movement)", "Strafe Pattern", 1, 0)
-    default_bot_diff = createWorkshopSetting(enum["custom", "very easy", "easy", "medium", "hard", "very hard"], "3. Bot Movement (Overridden by in-game changes to movement)", "Difficulty", 4, 1)
-    custom_bot_speed = createWorkshopSetting(enum["Default", "Kitsune", "Lucio Passive", "Lucio Passive + Kitsune", "Lucio Amp", "Lucio Amp + Kitsune", "Lucio Amp + JQ Shout", "Lucio Amp + JQ Shout + Kitsune"],   "3. Bot Movement (Overridden by in-game changes to movement)", "Bot Movement Speed", 0, 2)
+    default_bot_diff = createWorkshopSetting(enum["custom", "very easy", "easy", "normal", "hard", "very hard"], "3. Bot Movement (Overridden by in-game changes to movement)", "Difficulty", 4, 1)
+    custom_bot_speed = createWorkshopSetting(int[0:1000],   "3. Bot Movement (Overridden by in-game changes to movement)", "Bot Movement Speed", 100, 2)
    
     ## Bot Movement Modifiers
     default_jump_enabled = createWorkshopSetting(bool, "3.1. Bot Movement Modifiers", "Bot Jumping", true, 0)
@@ -562,10 +632,11 @@ rule "Initialize: Workshop Settings":
 
     # Bot Spawn
     use_custom_spawn = createWorkshopSetting(bool, "6. Custom Bot Spawn (Overridden by in-game changes to spawn)", "Use Custom Spawn Point", false, 0)
-    spawn_radius = createWorkshopSetting(int[0:100], "6. Custom Bot Spawn (Overridden by in-game changes to spawn)", "Spawn Size (in meters)", 19, 1)
+    spawn_radius = createWorkshopSetting(int[0:100], "6. Custom Bot Spawn (Overridden by in-game changes to spawn)", "Spawn Radius (in meters)", 19, 1)
     default_spawn_pt = vect(createWorkshopSetting(float[-999:999], "6. Custom Bot Spawn (Overridden by in-game changes to spawn)", "Spawn x coord", 0, 2),
     createWorkshopSetting(float[-999:999], "6. Custom Bot Spawn (Overridden by in-game changes to spawn)", "Spawn y coord", 0, 2),
     createWorkshopSetting(float[-999:999], "6. Custom Bot Spawn (Overridden by in-game changes to spawn)", "Spawn z coord", 0, 3))
+    spawn_type = createWorkshopSetting(bool, "6. Custom Bot Spawn (Overridden by in-game changes to spawn)", "Use Multipoint Spawn (Edit the Rule \"Multipoint Spawn Settings\" at the top of the Workshop page to configure)", false, 4)
 
     ## Bot Tank Heroes Enabled
     default_hero_array = createWorkshopSetting(bool, "7.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "D.va", false, 0)
@@ -668,6 +739,7 @@ rule "Initialize: Static Global Variables":
     
     data_loaded[0] = false
     data_loaded[1] = false
+    data_loaded[2] = false
 
     hero_array_index = 0
     hero_array[hero_array_index] = Hero.DVA
@@ -1007,7 +1079,7 @@ rule "Initialize: Static Global Variables":
     
     hero_array_index += 1
     hero_array[hero_array_index] = Hero.ANA
-    hero_proj_speed[hero_array_index] = [125,60,0,30,0]
+    hero_proj_speed[hero_array_index] = [125,0,60,30,0]
     hero_proj_gravity[hero_array_index] = [0,0,0,9.84,0]
     hero_proj_delta[hero_array_index] = [0,0,0,0,0]
     hero_react_response[hero_array_index] = [1.00, 1.00, 1.00, 1.00, 1.00]
@@ -1115,9 +1187,8 @@ rule "Initialize: Static Global Variables":
     
     data_loaded[0] = true
 
+    
 rule "Initialize Dynamic Global Variables":
-
-    if console_ui == true:
         
 
     # Initialize some static data here since the static rule is too large
@@ -1152,10 +1223,9 @@ rule "Initialize Dynamic Global Variables":
         "Boo!",
         "Also Try Risk of Rain!"
         ]
-
-    opt_array_speed = [[100, 125, 130, 155, 160, 185, 190, 215],
-                            ["Default", "Kitsune", "Lucio Passive", "Lucio Passive + Kitsune", "Lucio Amp", "Lucio Amp + Kitsune", "Lucio Amp + JQ Shout", "Lucio Amp + JQ Shout + Kitsune"],
-                            [Color.YELLOW, Color.ROSE, Color.LIME_GREEN, Color.TURQUOISE, Color.GREEN, Color.BLUE, Color.PURPLE, Color.BLACK]]
+    opt_array_speed = [[100, 125, 130, 155, 160, 175],
+                            ["100% (Default)", "125% (Kitsune)", "130% (Lucio Passive / JQ Shout)", "155% (Lucio Passive + Kitsune)", "160% (Lucio Amp)", "175% (Speed Boost Cap)"],
+                            [Color.YELLOW, Color.ROSE, Color.LIME_GREEN, Color.TURQUOISE, Color.GREEN, Color.PURPLE, Color.BLACK]]
     opt_array_abilities = ["off", "primary", "secondary", "ability 1", "ability 2", "ultimate"]
     opt_array_spawn_strings = ["Single Point", "Multipoint"] 
     opt_array_movement = [["randomized", "default", "random long strafes", "ad strafes", "Custom Distance", "Fixed Shapes (CW)", "Fixed Shapes (CCW)", "No Movement", "Forward AD Strafes", "Forward Movement Only"],
@@ -1200,10 +1270,14 @@ rule "Initialize Dynamic Global Variables":
     mvmt_max_wait = opt_array_movement[4][default_bot_diff]
     default_turn_rate = 600
 
-    for bot_index in range(0, bot_count, 1):
-        bot_radius_array[bot_index] = spawn_radius
-        bot_pool_array[bot_index] = random.shuffle(active_hero_array)
-        bot_spawn_array[bot_index] = default_spawn_pt
+    if spawn_type == false:
+        spawn_type = 0
+        for bot_index in range(0, bot_count, 1):
+            bot_radius_array[bot_index] = spawn_radius
+            bot_pool_array[bot_index] = random.shuffle(active_hero_array)
+            bot_spawn_array[bot_index] = default_spawn_pt
+    else:
+        spawn_type = 1
 
     # Starts generating all the bots
     data_loaded[1] = true
@@ -1223,9 +1297,20 @@ rule "Player Joined: Team 1 Defaults":
     if show_main_hud == true:
         main_hud()
         create_settings_prompt()
-    menu_hud()
+    if eventPlayer == hostPlayer or show_main_hud == false:
+        menu_hud()
+    else:
+        default_menu_variables()
     if show_main_hud == true:
         misc_hud()
+    elif eventPlayer != hostPlayer:
+        hudSubtext(eventPlayer, 
+        "Code: VXEAT", 
+        HudPosition.RIGHT, 
+        -1, 
+        rgb(random.randint(0,255), random.randint(0,255), random.randint(0,255)), 
+        HudReeval.VISIBILITY_STRING_AND_COLOR, 
+        SpecVisibility.DEFAULT)
     
 
 rule "Player Joined: Team 2 Defaults":
@@ -1279,6 +1364,10 @@ rule "Player Spawned":
 
     eventPlayer.teleport(default_spawn_pt)
 
+    if eventPlayer != hostPlayer and show_main_hud == true:
+        wait(5)
+        smallMessage(eventPlayer, "For access to the player menu, ask the host to disable the show menu hud option in the workshop settings")
+
 rule "Player Left":
     @Event playerLeft
     @Condition eventPlayer.isDummy() == false
@@ -1304,6 +1393,7 @@ rule "Menu Controls: Toggle Menu with Interact":
     @Team 1
     # Change this condition to whatever button(s) you want to trigger the main menu. 
     @Condition eventPlayer.isHoldingButton(Button.INTERACT) == true
+    @Condition (eventPlayer == hostPlayer or show_main_hud == false)
     if console_ui == true:
         wait(1)
         if eventPlayer.isHoldingButton(Button.INTERACT) == false:
@@ -1459,10 +1549,12 @@ def create_settings_prompt():
     
     # Settings Headers
     if console_ui == false:
-        hudSubheader([i for i in eventPlayer if not eventPlayer.menu_visible], 
-        "Press  {0}  to open menu".format(buttonString(Button.INTERACT)), HudPosition.LEFT, 1000, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-        hudSubheader([i for i in eventPlayer if eventPlayer.menu_visible], 
-        "Press  {0}  to close menu".format(buttonString(Button.INTERACT)), HudPosition.LEFT, 1001, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+        if eventPlayer == hostPlayer:
+            hudSubheader([i for i in eventPlayer if not eventPlayer.menu_visible], 
+            "Press  {0}  to open menu".format(buttonString(Button.INTERACT)), HudPosition.LEFT, 1000, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+            hudSubheader([i for i in eventPlayer if eventPlayer.menu_visible], 
+            "Press  {0}  to close menu".format(buttonString(Button.INTERACT)), HudPosition.LEFT, 1001, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+           
         hudSubheader([i for i in eventPlayer if eventPlayer.menu_visible], 
         "—  Controls  —", HudPosition.LEFT, 1002, Color.BLACK, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
         hudSubheader([i for i in eventPlayer if eventPlayer.menu_visible], 
@@ -1724,11 +1816,12 @@ def misc_hud():
         #SpecVisibility.DEFAULT)
 
     # Settings Notice
-    if show_main_hud == true:
+    if show_main_hud == true and eventPlayer == hostPlayer:
         hudHeader(eventPlayer, "Bots will not use defensive abilities and ultimates unless you enable them in the workshop settings menu", HudPosition.TOP, -2, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
         eventPlayer.bot_ability_var = getLastCreatedText()
         wait(10)
         destroyHudText(eventPlayer.bot_ability_var)
+
 
 def main_hud():
     
@@ -1884,7 +1977,7 @@ def menu_hud():
 
     ## Show Recall
     increment_for_menu_item()
-    eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Bot Recall Location"
+    eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Tracer Bot Recall Indicator"
     eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Show Recall: "
     eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = "off"
     eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = Color.RED
@@ -1913,10 +2006,11 @@ def menu_hud():
     increment_for_menu_item()
     eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Movement Speed"
     eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Speed: "
-    eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = opt_array_speed[1][0]
-    eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = opt_array_speed[2][0]
-    eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = 0
-    eventPlayer.menu_opt_len[eventPlayer.menu_opt_size] = len(opt_array_speed[0]) - 1
+    eventPlayer.menu_index = eventPlayer.menu_opt_size
+    eventPlayer.menu_opt_value = 100
+    menu_speed_set_text_and_color()
+    eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = 100
+    eventPlayer.menu_opt_len[eventPlayer.menu_opt_size] = 1000
     new_menu_item_cycle()
 
     ## Infinite Ammo Toggle
@@ -2032,10 +2126,11 @@ def menu_hud():
         increment_for_menu_item()
         eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Movement Speed"
         eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Speed: "
-        eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = opt_array_speed[1][custom_bot_speed]
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = opt_array_speed[2][custom_bot_speed]
-        eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = opt_array_speed[1][custom_bot_speed]
-        eventPlayer.menu_opt_len[eventPlayer.menu_opt_size] = len(opt_array_speed[0]) - 1
+        eventPlayer.menu_index = eventPlayer.menu_opt_size
+        eventPlayer.menu_opt_value = custom_bot_speed
+        menu_speed_set_text_and_color()
+        eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = custom_bot_speed
+        eventPlayer.menu_opt_len[eventPlayer.menu_opt_size] = 1000
         new_menu_item_cycle()
 
         ## Boucing Bots
@@ -2082,9 +2177,9 @@ def menu_hud():
         increment_for_menu_item()
         eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Spawn Type"
         eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Type: "
-        eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = opt_array_spawn_strings[0]
+        eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = opt_array_spawn_strings[spawn_type]
         eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
-        eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = 0
+        eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = spawn_type
         new_menu_item_toggle()
 
         ## Bot Slot Cycle
@@ -2096,12 +2191,16 @@ def menu_hud():
         eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = 0
         eventPlayer.menu_opt_len[eventPlayer.menu_opt_size] = 5
         new_menu_item_cycle()
-        eventPlayer.item_visible[eventPlayer.menu_opt_size] = false
+        if spawn_type == 0:
+            eventPlayer.item_visible[eventPlayer.menu_opt_size] = false
 
         ## Slot Hero Pool
         
         increment_for_menu_item()
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Hero Pool"
+        if spawn_type == 0:
+            eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Hero Pool"
+        else:
+            eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Slot 0 Hero Pool"
         eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = ""
         if hero_array_status[0] != "on":
             eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = "{0} : off".format(hero_array[0])
@@ -2114,14 +2213,16 @@ def menu_hud():
         eventPlayer.menu_opt_len[eventPlayer.menu_opt_size] = len(hero_array) - 1
         eventPlayer.menu_index = eventPlayer.menu_opt_size
         menu_hero_bar_color_set()
-        eventPlayer.menu_index = 0
         eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = 0
         
         new_menu_item_cycle_bar()
 
         ## Spawn Radius Cycle
         increment_for_menu_item()
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Spawn Radius"
+        if spawn_type == 0:
+            eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Spawn Radius"
+        else:
+            eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Slot 0 Radius"
         eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Radius: "
         eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = "{0} m".format(spawn_radius)
         eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
@@ -2131,7 +2232,10 @@ def menu_hud():
 
         ## Return to Main Menu
         increment_for_menu_item()
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Set Spawn Point"
+        if spawn_type == 0:
+            eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Set Spawn Point"
+        else:
+            eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Set Slot 0 Spawn Point"
         eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size]
         eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
         eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = 0
@@ -2172,7 +2276,6 @@ def menu_hud():
 
         eventPlayer.menu_index = eventPlayer.menu_opt_size
         menu_pressure_cycle_color_set()
-        eventPlayer.menu_index = 0
 
         eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = pressure_accuracy
         eventPlayer.menu_opt_len[eventPlayer.menu_opt_size] = 99
@@ -2226,6 +2329,35 @@ def menu_hud():
         new_menu_item_cycle()
         if speed_mode_enabled == false:
             eventPlayer.item_visible[eventPlayer.menu_opt_size] = false
+
+    eventPlayer.menu_index = 0
+    eventPlayer.menu_opt_value = 0
+
+
+def menu_speed_set_text_and_color():
+    @Name "menu_speed_set_text_and_color"
+
+    if eventPlayer.menu_opt_value == 100:
+        eventPlayer.menu_opt_var[eventPlayer.menu_index] = opt_array_speed[1][0]
+        eventPlayer.menu_on_opt_color[eventPlayer.menu_index] = opt_array_speed[2][0]
+    elif eventPlayer.menu_opt_value == 125:
+        eventPlayer.menu_opt_var[eventPlayer.menu_index] = opt_array_speed[1][1]
+        eventPlayer.menu_on_opt_color[eventPlayer.menu_index] = opt_array_speed[2][1]
+    elif eventPlayer.menu_opt_value == 130:
+        eventPlayer.menu_opt_var[eventPlayer.menu_index] = opt_array_speed[1][2]
+        eventPlayer.menu_on_opt_color[eventPlayer.menu_index] = opt_array_speed[2][2]
+    elif eventPlayer.menu_opt_value == 155:
+        eventPlayer.menu_opt_var[eventPlayer.menu_index] = opt_array_speed[1][3]
+        eventPlayer.menu_on_opt_color[eventPlayer.menu_index] = opt_array_speed[2][3]
+    elif eventPlayer.menu_opt_value == 160:
+        eventPlayer.menu_opt_var[eventPlayer.menu_index] = opt_array_speed[1][4]
+        eventPlayer.menu_on_opt_color[eventPlayer.menu_index] = opt_array_speed[2][4]
+    elif eventPlayer.menu_opt_value == 175:
+        eventPlayer.menu_opt_var[eventPlayer.menu_index] = opt_array_speed[1][5]
+        eventPlayer.menu_on_opt_color[eventPlayer.menu_index] = opt_array_speed[2][5]
+    else:
+        eventPlayer.menu_opt_var[eventPlayer.menu_index] = "{0} %".format(eventPlayer.menu_opt_value)
+        eventPlayer.menu_on_opt_color[eventPlayer.menu_index] = default_menu_on_index_color
 
 
 def menu_hero_bar_color_set():
@@ -2314,6 +2446,10 @@ rule "Menu Actions: Input Read":
             menu_act_toggle_modifiers_menu()
         elif eventPlayer.menu_index == 1 + eventPlayer.menu_substart_value:
             menu_act_cycle_player_speed()
+            if eventPlayer.menu_opt_value > 200:
+                eventPlayer.menu_wait = 0.01
+            else:
+                eventPlayer.menu_wait = 0.04
         elif eventPlayer.menu_index == 2 + eventPlayer.menu_substart_value:
             menu_act_toggle_ammo()
         elif eventPlayer.menu_index == 3 + eventPlayer.menu_substart_value:
@@ -2342,8 +2478,13 @@ rule "Menu Actions: Input Read":
             eventPlayer.menu_wait = 0.02
         elif eventPlayer.menu_index == 8 + eventPlayer.menu_substart_value:
             menu_act_cycle_bot_speed()
+            if eventPlayer.menu_opt_value > 200:
+                eventPlayer.menu_wait = 0.01
+            else:
+                eventPlayer.menu_wait = 0.04
         elif eventPlayer.menu_index == 9 + eventPlayer.menu_substart_value:
             menu_act_cycle_bot_bounce()
+            eventPlayer.menu_wait = 0.05
         elif eventPlayer.menu_index == 1 + eventPlayer.menu_substart_value:
     elif eventPlayer.submenu_index == 4:
         if eventPlayer.menu_index == 0 + eventPlayer.menu_substart_value:
@@ -2553,14 +2694,39 @@ def menu_act_toggle_modifiers_menu():
 def menu_act_cycle_player_speed():
     @Name "SUB: menu_act_cycle_player_speed - Player Speed Toggle"
     
-    menu_status_cycle()
-    eventPlayer.custom_speed = opt_array_speed[0][eventPlayer.menu_opt_value]
-    eventPlayer.menu_opt_var[eventPlayer.menu_index] = opt_array_speed[1][eventPlayer.menu_opt_value]
-    eventPlayer.menu_on_opt_color[eventPlayer.menu_index] = opt_array_speed[2][eventPlayer.menu_opt_value]
-    smallMessage(eventPlayer, "    {0}% Player Speed boost".format(eventPlayer.custom_speed))
+    if eventPlayer.menu_input == 0:
+        if eventPlayer.custom_speed < 100 or eventPlayer.custom_speed >= 175:
+            eventPlayer.custom_speed = 100
+        elif eventPlayer.custom_speed < 125:
+            eventPlayer.custom_speed = 125
+        elif eventPlayer.custom_speed < 130:
+            eventPlayer.custom_speed = 130
+        elif eventPlayer.custom_speed < 160:
+            eventPlayer.custom_speed = 160
+        elif eventPlayer.custom_speed < 175:
+            eventPlayer.custom_speed = 175
+        eventPlayer.menu_opt_status[eventPlayer.menu_index] = eventPlayer.custom_speed
+        eventPlayer.menu_opt_value = eventPlayer.custom_speed
+    elif eventPlayer.menu_input == -2:
+        if eventPlayer.custom_speed > 175 or eventPlayer.custom_speed <= 100:
+            eventPlayer.custom_speed = 175
+        elif eventPlayer.custom_speed > 160:
+            eventPlayer.custom_speed = 160
+        elif eventPlayer.custom_speed > 130:
+            eventPlayer.custom_speed = 130
+        elif eventPlayer.custom_speed > 125:
+            eventPlayer.custom_speed = 125
+        elif eventPlayer.custom_speed > 100:
+            eventPlayer.custom_speed = 100
+        eventPlayer.menu_opt_status[eventPlayer.menu_index] = eventPlayer.custom_speed
+        eventPlayer.menu_opt_value = eventPlayer.custom_speed
+    else:
+        menu_status_cycle()
+        eventPlayer.custom_speed = eventPlayer.menu_opt_value
 
-  
-    
+    menu_speed_set_text_and_color()
+
+
 def menu_act_toggle_ammo():
     @Name "SUB: menu_act_toggle_ammo - Infinite Ammo Toggle"
     if eventPlayer.menu_opt_value == 1:
@@ -2795,18 +2961,61 @@ def menu_act_cycle_max_wait():
 def menu_act_cycle_bot_speed():
     @Name "SUB: menu_act_cycle_bot_speed"
 
-    menu_status_cycle()
-    custom_bot_speed = eventPlayer.menu_opt_value
-    getPlayers(Team.2).setMoveSpeed(opt_array_speed[0][eventPlayer.menu_opt_value])
-    eventPlayer.menu_opt_var[eventPlayer.menu_index] = opt_array_speed[1][custom_bot_speed]
-    eventPlayer.menu_on_opt_color[eventPlayer.menu_index] = opt_array_speed[2][custom_bot_speed]
-    smallMessage(eventPlayer, "    {0}% Bot Speed boost".format(opt_array_speed[0][custom_bot_speed]))
+    if eventPlayer.menu_input == 0:
+        if custom_bot_speed < 100 or custom_bot_speed >= 175:
+            custom_bot_speed = 100
+        elif custom_bot_speed < 125:
+            custom_bot_speed = 125
+        elif custom_bot_speed < 130:
+            custom_bot_speed = 130
+        elif custom_bot_speed < 160:
+            custom_bot_speed = 160
+        elif custom_bot_speed < 175:
+            custom_bot_speed = 175
+        eventPlayer.menu_opt_status[eventPlayer.menu_index] = custom_bot_speed
+        eventPlayer.menu_opt_value = custom_bot_speed
+    elif eventPlayer.menu_input == -2:
+        if custom_bot_speed > 175 or custom_bot_speed <= 100:
+            custom_bot_speed = 175
+        elif custom_bot_speed > 160:
+            custom_bot_speed = 160
+        elif custom_bot_speed > 130:
+            custom_bot_speed = 130
+        elif custom_bot_speed > 125:
+            custom_bot_speed = 125
+        elif custom_bot_speed > 100:
+            custom_bot_speed = 100
+        eventPlayer.menu_opt_status[eventPlayer.menu_index] = custom_bot_speed
+    else:
+        menu_status_cycle()
+        custom_bot_speed = eventPlayer.menu_opt_value
+        eventPlayer.menu_opt_value = custom_bot_speed
+
+    menu_speed_set_text_and_color()
+    getPlayers(Team.2).setMoveSpeed(custom_bot_speed)
 
 
 def menu_act_cycle_bot_bounce():
     @Name "SUB: menu_act_cycle_bot_bounce"
 
-    menu_status_cycle()
+    if eventPlayer.menu_input == 0:
+        if eventPlayer.menu_opt_value == 100:
+            eventPlayer.menu_opt_status[eventPlayer.menu_index] = 0
+        elif eventPlayer.menu_opt_value > 90:
+            eventPlayer.menu_opt_status[eventPlayer.menu_index] = 100
+        else:
+            eventPlayer.menu_opt_status[eventPlayer.menu_index] += 10
+        eventPlayer.menu_opt_value = eventPlayer.menu_opt_status[eventPlayer.menu_index]
+    elif eventPlayer.menu_input == -2:
+        if eventPlayer.menu_opt_value == 0:
+            eventPlayer.menu_opt_status[eventPlayer.menu_index] = 100
+        elif eventPlayer.menu_opt_value < 10:
+            eventPlayer.menu_opt_status[eventPlayer.menu_index] = 0
+        else:
+            eventPlayer.menu_opt_status[eventPlayer.menu_index] -= 10
+        eventPlayer.menu_opt_value = eventPlayer.menu_opt_status[eventPlayer.menu_index]
+    else:
+        menu_status_cycle()
     bounce_amount = eventPlayer.menu_opt_value
     if bounce_amount == 0:
         eventPlayer.menu_opt_var[eventPlayer.menu_index] = "off"
@@ -2884,6 +3093,7 @@ def menu_act_toggle_spawn_type():
         eventPlayer.menu_opt_value = 0
         eventPlayer.item_visible[eventPlayer.menu_index+1] = false
         eventPlayer.menu_off_opt_title[eventPlayer.menu_index+2] = "Hero Pool"
+        eventPlayer.menu_on_opt_title[eventPlayer.menu_index+2] = ""
         eventPlayer.menu_off_opt_title[eventPlayer.menu_index+3] = "Spawn Radius"
         eventPlayer.menu_on_opt_title[eventPlayer.menu_index+3] = "Radius"
         eventPlayer.menu_off_opt_title[eventPlayer.menu_index+4] = "Set Spawn Point"
@@ -2911,7 +3121,7 @@ def menu_act_cycle_slot():
     bot_slot = eventPlayer.menu_opt_value
     eventPlayer.menu_opt_var[eventPlayer.menu_index] = bot_slot
     eventPlayer.menu_off_opt_title[eventPlayer.menu_index+1] = "Slot {0} Hero Pool".format(bot_slot)
-    eventPlayer.menu_on_opt_title[eventPlayer.menu_index+1] = "Slot {0}".format(bot_slot)
+    #eventPlayer.menu_on_opt_title[eventPlayer.menu_index+1] = "Slot {0}".format(bot_slot)
     eventPlayer.menu_off_opt_title[eventPlayer.menu_index+2] = "Slot {0} Spawn Radius".format(bot_slot)
     eventPlayer.menu_on_opt_title[eventPlayer.menu_index+2] = "Slot {0} Radius".format(bot_slot)
     eventPlayer.menu_off_opt_title[eventPlayer.menu_index+3] = "Set Slot {0} Spawn Point".format(bot_slot)
@@ -2935,6 +3145,22 @@ def menu_act_hero_pool():
         else:
             bot_pool_array[bot_slot] = active_hero_array
         eventPlayer.menu_reset_bots = true
+    elif eventPlayer.menu_input == -2:
+        if hero_array_status[eventPlayer.menu_opt_value] == "on":
+            smallMessage(eventPlayer, "    Removing all bots from the Hero Pool.")
+            for hero_array_index in range (0, len(hero_array_status)):
+                hero_array_status[hero_array_index] = "off"
+                active_hero_array.remove(hero_array[hero_array_index])
+        else:
+            smallMessage(eventPlayer, "    Adding all bots to the Hero Pool.")
+            for hero_array_index in range (0, len(hero_array_status)):
+                hero_array_status[hero_array_index] = "on"
+                active_hero_array.append(hero_array[hero_array_index])
+        if spawn_type == 0:
+            for bot_index in range(0, bot_count, 1):
+                bot_pool_array[bot_index] = active_hero_array
+        else:
+            bot_pool_array[bot_slot] = active_hero_array
     else:
         menu_status_cycle()
         eventPlayer.bar_var[eventPlayer.menu_index] = heroIcon(hero_array[eventPlayer.menu_opt_value])
@@ -3019,7 +3245,7 @@ def menu_act_toggle_speed():
     if eventPlayer.menu_opt_value == 0:
         speed_mode_enabled = false
         
-        getPlayers(Team.2).setMoveSpeed(opt_array_speed[0][custom_bot_speed])
+        getPlayers(Team.2).setMoveSpeed(custom_bot_speed)
         eventPlayer.item_visible[eventPlayer.menu_index+1] = false
         eventPlayer.item_visible[eventPlayer.menu_index+2] = false
         eventPlayer.item_visible[eventPlayer.menu_index+3] = false
@@ -3293,7 +3519,7 @@ def create_all_bots():
     if speed_mode_enabled == true:
         getPlayers(Team.2).setMoveSpeed(speed_multi)
     else:
-        getPlayers(Team.2).setMoveSpeed(opt_array_speed[0][custom_bot_speed])
+        getPlayers(Team.2).setMoveSpeed(custom_bot_speed)
 
 
 def destroy_all_bots():
@@ -3324,33 +3550,18 @@ def initialize_bot():
     eventPlayer.look_target_timer = 1
     eventPlayer.is_healing_facing = false
     eventPlayer.ability_acc = 0
-    eventPlayer.look_offset = vect(0,0,0)
+    eventPlayer.look_offset = vect(random.uniform(-1,1),0,random.uniform(-1,1))
 
     set_curr_hero_index()
     set_default_facing()
     eventPlayer.startForcingName(hero_name_array[eventPlayer.curr_hero_index])
-    if hero_array_index[eventPlayer.curr_hero_index] == Hero.ZARYA:
+    if hero_array[eventPlayer.curr_hero_index] == Hero.ZARYA:
         eventPlayer.bot_ability_lock[2] = 2
-    elif hero_array_index[eventPlayer.curr_hero_index] == Hero.ECHO:
-        eventPlayer.bot_disable_jump = true
-        eventPlayer.bot_disable_crouch = true
-    elif hero_array_index[eventPlayer.curr_hero_index] == Hero.GENJI:
-        eventPlayer.bot_disable_jump = true
-    elif hero_array_index[eventPlayer.curr_hero_index] == Hero.HANZO:
-        eventPlayer.bot_disable_jump = true
-    elif hero_array_index[eventPlayer.curr_hero_index] == Hero.JUNKRAT:
+    elif hero_array[eventPlayer.curr_hero_index] == Hero.JUNKRAT:
         eventPlayer.bot_ability_lock[2] = 2
-    elif hero_array_index[eventPlayer.curr_hero_index] == Hero.PHARAH:
-        eventPlayer.bot_disable_crouch = true
-    elif hero_array_index[eventPlayer.curr_hero_index] == Hero.TRACER:
+    elif hero_array[eventPlayer.curr_hero_index] == Hero.TRACER:
         eventPlayer.bot_ability_lock[2] = 3
-    elif hero_array_index[eventPlayer.curr_hero_index] == Hero.BAPTISTE:
-        eventPlayer.bot_disable_jump = true
-        eventPlayer.bot_disable_crouch = true
-    elif hero_array_index[eventPlayer.curr_hero_index] == Hero.MERCY:
-        eventPlayer.startForcingName("Moth")
-        eventPlayer.bot_disable_jump = true
-        eventPlayer.bot_disable_crouch = true
+    elif hero_array[eventPlayer.curr_hero_index] == Hero.MERCY:
         eventPlayer.look_target_timer = 3
         set_healing_facing()
 
@@ -3358,8 +3569,6 @@ def initialize_bot():
         set_default_pathing()
     elif eventPlayer.mvmt_type == 5 or eventPlayer.mvmt_type == 6:
         set_fixed_pathing()  
-
-
 
 
 rule "Bot Spawn: Setup":
@@ -3427,6 +3636,7 @@ def teleport_bot():
         eventPlayer.teleport(nearestWalkablePosition(eventPlayer.path_pos[eventPlayer.path_dir]))
     else:
         eventPlayer.teleport(nearestWalkablePosition(eventPlayer.spawn_pt + vect(random.uniform(-eventPlayer.mvmt_rad_1,eventPlayer.mvmt_rad_1), 0, random.uniform(-eventPlayer.mvmt_rad_1,eventPlayer.mvmt_rad_1))))
+
 
 # Bot Movement
 rule "Bot Pathing: Initialization":
@@ -3808,6 +4018,9 @@ rule "Set Look Target":
         eventPlayer.old_look_target = eventPlayer.look_target
         if eventPlayer.is_healing_facing == true:
             eventPlayer.look_target = sorted([player for player in getLivingPlayers(Team.2) if distance(eventPlayer.getEyePosition(), player.getEyePosition()) > 2], lambda i: distance(eventPlayer.getEyePosition(), i.getEyePosition()))[0]
+            if eventPlayer.look_target == null:
+                wait(1)
+                eventPlayer.look_target = sorted([player for player in getLivingPlayers(Team.2)], lambda i: distance(eventPlayer.getEyePosition(), i.getEyePosition()))[0]
         else:
             eventPlayer.look_target = sorted(player_list, lambda player: distance(eventPlayer.getEyePosition(), player.getEyePosition()))[0]
         if eventPlayer.look_target == null:
@@ -3962,7 +4175,8 @@ rule "Bot Pressure: Set Pressure Off":
     eventPlayer.stopForcingButton(Button.ULTIMATE)
     eventPlayer.ability_acc = 0
     eventPlayer.proj_type = 0
-    set_default_facing()
+    if eventPlayer.getCurrentHero() != Hero.MERCY:
+        set_default_facing()
     
 
 rule "Bot Pressure: Look Offset":
@@ -4358,8 +4572,8 @@ rule "Bot Abilities: Baby Dva Ultimate (All)":
     @Condition eventPlayer.getMaxHealth() == 150
     @Condition eventPlayer.bot_ability_lock[4] == false
 
-    wait(10 / ult_freq)
-    if random.randint(0,9) / ult_freq < 3:
+    wait(5 / ult_freq)
+    if random.randint(0,9) / ult_freq < 5:
         eventPlayer.bot_ability_lock[4] = true
         eventPlayer.forceButtonPress(Button.ULTIMATE)
         eventPlayer.bot_ability_lock[4] = false
@@ -4398,7 +4612,7 @@ rule "Bot Abilities: Dva Ultimate for Remech (BB2 + P + H)":
     @Condition eventPlayer.getMaxHealth() != 150
     @Condition eventPlayer.getNormalizedHealth() < 0.25
     
-    if random.randint(0,9) / ult_freq < 5:
+    if random.randint(0,9) / ult_freq < 3:
         dva_ult()
 
 
@@ -6631,6 +6845,8 @@ rule "Bot Abilities: Echo Ability 1 (All)":
     if eventPlayer.general_randomizer <= 1 and eventPlayer.isUsingAbility1():
         wait(0.1)
         eventPlayer.forceButtonPress(Button.ABILITY_1)
+    else:
+        wait(3)
     wait(6 / ability_freq)
     eventPlayer.bot_ability_lock[2] = false
     if RULE_CONDITION:
@@ -6657,6 +6873,8 @@ rule "Bot Abilities: Echo Ability 1 (Rd)":
     if eventPlayer.general_randomizer <= 1 and eventPlayer.isUsingAbility1():
         wait(0.1)
         eventPlayer.forceButtonPress(Button.ABILITY_1)
+    else:
+        wait(3)
     wait(6 / ability_freq)
     eventPlayer.bot_ability_lock[2] = false
     if RULE_CONDITION:
@@ -6903,16 +7121,13 @@ rule "Bot Abilities: Genji Ultimate (All)":
         eventPlayer.mvmt_type = alt_mvmt_array[2]
         while eventPlayer.isUsingUltimate():
             wait(random.uniform(0,1))
-            if eventPlayer.apply_pressure == false:
-                eventPlayer.startFacing(vect(random.uniform(-20,20) + eventPlayer.getEyePosition().x ,random.uniform(-5,20) + eventPlayer.getEyePosition().y ,random.uniform(-20,20) + eventPlayer.getEyePosition().z), default_turn_rate, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
-            else:
-                eventPlayer.proj_type = 3
-                set_proj_facing()
+            eventPlayer.proj_type = 3
+            set_proj_facing()
             wait(0.25)
             eventPlayer.forceButtonPress(Button.ABILITY_1)
             if eventPlayer.apply_pressure == true:
-                eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
                 set_default_facing()
+                eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
             wait(random.uniform(2,3), Wait.ABORT_WHEN_FALSE)
         eventPlayer.mvmt_type = default_mvmt_type
         eventPlayer.mvmt_type_lock = false
@@ -9502,9 +9717,10 @@ rule "Bot Ablities: Mercy Target (All)`":
     @Condition eventPlayer.old_look_target != eventPlayer.look_target
 
     eventPlayer.setWeapon(1)
+    set_healing_facing()
     eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
     eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
-    wait(0.25)
+    wait(0.25, Wait.ABORT_WHEN_FALSE)
     eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
 
 
@@ -9517,6 +9733,7 @@ rule "Bot Ablities: Mercy Healing (BB1)":
     @Condition eventPlayer.look_target.getNormalizedHealth() <= 0.90
     
     eventPlayer.setWeapon(1)
+    set_healing_facing()
     eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
     waitUntil(eventPlayer.look_target.getNormalizedHealth() == 1, 9999)
     eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
@@ -9532,6 +9749,9 @@ rule "Bot Ablities: Mercy Ability 1 (All)":
     @Condition bots_use_abilities == true
     @Condition eventPlayer.isAlive() == true
     
+    
+    eventPlayer.setWeapon(1)
+    set_healing_facing()
     wait(random.uniform(2.5, 5) / ability_freq, Wait.ABORT_WHEN_FALSE)
     eventPlayer.startForcingButton(Button.ABILITY_1)
     wait(random.uniform(0.5, 2))
