@@ -1,6 +1,6 @@
 settings {
     "main": {
-        "description": "Customizable Aim Trainer 4.1.3\n\nFeatures:\n◆ Customization for almost any setting\n◆ Pressure Mode: Bots shoot back at you\n◆ Multiple Bot Spawn Points\n◆ Reactive Bot AI\n◆ Choose from several different strafe patterns\n◆ And more...\n\nFind tutorials/help at workshop.codes/VXEAT\nReport bugs on my discord:discord.gg/YPQ5ETNT45\n",
+        "description": "Customizable Aim Trainer 4.1.6\n\nFeatures:\n◆ Customization for almost any setting\n◆ Pressure Mode: Bots shoot back at you\n◆ Multiple Bot Spawn Points\n◆ Reactive Bot AI\n◆ Choose from several different strafe patterns\n◆ And more...\n\nFind tutorials/help at workshop.codes/VXEAT\nReport bugs on my discord:discord.gg/YPQ5ETNT45\n",
         "modeName": "Customizable Aim Trainer - VXEAT"
     },
     "lobby": {
@@ -76,6 +76,7 @@ globalvar custom_strafe_points
 globalvar custom_bot_speed
 globalvar default_bot_diff
 globalvar bounce_amount
+globalvar strafe_relatvity
 ## Bot Hero Variables
 globalvar hero_array 
 globalvar hero_array_index
@@ -119,6 +120,7 @@ globalvar speed_score
 globalvar speed_base
 globalvar speed_increment
 globalvar speed_decrement
+globalvar speed_player
 globalvar speed_max_time
 ## Player Settings Variables
 globalvar player_list
@@ -615,6 +617,7 @@ rule "Initialize: Workshop Settings":
     custom_max_dist = createWorkshopSetting(int[0:200], "3.1. Bot Movement Modifiers", "Custom Distance Maximum Distance", 200, 11)
     custom_strafe_points = createWorkshopSetting(int[1:8], "3.1. Bot Movement Modifiers", "Fixed Shape Points", 2, 12)
     bounce_amount = createWorkshopSetting(int[0:100], "3.1. Bot Movement Modifiers", "Bouncing Bots (0 = off)", 0, 13)
+    strafe_relatvity = createWorkshopSetting(enum["To Player", "To World"], "3.1. Bot Movement Modifiers", "AD Strafe Relativity", 0, 14)
     # Pressure Mode
     pressure_type = createWorkshopSetting(enum["off", "killable", "unkillable"], "4. Bot Pressure (Overridden by in-game changes to pressure)", "Bots Apply Pressure", 0, 0)
     pressure_accuracy = createWorkshopSetting(int[1:100],  "4. Bot Pressure (Overridden by in-game changes to pressure)", "Bots Pressure Difficulty", 50, 1)
@@ -629,7 +632,7 @@ rule "Initialize: Workshop Settings":
     speed_max_time = createWorkshopSetting(float[0:60], "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Speed Mode Timer", 10, 1)
     speed_increment = createWorkshopSetting(int[0:100], "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Speed Mode Increment %", 10, 3)
     speed_decrement = createWorkshopSetting(int[0:100], "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Speed Mode Decrement %", 10, 4)
-
+    speed_player = createWorkshopSetting(bool, "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Speed Applies to Player", false, 5)
     # Bot Spawn
     use_custom_spawn = createWorkshopSetting(bool, "6. Custom Bot Spawn (Overridden by in-game changes to spawn)", "Use Custom Spawn Point", false, 0)
     spawn_radius = createWorkshopSetting(int[0:100], "6. Custom Bot Spawn (Overridden by in-game changes to spawn)", "Spawn Radius (in meters)", 19, 1)
@@ -697,12 +700,12 @@ rule "Initialize: Workshop Settings":
     bot_behavior.append(createWorkshopSetting(enum["Rocket Jump", "Rocket Jump, Self Bubble", "Rocket Jump, Self Bubble, Grav"], "8.1. Tank Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Zarya Bot Behavior", 0, 10))
     
     ## Damage Bot Behavior (index 11 - 27)
-    bot_behavior.append(createWorkshopSetting(enum["Coach Gun", "Coach Gun, Dynamite", "Coach GUn, Dynamite, B.O.B"], "8.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Ashe Bot Behavior", 1, 0))
+    bot_behavior.append(createWorkshopSetting(enum["None", "Scope", "Scope, Coach Gun", "Scope, Coach Gun, Dynamite", "Scope, Coach Gun, Dynamite, B.O.B"], "8.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Ashe Bot Behavior", 2, 0))
     bot_behavior.append(createWorkshopSetting(enum["Recon Form", "Recon Form, Assault Form", "Recon Form, Assault Form, Grenade", "Recon, Assault, Grenade, Artillery Form"], "8.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Bastion Bot Behavior", 2, 1))
     bot_behavior.append(createWorkshopSetting(enum["Roll", "Roll, Mag Nade", "Roll, Mag Nade, High Noon"], "8.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Cassidy Bot Behavior", 1, 2))
 	bot_behavior.append(createWorkshopSetting(enum["Flight", "Flight, Stickies", "Flight, Stickies, Beam"], "8.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Echo Bot Behavior", 2, 3))
     bot_behavior.append(createWorkshopSetting(enum["Dash", "Dash, Deflect", "Dash, Deflect, Dragonblade"], "8.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Genji Bot Behavior", 1, 4))
-    bot_behavior.append(createWorkshopSetting(enum["Lunge", "Lunge, Storm", "Lunge, Storm, Dragonstrike"], "8.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Hanzo Bot Behavior", 1, 5))
+    bot_behavior.append(createWorkshopSetting(enum["None", "Draw", "Draw, Lunge", "Draw, Lunge, Storm", "Draw, Lunge, Storm, Dragonstrike"], "8.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Hanzo Bot Behavior", 3, 5))
     bot_behavior.append(createWorkshopSetting(enum["Conc", "Conc, Trap", "Conc, Trap, Rip Tire"], "8.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Junkrat Bot Behavior", 0, 6))
     bot_behavior.append(createWorkshopSetting(enum["None", "Ice Block", "Ice Block, Wall", "Ice Block, Wall, Blizzard"], "8.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Mei Bot Behavior", 1, 7))
     bot_behavior.append(createWorkshopSetting(enum["Hover, Jump Jet", "Hover, Jump Jet, Conc", "Hover, Jump Jet, Conc, Rocket Barrage"], "8.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Pharah Bot Behavior", 0, 8))
@@ -713,10 +716,10 @@ rule "Initialize: Workshop Settings":
     bot_behavior.append(createWorkshopSetting(enum["None", "Teleporter", "Teleporter, Photon Barrier"], "8.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Symmetra Bot Behavior ", 1, 13))
     bot_behavior.append(createWorkshopSetting(enum["Overload", "Overload, Molten Core"], "8.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Torbjörn Bot Behavior", 0, 14))
     bot_behavior.append(createWorkshopSetting(enum["Blink", "Blink, Recall", "Blink, Recall, Pulse Bomb"], "8.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Tracer Bot Behavior", 1, 15))
-	bot_behavior.append(createWorkshopSetting(enum["None", "Grapple (Simulated)", "Grapple (Simulated), Venom Mine"], "8.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Widowmaker Bot Behavior", 1, 16))
+	bot_behavior.append(createWorkshopSetting(enum["None", "Scope", "Scope, Grapple (Simulated)", "Scope, Grapple (Simulated), Venom Mine"], "8.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Widowmaker Bot Behavior", 2, 16))
     
     ## Bot Support Heroes (index 28 - 36)
-    bot_behavior.append(createWorkshopSetting(enum["Sleep", "Sleep, Damage Nade", "Sleep, Damage + Self Nade"], "8.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Ana Bot Behavior", 1, 0))
+    bot_behavior.append(createWorkshopSetting(enum["None", "Scope", "Scope, Sleep", "Scope, Sleep, Damage Nade", "Scope, Sleep, Damage + Self Nade"], "8.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Ana Bot Behavior", 3, 0))
     bot_behavior.append(createWorkshopSetting(enum["Exo Boots", "Exo Boots, Regen", "Exo Boots, Regen, Immo", "Exo Boots, Regen, Immo, Amp. Matrix"], "8.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Baptiste Bot Behavior", 0, 1))
 	bot_behavior.append(createWorkshopSetting(enum["Whip Shot, Bash", "Whip Shot, Bash, Shield", "Whip Shot, Bash, Shield, Rally"], "8.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Brigitte Bot Behavior", 0, 2))
     bot_behavior.append(createWorkshopSetting(enum["Swift Step", "Swift Step, Suzu", "Swift Step, Suzu, Kitsune Rush"], "8.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Kiriko Bot Behavior", 1, 3))
@@ -1827,7 +1830,7 @@ def main_hud():
     
     # Stats that are always displayed
     hudSubtext(eventPlayer, "\n", HudPosition.LEFT, -9999, Color.WHITE, HudReeval.NONE, SpecVisibility.DEFAULT)
-    hudSubtext(eventPlayer, "Elims:  {0}".format(ceil(eventPlayer.stat_kills)), HudPosition.LEFT, 0.1, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubtext(eventPlayer, "Elims:  {0}  ".format(ceil(eventPlayer.stat_kills)), HudPosition.LEFT, 0.1, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     hudSubtext(eventPlayer, "Elims/min:  {0}".format(ceil(eventPlayer.stat_kills / (eventPlayer.stat_timer / 60))), HudPosition.LEFT, 0.2, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     hudSubtext(eventPlayer, "Accuracy:  {0}  %".format(ceil(100 * eventPlayer.getHeroStatistic(eventPlayer.getCurrentHero(), HeroStat.WEAPON_ACCURACY))), HudPosition.LEFT, 0.3, Color.LIME_GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     hudSubtext(eventPlayer, "Crit Accuracy:  {0}  %".format(ceil(100 * eventPlayer.getHeroStatistic(eventPlayer.getCurrentHero(), HeroStat.CRITICAL_HIT_ACCURACY))), HudPosition.LEFT, 0.4, Color.TURQUOISE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
@@ -2991,6 +2994,7 @@ def menu_act_cycle_bot_speed():
         custom_bot_speed = eventPlayer.menu_opt_value
         eventPlayer.menu_opt_value = custom_bot_speed
 
+    speed_base = custom_bot_speed
     menu_speed_set_text_and_color()
     getPlayers(Team.2).setMoveSpeed(custom_bot_speed)
 
@@ -3244,7 +3248,8 @@ def menu_act_toggle_speed():
     menu_status_io_toggle()
     if eventPlayer.menu_opt_value == 0:
         speed_mode_enabled = false
-        
+        if speed_player == true:
+            eventPlayer.custom_speed = 100
         getPlayers(Team.2).setMoveSpeed(custom_bot_speed)
         eventPlayer.item_visible[eventPlayer.menu_index+1] = false
         eventPlayer.item_visible[eventPlayer.menu_index+2] = false
@@ -3256,6 +3261,8 @@ def menu_act_toggle_speed():
         speed_multi = speed_base
         speed_score = speed_base
         speed_timer = speed_max_time
+        if speed_player == true:
+            eventPlayer.custom_speed = speed_base
         getPlayers(Team.2).setMoveSpeed(speed_base)
         eventPlayer.item_visible[eventPlayer.menu_index+1] = true
         eventPlayer.item_visible[eventPlayer.menu_index+2] = true
@@ -3557,6 +3564,8 @@ def initialize_bot():
     eventPlayer.startForcingName(hero_name_array[eventPlayer.curr_hero_index])
     if hero_array[eventPlayer.curr_hero_index] == Hero.ZARYA:
         eventPlayer.bot_ability_lock[2] = 2
+    elif hero_array[eventPlayer.curr_hero_index] == Hero.HANZO:
+        eventPlayer.bot_disable_jump = true
     elif hero_array[eventPlayer.curr_hero_index] == Hero.JUNKRAT:
         eventPlayer.bot_ability_lock[2] = 2
     elif hero_array[eventPlayer.curr_hero_index] == Hero.TRACER:
@@ -3592,6 +3601,17 @@ rule "Bot Died: Swap Hero":
         if eventPlayer.least_hero >= getNumberOfHeroes(bot_pool_array[eventPlayer.getSlot()][bot_index], Team.2):
             eventPlayer.least_hero = getNumberOfHeroes(bot_pool_array[eventPlayer.getSlot()][bot_index], Team.2)
             eventPlayer.next_hero_index = bot_index
+    # Reset Inputs
+    eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
+    eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
+    eventPlayer.stopForcingButton(Button.ABILITY_1)
+    eventPlayer.stopForcingButton(Button.ABILITY_2)
+    eventPlayer.stopForcingButton(Button.ULTIMATE)
+    eventPlayer.stopForcingButton(Button.CROUCH)
+    eventPlayer.stopForcingButton(Button.JUMP)
+    eventPlayer.stopForcingButton(Button.MELEE)
+    eventPlayer.stopForcingButton(Button.RELOAD)
+
     # res player
     wait(2)
     if getNumberOfLivingPlayers(Team.2) > 1:
@@ -3604,16 +3624,9 @@ rule "Bot Died: Swap Hero":
     else:
         eventPlayer.startForcingHero(bot_pool_array[eventPlayer.getSlot()][eventPlayer.next_hero_index])
 
-    eventPlayer.stopForcingButton(Button.ABILITY_1)
-    eventPlayer.stopForcingButton(Button.ABILITY_2)
-    eventPlayer.stopForcingButton(Button.CROUCH)
-    eventPlayer.stopForcingButton(Button.JUMP)
-    eventPlayer.stopForcingButton(Button.MELEE)
-    eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
-    eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
-    eventPlayer.stopForcingButton(Button.RELOAD)
-    eventPlayer.stopForcingButton(Button.ULTIMATE)
+    # Teleport to spawn location
     teleport_bot()
+    # Reset tank health
     eventPlayer.setHealth(eventPlayer.getMaxHealth())
 
 
@@ -3724,17 +3737,38 @@ rule "Bot Pathing: default pathing - Too close to path destination":
         goto RULE_START
 
 
-rule "Bot Pathing: Movement Handler - mvmt_type 3 AD Strafes":
+rule "Bot Pathing: Movement Handler - mvmt_type 3 AD Strafes TO_PLAYER":
     @Event eachPlayer
     @Team 2
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.mvmt_type == 3
+    @Condition strafe_relatvity == 0
     
-    eventPlayer.bot_pathing_var = random.randint(0, 1)
     if eventPlayer.bot_pathing_var == 0:
         eventPlayer.startThrottleInDirection(Vector.LEFT, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
+        eventPlayer.bot_pathing_var = 1
     else:
         eventPlayer.startThrottleInDirection(Vector.RIGHT, 1, Relativity.TO_PLAYER, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
+        eventPlayer.bot_pathing_var = 0
+    wait(random.uniform(mvmt_min_wait, mvmt_max_wait), Wait.ABORT_WHEN_FALSE)
+
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Pathing: Movement Handler - mvmt_type 3 AD Strafes TO_WORLD":
+    @Event eachPlayer
+    @Team 2
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.mvmt_type == 3
+    @Condition strafe_relatvity == 1
+    
+    if eventPlayer.bot_pathing_var == 0:
+        eventPlayer.startThrottleInDirection(Vector.LEFT, 1, Relativity.TO_WORLD, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
+        eventPlayer.bot_pathing_var = 1
+    else:
+        eventPlayer.startThrottleInDirection(Vector.RIGHT, 1, Relativity.TO_WORLD, Throttle.REPLACE_EXISTING, ThrottleReeval.DIRECTION_AND_MAGNITUDE)
+        eventPlayer.bot_pathing_var = 0
     wait(random.uniform(mvmt_min_wait, mvmt_max_wait), Wait.ABORT_WHEN_FALSE)
 
     if RULE_CONDITION:
@@ -4287,6 +4321,10 @@ rule "Speed Mode: Clear Hack Lucio (JPYHG)":
 def speed_mode_timer_reset():
     @Name "SUB: speed_mode_timer_reset (JPYHG)"
     
+    if speed_player == true:
+        eventPlayer.custom_speed = speed_multi
+        if eventPlayer.menu_visible == false:
+            getPlayers(Team.1).setMoveSpeed(speed_multi)
     getPlayers(Team.2).setMoveSpeed(speed_multi)
     speed_timer = speed_max_time
     chase(speed_timer, 0, rate=1, ChaseReeval.NONE)
@@ -6377,6 +6415,7 @@ rule "Bot Abilities: Ashe Scope (Pn)":
     @Team 2
     @Hero ashe
     @Condition bots_use_abilities == true
+    @Condition bot_behavior[11] >= 1
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.apply_pressure == false
     
@@ -6414,6 +6453,7 @@ rule "Bot Pressure: Ashe Primary Far (P)":
     @Event eachPlayer
     @Team 2
     @Hero ashe
+    @Condition bot_behavior[11] >= 1
     @Condition eventPlayer.apply_pressure == true
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.bot_ability_lock[3] == false
@@ -6439,6 +6479,7 @@ rule "Bot Abilities: Ashe Ability 1 (All)":
     @Team 2
     @Hero ashe
     @Condition bots_use_abilities == true
+    @Condition bot_behavior[11] >= 2
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.bot_ability_lock[2] == false
 
@@ -6462,6 +6503,7 @@ rule "Bot Abilities: Ashe Ability 1 (R)":
     @Hero ashe
     @Condition bots_use_abilities == true
     @Condition bots_react == true
+    @Condition bot_behavior[11] >= 2
     @Condition eventPlayer.apply_pressure == true
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.getNormalizedHealth() < 0.5
@@ -6489,6 +6531,7 @@ rule "Bot Abilities: Ashe Ability 1 (Rd)":
     @Hero ashe
     @Condition bots_use_abilities == true
     @Condition bots_react == true
+    @Condition bot_behavior[11] >= 2
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.bot_ability_lock[2] == false
     @Condition eventPlayer.look_target.player_used_dodge_cd > 0
@@ -6513,7 +6556,7 @@ rule "Bot Abilities: Ashe Ability 2 (P)":
     @Team 2
     @Hero ashe
     @Condition bots_use_abilities == true
-    @Condition bot_behavior[11] >= 1
+    @Condition bot_behavior[11] >= 3
     @Condition eventPlayer.apply_pressure == true
     @Condition eventPlayer.bot_ability_lock[3] == false
 
@@ -6539,7 +6582,7 @@ rule "Bot Abilities: Ashe Ultimate (BB2)":
     @Team 2
     @Hero ashe
     @Condition bots_use_abilities == true
-    @Condition bot_behavior[11] >= 2
+    @Condition bot_behavior[11] >= 4
     @Condition eventPlayer.apply_pressure == true
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.bot_ability_lock[4] == false
@@ -7147,6 +7190,7 @@ rule "Bot Abilities: Hanzo Primary (P)":
     @Event eachPlayer
     @Team 2
     @Hero hanzo
+    @Condition bot_behavior[16] >= 1
     @Condition eventPlayer.apply_pressure == true
     @Condition eventPlayer.isAlive() == true
 
@@ -7166,7 +7210,7 @@ rule "Bot Abilities: Hanzo Ability 2 (P + BB1)":
     @Team 2
     @Hero hanzo
     @Condition bots_use_abilities == true
-    @Condition bot_behavior[16] >= 1
+    @Condition bot_behavior[16] >= 3
     @Condition eventPlayer.apply_pressure == true
     @Condition eventPlayer.isAlive() == true
 
@@ -7183,8 +7227,8 @@ rule "Bot Abilities: Hanzo Ultimate (BB2)":
     @Event eachPlayer
     @Team 2
     @Hero hanzo
-    @Condition bots_use_abilities == true
-    @Condition bot_behavior[16] >= 2
+    
+    @Condition bot_behavior[16] >= 4
     @Condition eventPlayer.apply_pressure == true
     @Condition eventPlayer.isAlive() == true
     
@@ -7209,6 +7253,8 @@ rule "Bot Abilities: Hanzo Jump (All)":
     @Event eachPlayer
     @Team 2
     @Hero hanzo
+    @Condition bots_use_abilities == true
+    @Condition bot_behavior[16] >= 2
     @Condition default_jump_enabled == true
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.isOnGround() == true
@@ -7234,6 +7280,7 @@ rule "Bot Abilities: Hanzo Jump (Rd)":
     @Hero hanzo
     @Condition bots_use_abilities == true
     @Condition bots_react == true
+    @Condition bot_behavior[16] >= 2
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.isOnGround() == true
     @Condition eventPlayer.bot_ability_lock[1] == false
@@ -7258,6 +7305,7 @@ rule "Bot Abilities: Hanzo Draw (Pn)":
     @Team 2
     @Hero hanzo
     @Condition bots_use_abilities == true
+    @Condition bot_behavior[16] >= 1
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.apply_pressure == false
     
@@ -8678,6 +8726,7 @@ rule "Bot Abilities: Widowmaker Primary + Secondary Far (P)":
     @Event eachPlayer
     @Team 2
     @Hero widowmaker
+    @Condition bot_behavior[27] >= 1
     @Condition eventPlayer.apply_pressure == true
     @Condition eventPlayer.isAlive() == true
     @Condition distance(eventPlayer.getEyePosition(), eventPlayer.look_target.getEyePosition())  >= 7.5
@@ -8693,12 +8742,11 @@ rule "Bot Abilities: Widowmaker Primary + Secondary Far (P)":
         goto RULE_START
 
 
-
 rule "Bot Abilities: Widowmaker Scope (Np)":
     @Event eachPlayer
     @Team 2
     @Hero widowmaker
-    @Condition bots_use_abilities == true
+    @Condition bot_behavior[27] >= 1
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.apply_pressure == false
     
@@ -8709,12 +8757,13 @@ rule "Bot Abilities: Widowmaker Scope (Np)":
     if RULE_CONDITION:
         goto RULE_START
 
+
 rule "Bot Abilities Widowmaker Ability 1 Simulation (All)":
     @Event eachPlayer
     @Team 2
     @Hero widowmaker
     @Condition bots_use_abilities == true
-    @Condition bot_behavior[27] >= 1
+    @Condition bot_behavior[27] >= 2
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.bot_ability_lock[2] == false
 
@@ -8737,7 +8786,7 @@ rule "Bot Abilities: Widowmaker Ability 2 (R)":
     @Team 2
     @Hero widowmaker
     @Condition bots_use_abilities == true
-    @Condition bot_behavior[27] >= 2
+    @Condition bot_behavior[27] >= 3
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.bot_ability_lock[3] == false
     
@@ -8779,6 +8828,7 @@ rule "Bot Abilities: Ana Primary + Secondary Far (P)":
     @Event eachPlayer
     @Team 2
     @Hero ana
+    @Condition bot_behavior[28] >= 1
     @Condition eventPlayer.apply_pressure == true
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.bot_ability_signal[2] == false
@@ -8810,6 +8860,7 @@ rule "Bot Abilities: Ana Secondary (Pn)":
     @Event eachPlayer
     @Team 2
     @Hero ana
+    @Condition bot_behavior[28] >= 1
     @Condition bots_use_abilities == true
     @Condition eventPlayer.apply_pressure == false
     @Condition eventPlayer.isAlive() == true
@@ -8828,6 +8879,7 @@ rule "Bot Abilities: Ana Ability 1 (P)":
     @Team 2
     @Hero ana
     @Condition bots_use_abilities == true
+    @Condition bot_behavior[28] >= 2
     @Condition eventPlayer.apply_pressure == true
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.bot_ability_lock[2] == false
@@ -8855,6 +8907,7 @@ rule "Bot Abilities: Ana Ability 1 (P + Rs)":
     @Team 2
     @Hero ana
     @Condition bots_use_abilities == true
+    @Condition bot_behavior[28] >= 2
     @Condition eventPlayer.apply_pressure == true
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.bot_ability_lock[2] == false
@@ -8884,7 +8937,7 @@ rule "Bot Abilities: Ana Ability 2 Damage (P)":
     @Team 2
     @Hero ana
     @Condition bots_use_abilities == true
-    @Condition bot_behavior[28] >= 1
+    @Condition bot_behavior[28] >= 3
     @Condition eventPlayer.apply_pressure == true
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.bot_ability_lock[3] == false
@@ -8910,7 +8963,7 @@ rule "Bot Abilities: Ana Ability 2 Heal (R)":
     @Hero ana
     @Condition bots_use_abilities == true
     @Condition bots_react == true
-    @Condition bot_behavior[28] >= 2
+    @Condition bot_behavior[28] >= 4
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.bot_ability_lock[3] == false
     @Condition eventPlayer.getNormalizedHealth() <= 0.50
@@ -9286,9 +9339,11 @@ rule "Bot Ablities: Kiriko Ability 1 (H)":
     @Event eachPlayer
     @Team 2
     @Hero kiriko
+    @Condition bot_count > 1
     @Condition bots_use_abilities == true
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.getNormalizedHealth() <= 0.7
+
     
     #smallMessage(hostPlayer, "Debug: Kiri a1 H")
     set_healing_facing()
@@ -9342,11 +9397,10 @@ rule "Bot Ablities: Kiriko Ability 2 (Rd)":
     @Condition bots_use_abilities == true
     @Condition bots_react == true
     @Condition bot_behavior[31] >= 1
-    @Condition eventPlayer.apply_pressure == true
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.bot_ability_lock[3] == false
     @Condition eventPlayer.look_target.player_used_dodge_cd > 0
-    @Condition eventPlayer.look_target.player_used_dodge_cd >= eventPlayer.look_target.ability_react_chance * 2
+    @Condition eventPlayer.look_target.player_used_dodge_cd >= eventPlayer.look_target.ability_react_chance
     
     wait(random.uniform(0.25, 1), Wait.ABORT_WHEN_FALSE)
     #smallMessage(hostPlayer, "Debug: Kiri a2 Rd")
@@ -9716,8 +9770,8 @@ rule "Bot Ablities: Mercy Target (All)`":
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.old_look_target != eventPlayer.look_target
 
+    wait(0.1, Wait.ABORT_WHEN_FALSE)
     eventPlayer.setWeapon(1)
-    set_healing_facing()
     eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
     eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
     wait(0.25, Wait.ABORT_WHEN_FALSE)
@@ -9733,7 +9787,6 @@ rule "Bot Ablities: Mercy Healing (BB1)":
     @Condition eventPlayer.look_target.getNormalizedHealth() <= 0.90
     
     eventPlayer.setWeapon(1)
-    set_healing_facing()
     eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
     waitUntil(eventPlayer.look_target.getNormalizedHealth() == 1, 9999)
     eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
@@ -9748,10 +9801,7 @@ rule "Bot Ablities: Mercy Ability 1 (All)":
     @Hero mercy
     @Condition bots_use_abilities == true
     @Condition eventPlayer.isAlive() == true
-    
-    
-    eventPlayer.setWeapon(1)
-    set_healing_facing()
+
     wait(random.uniform(2.5, 5) / ability_freq, Wait.ABORT_WHEN_FALSE)
     eventPlayer.startForcingButton(Button.ABILITY_1)
     wait(random.uniform(0.5, 2))
