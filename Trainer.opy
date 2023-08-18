@@ -1,6 +1,6 @@
 settings {
     "main": {
-        "description": "Customizable Aim Trainer 4.1.6\n\nFeatures:\n◆ Customization for almost any setting\n◆ Pressure Mode: Bots shoot back at you\n◆ Multiple Bot Spawn Points\n◆ Reactive Bot AI\n◆ Choose from several different strafe patterns\n◆ And more...\n\nFind tutorials/help at workshop.codes/VXEAT\nReport bugs on my discord:discord.gg/YPQ5ETNT45\n",
+        "description": "Customizable Aim Trainer 4.2.1\n\nFeatures:\n◆ Customization for almost any setting\n◆ Pressure Mode: Bots shoot back at you\n◆ Multiple Bot Spawn Points\n◆ Reactive Bot AI\n◆ Choose from several different strafe patterns\n◆ And more...\n\nFind tutorials/help at workshop.codes/VXEAT\nReport bugs on my discord:discord.gg/YPQ5ETNT45\n",
         "modeName": "Customizable Aim Trainer - VXEAT"
     },
     "lobby": {
@@ -122,6 +122,8 @@ globalvar speed_increment
 globalvar speed_decrement
 globalvar speed_player
 globalvar speed_max_time
+globalvar speed_kill_count
+globalvar speed_kill_target
 ## Player Settings Variables
 globalvar player_list
 globalvar dmg_to_slot_array
@@ -628,11 +630,12 @@ rule "Initialize: Workshop Settings":
 
     # Speed Mode
     speed_mode_enabled = createWorkshopSetting(bool, "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Increase Bots Movement Speed Every Elimination (JPYHG)", false, 0)
-    speed_base = createWorkshopSetting(int[0:1000], "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Speed Mode Base Speed", 100, 2)
-    speed_max_time = createWorkshopSetting(float[0:60], "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Speed Mode Timer", 10, 1)
-    speed_increment = createWorkshopSetting(int[0:100], "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Speed Mode Increment %", 10, 3)
-    speed_decrement = createWorkshopSetting(int[0:100], "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Speed Mode Decrement %", 10, 4)
-    speed_player = createWorkshopSetting(bool, "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Speed Applies to Player", false, 5)
+    speed_player = createWorkshopSetting(bool, "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Speed Applies to Player", false, 1)
+    speed_max_time = createWorkshopSetting(float[0:120], "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Speed Mode Timer (s)", 10, 2)
+    speed_base = createWorkshopSetting(int[0:1000], "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Speed Mode Base Speed (%)", 100, 3)
+    speed_increment = createWorkshopSetting(int[0:100], "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Speed Mode Increment (%)", 10, 4)
+    speed_decrement = createWorkshopSetting(int[0:100], "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Speed Mode Decrement (%)", 10, 5)
+    speed_kill_target = createWorkshopSetting(int[1:100], "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Kills to Increment Speed", 1, 6)
     # Bot Spawn
     use_custom_spawn = createWorkshopSetting(bool, "6. Custom Bot Spawn (Overridden by in-game changes to spawn)", "Use Custom Spawn Point", false, 0)
     spawn_radius = createWorkshopSetting(int[0:100], "6. Custom Bot Spawn (Overridden by in-game changes to spawn)", "Spawn Radius (in meters)", 19, 1)
@@ -677,12 +680,13 @@ rule "Initialize: Workshop Settings":
     default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Ana", true, 0))
     default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Baptiste", true, 1))
 	default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Brigitte", true, 2))
-    default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Kiriko", true, 3))
-    default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Lifeweaver", true, 4))
-    default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Lúcio", true, 4))
-    default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Mercy", true, 5))
-    default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Moira", true, 6))
-    default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Zenyatta", true, 7))
+    default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Illari", true, 3))
+    default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Kiriko", true, 4))
+    default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Lifeweaver", true, 5))
+    default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Lúcio", true, 6))
+    default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Mercy", true, 7))
+    default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Moira", true, 8))
+    default_hero_array.append(createWorkshopSetting(bool, "7.3. Bot Support Heroes (Overridden by in-game changes to bot heroes)", "Zenyatta", true, 9))
     
     # Bot Behavior
     enable_all_abilities = createWorkshopSetting(bool, "8. Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Enable All Bot Abilities", false, 0)
@@ -722,12 +726,13 @@ rule "Initialize: Workshop Settings":
     bot_behavior.append(createWorkshopSetting(enum["None", "Scope", "Scope, Sleep", "Scope, Sleep, Damage Nade", "Scope, Sleep, Damage + Self Nade"], "8.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Ana Bot Behavior", 3, 0))
     bot_behavior.append(createWorkshopSetting(enum["Exo Boots", "Exo Boots, Regen", "Exo Boots, Regen, Immo", "Exo Boots, Regen, Immo, Amp. Matrix"], "8.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Baptiste Bot Behavior", 0, 1))
 	bot_behavior.append(createWorkshopSetting(enum["Whip Shot, Bash", "Whip Shot, Bash, Shield", "Whip Shot, Bash, Shield, Rally"], "8.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Brigitte Bot Behavior", 0, 2))
-    bot_behavior.append(createWorkshopSetting(enum["Swift Step", "Swift Step, Suzu", "Swift Step, Suzu, Kitsune Rush"], "8.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Kiriko Bot Behavior", 1, 3))
-    bot_behavior.append(createWorkshopSetting(enum["Dash", "Dash, Platform", "Dash, Platform, Life Grip", "Dash, Platform, Life Grip, Tree"], "8.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Lifeweaver Bot Behavior", 1, 4))
-    bot_behavior.append(createWorkshopSetting(enum["Speed Aura", "Speed Aura, Amp", "Speed Aura, Amp, Boop", "Speed + Healing Aura, Amp, Boop", "Speed + Healing Aura, Amp, Boop, Beat"], "8.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Lúcio Bot Behavior", 1, 4))
-    bot_behavior.append(createWorkshopSetting(enum["GA, Damage Boost", "GA, Damage + Healing Boost", "GA, Damage + Healing Boost, Valkyrie"], "8.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Mercy Bot Behavior", 0, 5))
-    bot_behavior.append(createWorkshopSetting(enum["Fade", "Fade, Damage Orb", "Fade, Damage + Heal Orb", "Fade, Damage + Heal Orb, Coalescence"], "8.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Moira Bot Behavior", 1, 6))
-    bot_behavior.append(createWorkshopSetting(enum["Volley", "Volley, Discord", "Volley, Discord, Transcendence"], "8.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Zenyatta Bot Behavior", 1, 7))
+    bot_behavior.append(createWorkshopSetting(enum["None", "Outburst", "Outburst, Captive Sun"], "8.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Illari Bot Behavior", 2, 3))
+    bot_behavior.append(createWorkshopSetting(enum["Swift Step", "Swift Step, Suzu", "Swift Step, Suzu, Kitsune Rush"], "8.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Kiriko Bot Behavior", 1, 4))
+    bot_behavior.append(createWorkshopSetting(enum["Dash", "Dash, Platform", "Dash, Platform, Life Grip", "Dash, Platform, Life Grip, Tree"], "8.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Lifeweaver Bot Behavior", 1, 5))
+    bot_behavior.append(createWorkshopSetting(enum["Speed Aura", "Speed Aura, Amp", "Speed Aura, Amp, Boop", "Speed + Healing Aura, Amp, Boop", "Speed + Healing Aura, Amp, Boop, Beat"], "8.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Lúcio Bot Behavior", 1, 6))
+    bot_behavior.append(createWorkshopSetting(enum["GA, Damage Boost", "GA, Damage + Healing Boost", "GA, Damage + Healing Boost, Valkyrie"], "8.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Mercy Bot Behavior", 0, 7))
+    bot_behavior.append(createWorkshopSetting(enum["Fade", "Fade, Damage Orb", "Fade, Damage + Heal Orb", "Fade, Damage + Heal Orb, Coalescence"], "8.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Moira Bot Behavior", 1, 8))
+    bot_behavior.append(createWorkshopSetting(enum["Volley", "Volley, Discord", "Volley, Discord, Transcendence"], "8.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Zenyatta Bot Behavior", 1, 9))
 
 
 rule "Initialize: Setup":
@@ -922,7 +927,7 @@ rule "Initialize: Static Global Variables":
     hero_react_block[hero_array_index] = [0.50, 0.75, 0.00, 0.75, 0.00]
     hero_react_dodge[hero_array_index] = [0.00, 0.75, 0.00, 0.75, 0.00]
     hero_react_stun[hero_array_index] = [0.00, 0.00, 0.00, 0.00, 0.00]
-    hero_name_array[hero_array_index] = "Speedily"
+    hero_name_array[hero_array_index] = "Pelican"
 
     hero_array_index += 1
     hero_array[hero_array_index] = Hero.GENJI
@@ -970,7 +975,7 @@ rule "Initialize: Static Global Variables":
     hero_react_block[hero_array_index] = [0.75, 0.50, 0.00, 0.00, 0.00]
     hero_react_dodge[hero_array_index] = [0.00, 0.00, 0.00, 0.00, 0.90]
     hero_react_stun[hero_array_index] = [0.00, 0.00, 0.00, 0.00, 0.00]
-    hero_name_array[hero_array_index] = "Pelican"
+    hero_name_array[hero_array_index] = "Boneback"
 
     hero_array_index += 1
     hero_array[hero_array_index] = Hero.PHARAH
@@ -1054,7 +1059,7 @@ rule "Initialize: Static Global Variables":
     hero_react_block[hero_array_index] = [0.50, 0.50, 0.00, 0.00, 0.90]
     hero_react_dodge[hero_array_index] = [0.00, 0.00, 0.00, 0.00, 0.90]
     hero_react_stun[hero_array_index] = [0.00, 0.00, 0.00, 0.00, 0.00]
-    hero_name_array[hero_array_index] = "Nero"
+    hero_name_array[hero_array_index] = "Mirror"
 
     hero_array_index += 1
     hero_array[hero_array_index] = Hero.TRACER
@@ -1117,6 +1122,18 @@ rule "Initialize: Static Global Variables":
     hero_name_array[hero_array_index] = "Skewed"
 
     hero_array_index += 1
+    hero_array[hero_array_index] = Hero.ILLARI
+    hero_proj_speed[hero_array_index] = [0,0,0,0,32.5]
+    hero_proj_gravity[hero_array_index] = [0,0,0,0,0]
+    hero_proj_delta[hero_array_index] = [0,0,0,0,0]
+    hero_react_response[hero_array_index] = [1.00, 1.00, 1.00, 1.00, 1.00]
+    hero_react_eat[hero_array_index] = [0.00, 0.0, 0.00, 0.0, 1.00]
+    hero_react_block[hero_array_index] = [0.00, 0.0, 0.00, 0.00, 1.00]
+    hero_react_dodge[hero_array_index] = [0.00, 0.00, 0.00, 0.00, 1.00]
+    hero_react_stun[hero_array_index] = [0.00, 0.00, 0.00, 0.00, 0.00]
+    hero_name_array[hero_array_index] = "Crimzo"
+
+    hero_array_index += 1
     hero_array[hero_array_index] = Hero.KIRIKO
     hero_proj_speed[hero_array_index] = [20,90,0,35,0]
     hero_proj_gravity[hero_array_index] = [0,0,0,9.84,0]
@@ -1177,7 +1194,7 @@ rule "Initialize: Static Global Variables":
     hero_name_array[hero_array_index] = "Viol2t"
 
     hero_array_index += 1
-    hero_array[36] = Hero.ZENYATTA
+    hero_array[hero_array_index] = Hero.ZENYATTA
     hero_proj_speed[hero_array_index] = [90,90,90,90,0]
     hero_proj_gravity[hero_array_index] = [0,0,0,0,0]
     hero_proj_delta[hero_array_index] = [0,0,0,0,0]
@@ -1282,6 +1299,7 @@ rule "Initialize Dynamic Global Variables":
     else:
         spawn_type = 1
 
+    speed_kill_count = 0
     # Starts generating all the bots
     data_loaded[1] = true
     wait(2)
@@ -1846,6 +1864,9 @@ def main_hud():
     "\nSpeed High Score:  {0}%".format(speed_score), HudPosition.RIGHT, -0.99, Color.BLACK, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     hudSubtext([i for i in eventPlayer if speed_mode_enabled == true], 
     "Speed Multiplier:  {0}%".format(speed_multi), HudPosition.RIGHT,  -0.98, Color.LIME_GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    if speed_kill_target > 1:
+        hudSubtext([i for i in eventPlayer if speed_mode_enabled == true], 
+        "Kills:  {0} / {1}".format(speed_kill_count, speed_kill_target), HudPosition.RIGHT,  -0.97, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     #Speed Mode Data
     hudSubtext([i for i in eventPlayer if speed_mode_enabled == true], 
     "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n{0}".format(speed_timer), HudPosition.TOP, 666, Color.GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
@@ -4281,16 +4302,20 @@ rule "Speed Mode: Kill Action (JPYHG)":
     @Team 1
     @Condition speed_mode_enabled == true
     
-    speed_multi += speed_increment
-    if speed_multi > speed_score:
-        speed_score = speed_multi
-    speed_mode_timer_reset()
+    speed_kill_count += 1
+    if speed_kill_count == speed_kill_target:
+        speed_kill_count = 0
+        speed_multi += speed_increment
+        if speed_multi > speed_score:
+            speed_score = speed_multi
+        speed_mode_timer_reset()
 
 
 rule "Speed Mode: Timer Action (JPYHG)":
     @Condition speed_timer == 0
     @Condition speed_mode_enabled == true
 
+    speed_kill_count = 0
     if (speed_multi - speed_increment) > speed_base:
         speed_multi -= speed_decrement
     else:
@@ -6889,7 +6914,19 @@ rule "Bot Abilities: Echo Ability 1 (All)":
         wait(0.1)
         eventPlayer.forceButtonPress(Button.ABILITY_1)
     else:
-        wait(3)
+        eventPlayer.startForcingButton(Button.JUMP)
+        while eventPlayer.isUsingAbility1():
+            eventPlayer.general_randomizer = random.randint(0,3)
+            if eventPlayer.general_randomizer == 0:
+                eventPlayer.startForcingButton(Button.CROUCH)
+                wait(random.randint(0,0.5))
+                eventPlayer.stopForcingButton(Button.CROUCH)
+            elif eventPlayer.general_randomizer >= 2: 
+                eventPlayer.startForcingButton(Button.JUMP)
+                wait(random.randint(0,0.5))
+                eventPlayer.stopForcingButton(Button.JUMP)
+        if eventPlayer.general_randomizer >= 2:
+            eventPlayer.startForcingButton(Button.JUMP)
     wait(6 / ability_freq)
     eventPlayer.bot_ability_lock[2] = false
     if RULE_CONDITION:
@@ -9317,6 +9354,103 @@ def brig_whip_shot():
     eventPlayer.bot_ability_signal[2] = false
 
 
+## Illari Bot Abilities
+rule "Bot Ablities: Illari Primary (P)":
+    @Event eachPlayer
+    @Team 2
+    @Hero illari
+    @Condition eventPlayer.apply_pressure == true
+    @Condition eventPlayer.isAlive() == true
+
+    eventPlayer.ability_acc = 3
+    set_default_facing()
+    wait(0.5)
+    eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
+    wait(9999,Wait.ABORT_WHEN_FALSE)
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Ablities: Illari Ability 1 Random":
+    @Event eachPlayer
+    @Team 2
+    @Hero illari
+    @Condition bots_use_abilities == true
+    @Condition bot_behavior[31] >= 1
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.bot_ability_lock[3] == false
+    
+    wait(random.randint(2,10) / ability_freq, Wait.ABORT_WHEN_FALSE)
+    eventPlayer.bot_ability_lock[3] = true
+    eventPlayer.startForcingButton(Button.ABILITY_1)
+    wait(7 / ability_freq)
+    eventPlayer.bot_ability_lock[3] = false
+    
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Ablities: Illari Ability 1 Proximity (P)":
+    @Event eachPlayer
+    @Team 2
+    @Hero illari
+    @Condition bots_use_abilities == true
+    @Condition bot_behavior[31] >= 1
+    @Condition eventPlayer.apply_pressure == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.bot_ability_lock[3] == false
+    @Condition distance(eventPlayer.getEyePosition(), eventPlayer.look_target.getEyePosition()) <= 8.5
+    
+    wait(random.randint(0.5,2), Wait.ABORT_WHEN_FALSE)
+    eventPlayer.bot_ability_lock[3] = true
+    eventPlayer.startForcingButton(Button.ABILITY_1)
+    wait(7 / ability_freq)
+    eventPlayer.bot_ability_lock[3] = false
+    
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Bot Abilities: Illari Ultimate ":
+    @Event eachPlayer
+    @Team 2
+    @Hero illari
+    @Condition bots_use_abilities == true
+    @Condition bot_behavior[31] >= 2
+    @Condition eventPlayer.isAlive() == true
+
+    wait(10 / ult_freq)
+    eventPlayer.general_randomizer = random.randint(0,9) / ult_freq
+    if eventPlayer.general_randomizer < 3:
+        eventPlayer.forceButtonPress(Button.ULTIMATE)
+        if eventPlayer.isUsingUltimate() == true:
+            eventPlayer.startForcingButton(Button.JUMP)
+                set_default_facing()
+            wait(random.uniform(1.2,4.5))
+            if eventPlayer.apply_pressure == true:
+                eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
+                wait(0.1)
+                eventPlayer.startForcingButton(Button.PRIMARY_FIRE)
+            else:
+                eventPlayer.startFacing(vect(0, 9999, 0), 9999, Relativity.TO_WORLD, FacingReeval.NONE)
+                wait(0.25)
+                eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
+                set_default_facing()
+            eventPlayer.stopForcingButton(Button.JUMP)
+            while eventPlayer.isUsingUltimate():
+                eventPlayer.general_randomizer = random.randint(0,2)
+                if eventPlayer.general_randomizer == 0:
+                    eventPlayer.startForcingButton(Button.CROUCH)
+                    wait(random.randint(0,0.5))
+                    eventPlayer.stopForcingButton(Button.CROUCH)
+                elif eventPlayer.general_randomizer == 1: 
+                    eventPlayer.startForcingButton(Button.JUMP)
+                    wait(random.randint(0,0.5))
+                    eventPlayer.stopForcingButton(Button.JUMP)
+        wait(10 / ult_freq)
+
+    if RULE_CONDITION:
+        goto RULE_START
 ### Kiriko Bot Abilities
 rule "Bot Abilities: Kiriko Secondary (P)":
     @Event eachPlayer
@@ -9367,7 +9501,7 @@ rule "Bot Ablities: Kiriko Ability 2 (H)":
     @Team 2
     @Hero kiriko
     @Condition bots_use_abilities == true
-    @Condition bot_behavior[31] >= 1
+    @Condition bot_behavior[32] >= 1
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.getNormalizedHealth() <= 0.4
     @Condition eventPlayer.is_healing_facing == false
@@ -9396,7 +9530,7 @@ rule "Bot Ablities: Kiriko Ability 2 (Rd)":
     @Hero kiriko
     @Condition bots_use_abilities == true
     @Condition bots_react == true
-    @Condition bot_behavior[31] >= 1
+    @Condition bot_behavior[32] >= 1
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.bot_ability_lock[3] == false
     @Condition eventPlayer.look_target.player_used_dodge_cd > 0
@@ -9423,7 +9557,7 @@ rule "Bot Ablities: Kiriko Ultimate (BB2)":
     @Team 2
     @Hero kiriko
     @Condition bots_use_abilities == true
-    @Condition bot_behavior[31] >= 2
+    @Condition bot_behavior[32] >= 2
     @Condition eventPlayer.isAlive() == true
 
     wait(10 / ult_freq)
@@ -9435,7 +9569,6 @@ rule "Bot Ablities: Kiriko Ultimate (BB2)":
         goto RULE_START
 
 
-
 ### Lifeweaver Bot Abilities
 rule "Bot Abilities Lifeweaver 2nd Weapon Primary (P)":
     @Event eachPlayer
@@ -9444,6 +9577,7 @@ rule "Bot Abilities Lifeweaver 2nd Weapon Primary (P)":
     @Condition eventPlayer.apply_pressure == true
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.bot_ability_signal[1] == false
+    
 
    eventPlayer.ability_acc = 2
    eventPlayer.proj_type = 2
@@ -9459,7 +9593,7 @@ rule "Bot Abilities Lifeweaver Ability 1 (BB1)":
     @Team 2
     @Hero lifeweaver
     @Condition bots_use_abilities == true
-    @Condition bot_behavior[32] >= 1
+    @Condition bot_behavior[33] >= 1
     @Condition eventPlayer.isAlive() == true
  
     wait(random.uniform(5,10) / ability_freq, Wait.ABORT_WHEN_FALSE)
@@ -9529,7 +9663,7 @@ rule "Bot Abilities Lifeweaver Ability 2 (BB2)":
     @Team 2
     @Hero lifeweaver
     @Condition bots_use_abilities == true
-    @Condition bot_behavior[32] >= 2
+    @Condition bot_behavior[33] >= 2
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.bot_ability_lock[3] == false
  
@@ -9556,7 +9690,7 @@ rule "Bot Abilities Lifeweaver Ultimate (BB3)":
     @Team 2
     @Hero lifeweaver
     @Condition bots_use_abilities == true
-    @Condition bot_behavior[32] >= 3
+    @Condition bot_behavior[33] >= 3
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.bot_ability_lock[4] == false
  
@@ -9599,7 +9733,7 @@ rule "Bot Abilities: Lucio Secondary (BB2)":
     @Team 2
     @Hero lucio
     @Condition bots_use_abilities == true
-    @Condition bot_behavior[33] >= 2
+    @Condition bot_behavior[34] >= 2
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.getNormalizedHealth() != 1
     @Condition distance(eventPlayer.getEyePosition(), eventPlayer.look_target.getEyePosition()) < 7.75
@@ -9631,7 +9765,7 @@ rule "Bot Abilities: Lucio Ability 2 (BB1 + Rd)":
     @Hero lucio
     @Condition bots_use_abilities == true
     @Condition bots_react == true
-    @Condition bot_behavior[32] >= 1
+    @Condition bot_behavior[34] >= 1
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.bot_ability_lock[3] == false
     @Condition eventPlayer.look_target.player_used_dodge_cd > 0
@@ -9652,7 +9786,7 @@ rule "Bot Abilities: Lucio Ability 2 Random (BB1)":
     @Team 2
     @Hero lucio
     @Condition bots_use_abilities == true
-    @Condition bot_behavior[32] >= 1
+    @Condition bot_behavior[34] >= 1
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.bot_ability_lock[3] == false
     
@@ -9671,7 +9805,7 @@ rule "Bot Abilities: Lucio Ability 2 Heal (BB1)":
     @Team 2
     @Hero lucio
     @Condition bots_use_abilities == true
-    @Condition bot_behavior[33] >= 3
+    @Condition bot_behavior[34] >= 3
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.bot_ability_lock[3] == false
     @Condition eventPlayer.getNormalizedHealth() <= 0.5
@@ -9692,7 +9826,7 @@ rule "Bot Ablities: Lucio Ultimate Random (BB4)":
     @Team 2
     @Hero lucio
     @Condition bots_use_abilities == true
-    @Condition bot_behavior[33] >= 4
+    @Condition bot_behavior[34] >= 4
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.bot_ability_lock[4] == false
 
@@ -9711,7 +9845,7 @@ rule "Bot Ablities: Lucio Ultimate AJAX Simulator (BB4 + H)":
     @Team 2
     @Hero lucio
     @Condition bots_use_abilities == true
-    @Condition bot_behavior[33] >= 4
+    @Condition bot_behavior[34] >= 4
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.getNormalizedHealth() <= 0.25
     @Condition eventPlayer.bot_ability_lock[4] == false
@@ -9782,7 +9916,7 @@ rule "Bot Ablities: Mercy Healing (BB1)":
     @Event eachPlayer
     @Team 2
     @Hero mercy
-    @Condition bot_behavior[34] >= 1
+    @Condition bot_behavior[35] >= 1
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.look_target.getNormalizedHealth() <= 0.90
     
@@ -9850,7 +9984,7 @@ rule "Bot Ablities: Mercy Ultimate (BB2)":
     @Team 2
     @Hero mercy
     @Condition bots_use_abilities == true
-    @Condition bot_behavior[34] >= 2
+    @Condition bot_behavior[35] >= 2
     @Condition eventPlayer.isAlive() == true
 
     wait(10 / ult_freq)
@@ -9922,7 +10056,7 @@ rule "Bot Abilities: Moira Ability 2 Damage (BB1 + P)":
     @Team 2
     @Hero moira
     @Condition bots_use_abilities == true
-    @Condition bot_behavior[35] >= 1
+    @Condition bot_behavior[36] >= 1
     @Condition eventPlayer.apply_pressure == true
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.bot_ability_lock[3] == false
@@ -9951,7 +10085,7 @@ rule "Bot Abilities: Moira Ability 2 Heal (BB2)":
     @Team 2
     @Hero moira
     @Condition bots_use_abilities == true
-    @Condition bot_behavior[35] >= 2
+    @Condition bot_behavior[36] >= 2
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.getNormalizedHealth() <= 0.5
     @Condition eventPlayer.bot_ability_lock[3] == false
@@ -9977,7 +10111,7 @@ rule "Bot Abilities: Moira Ulitmate (BB3)":
     @Team 2
     @Hero moira
     @Condition bots_use_abilities == true
-    @Condition bot_behavior[35] >= 3
+    @Condition bot_behavior[36] >= 3
     @Condition eventPlayer.apply_pressure == true
     @Condition eventPlayer.isAlive() == true
 
@@ -10033,7 +10167,7 @@ rule "Bot Abilities: Zenyatta Ability 2 (BB1 + P)":
     @Team 2
     @Hero zenyatta
     @Condition bots_use_abilities == true
-    @Condition bot_behavior[36] >= 1
+    @Condition bot_behavior[37] >= 1
     @Condition eventPlayer.apply_pressure == true
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.isUsingAbility2() == false
@@ -10067,7 +10201,7 @@ rule "Bot Abilities: Zenyatta Ultimate Random (BB3)":
     @Team 2
     @Hero zenyatta
     @Condition bots_use_abilities == true
-    @Condition bot_behavior[36] >= 2
+    @Condition bot_behavior[37] >= 2
     @Condition eventPlayer.isAlive() == true
 
     wait(10 / ult_freq)
