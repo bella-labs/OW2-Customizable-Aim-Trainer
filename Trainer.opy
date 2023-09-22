@@ -1,6 +1,6 @@
 settings {
     "main": {
-        "description": "Customizable Aim Trainer 4.2.1\n\nFeatures:\n◆ Customization for almost any setting\n◆ Pressure Mode: Bots shoot back at you\n◆ Multiple Bot Spawn Points\n◆ Reactive Bot AI\n◆ Choose from several different strafe patterns\n◆ And more...\n\nFind tutorials/help at workshop.codes/VXEAT\nReport bugs on my discord:discord.gg/YPQ5ETNT45\n",
+        "description": "Customizable Aim Trainer 4.3\n\nFeatures:\n◆ Customization for almost any setting\n◆ Pressure Mode: Bots shoot back at you\n◆ Multiple Bot Spawn Points\n◆ Reactive Bot AI\n◆ Choose from several different strafe patterns\n◆ And more...\n\nFind tutorials/help at workshop.codes/VXEAT\nReport bugs on my discord:discord.gg/YPQ5ETNT45\n",
         "modeName": "Customizable Aim Trainer - VXEAT"
     },
     "lobby": {
@@ -28,18 +28,11 @@ settings {
                 "secondaryFireMaximumTime%": 500,
                 "secondaryFireRechargeRate%": 500,
                 "ability1Cooldown%": 0,
-                "enableInfiniteAmmo": true
             }
         },
         "allTeams": {
-            "doomfist": {
-                "ability2Cooldown%": 10
-            },
-            "echo": {
-                "ability1Cooldown%": 10,
-            },
             "general": {
-                "abilityCooldown%": 0,
+                "abilityCooldown%": 10,
                 "enableSpawningWithUlt": true,
                 "ultGen%": 500,
                 "combatUltGen%": 500,
@@ -112,6 +105,7 @@ globalvar ability_freq
 ## Pressure Mode Variables
 globalvar pressure_type
 globalvar pressure_accuracy
+globalvar pressure_beam
 ## Speed Mode Variables
 globalvar speed_mode_enabled
 globalvar speed_timer
@@ -132,13 +126,22 @@ globalvar heal_over_time
 globalvar punish_deaths
 globalvar show_recall
 ## Global Menu Variables
-### UI Options
+### Server Settings
 globalvar show_debug_info
+globalvar privileged_host
+globalvar match_timer
+### UI Options
 globalvar show_main_hud
 globalvar console_ui
 ### Menu Effect Variables
 globalvar splash_text
 globalvar ring_effect
+## Menu Item Variables
+globalvar menu_opt_size
+globalvar menu_off_opt_title
+globalvar menu_on_opt_title
+globalvar menu_off_opt_color
+globalvar menu_on_opt_color
 ### Menu Item Colors
 globalvar default_menu_label_color
 globalvar default_menu_off_index_color
@@ -152,6 +155,15 @@ globalvar opt_array_pressure
 globalvar alt_mvmt_array
 # Loading Wait Flag
 globalvar data_loaded
+
+
+### TESTTTTT
+globalvar menu_label
+globalvar submenu_start_index
+globalvar menu_max_pos
+globalvar menu_label_size
+globalvar menu_label_color
+globalvar sub_size 
 
 #Player variables
 ## Facing Variables
@@ -222,26 +234,19 @@ playervar menu_max_pos
 playervar menu_reset_bots
 playervar menu_wait
 ### Menu Label Variables
-playervar menu_label
-playervar menu_label_size
-playervar menu_label_color
 ### Menu Option Variables
-playervar menu_opt_size
-playervar menu_off_opt_title
-playervar menu_on_opt_title
 playervar menu_opt_var
 playervar menu_opt_status
 playervar menu_opt_value
 playervar menu_opt_len
-playervar menu_off_opt_color
-playervar menu_on_opt_color
-playervar item_visible
+playervar menu_item_hidden
+playervar menu_label_hidden
 ### Bar Variables
 playervar bar_title
 playervar bar_var
 playervar bar_color
 ### Submenu Variables
-playervar submenu_start_index
+
 playervar submenu_index
 playervar sub_size
 playervar menu_substart_value
@@ -294,20 +299,19 @@ subroutine calc_arc_proj_lead
 ## Player Modifiers
 subroutine reset_player_resources
 subroutine speed_mode_timer_reset
-## Hud Gen
-subroutine main_hud
+## Hud Generation
+subroutine stats_hud
+subroutine settings_prompt_hud
 subroutine menu_hud
 subroutine misc_hud
 ## Player Menu
 ### Menu Defaults
-subroutine default_menu_variables
+subroutine default_player_menu
 ### Menu Navigation Actions
 subroutine enable_player_input
 subroutine menu_up_check
 subroutine menu_down_check
 subroutine ring_check
-### Menu Prompt
-subroutine create_settings_prompt
 ### Menu Labels
 subroutine increment_for_menu_label
 subroutine new_menu_label_header
@@ -369,6 +373,8 @@ subroutine menu_hero_bar_color_set
 subroutine menu_pressure_cycle_color_set
 subroutine menu_speed_set_text_and_color
 ## Bot Abilities
+subroutine ashe_scoped
+subroutine ashe_spam
 subroutine winston_ult
 subroutine dva_ult
 subroutine doomfist_ult
@@ -379,6 +385,7 @@ subroutine brig_whip_shot
 
 #!extension spawnMoreDummyBots
 #!extension buffStatusEffects
+#!extension beamEffects
 
 
 rule "---->    Multipoint Spawn Settings: (Edit here for multipoint spawn preset)    <----":
@@ -526,6 +533,7 @@ def set_map_default_spawn_pt():
             default_spawn_pt = vect(0, 96, 140)
         ## Control Center
         elif getCurrentObjective() == 2:
+            default_spawn_pt = vect(1, 270, 290)
     elif getCurrentMap() == Map.LIJIANG_TOWER_LNY:
         ## Night Market
         if getCurrentObjective() == 0:
@@ -535,7 +543,7 @@ def set_map_default_spawn_pt():
             default_spawn_pt = vect(0, 96, 140)
         ## Control Center
         elif getCurrentObjective() == 2:    
-            default_spawn_pt = vect(0, 273, 280)
+            default_spawn_pt = vect(1, 270, 290)
     elif getCurrentMap() == Map.NEPAL:
         ## Village
         if getCurrentObjective() == 0:
@@ -546,6 +554,8 @@ def set_map_default_spawn_pt():
         ## Sanctum
         elif getCurrentObjective() == 2:
             default_spawn_pt = vect(83, 130, 0)
+    elif getCurrentMap() == Map.NEW_JUNK_CITY:
+        default_spawn_pt = vect(0, 10, 0)
     elif getCurrentMap() == Map.NEW_QUEEN_STREET:
         default_spawn_pt = vect(0, 7, 4)
     # Numbani not supported by overpy yet.
@@ -571,6 +581,8 @@ def set_map_default_spawn_pt():
         default_spawn_pt = vect(60, 10, 14)
     elif getCurrentMap() == Map.SHAMBALI_MONASTERY:
         default_spawn_pt = vect(-42, 32, 182)
+    elif getCurrentMap() == Map.SURAVASA:
+        default_spawn_pt = vect(1, 10, 0)
     elif getCurrentMap() == Map.TEMPLE_OF_ANUBIS:
         default_spawn_pt = vect(-10, 12, 14)
     elif getCurrentMap() == Map.VOLSKAYA:
@@ -585,13 +597,13 @@ rule "Initialize: Workshop Settings":
 
     ## UI Settings
 
-    console_ui = createWorkshopSetting(bool, "0. UI Settings", "Console UI", false, 1)
+    console_ui = createWorkshopSetting(bool, "0. UI Settings", "Console UI", false, 0)
+    show_main_hud = createWorkshopSetting(bool, "0. UI Settings", "Show HUD", true, 1)
     dmg_to_slot_array = createWorkshopSetting(bool, "0. UI Settings", "Show Damage Numbers", false, 2)
-    show_debug_info = createWorkshopSetting(bool, "0. UI Settings", "Show Server Load and Coordinates", false, 3)
-    show_main_hud = createWorkshopSetting(bool, "0. UI Settings", "Show HUD (disable for 2nd player to have access to menu)", true, 4)
+    
     
     ## Number of Bots
-    bot_count = createWorkshopSetting(int[0:12], "1. Number of Bots (Overridden by in-game changes to settings)", "Number of Bots", 6, 4)
+    bot_count = createWorkshopSetting(int[0:12], "1. Number of Bots (Overridden by in-game changes to settings)", "Number of Bots", 6, 0)
 
     ## Bot Ability Settings
     bots_use_abilities = createWorkshopSetting(bool, "2. Bot Ability Settings (Overridden by in-game changes to settings)", "Bots use abilities", true, 0)
@@ -623,6 +635,7 @@ rule "Initialize: Workshop Settings":
     # Pressure Mode
     pressure_type = createWorkshopSetting(enum["off", "killable", "unkillable"], "4. Bot Pressure (Overridden by in-game changes to pressure)", "Bots Apply Pressure", 0, 0)
     pressure_accuracy = createWorkshopSetting(int[1:100],  "4. Bot Pressure (Overridden by in-game changes to pressure)", "Bots Pressure Difficulty", 50, 1)
+    pressure_beam = createWorkshopSetting(bool, "4. Bot Pressure (Overridden by in-game changes to pressure)", "Bot Aim Visualizer", false, 2)
     # Pressure Mode Modifiers
     refresh_on_elim = createWorkshopSetting(bool, "4.1. Bot Pressure Modifiers (killable mode only)", "Eliminations / Deaths reset cooldowns", true, 0)
     heal_over_time = createWorkshopSetting(bool, "4.1. Bot Pressure Modifiers (killable mode only)", "Restore health after not taking damage", true, 1)
@@ -704,7 +717,7 @@ rule "Initialize: Workshop Settings":
     bot_behavior.append(createWorkshopSetting(enum["Rocket Jump", "Rocket Jump, Self Bubble", "Rocket Jump, Self Bubble, Grav"], "8.1. Tank Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Zarya Bot Behavior", 0, 10))
     
     ## Damage Bot Behavior (index 11 - 27)
-    bot_behavior.append(createWorkshopSetting(enum["None", "Scope", "Scope, Coach Gun", "Scope, Coach Gun, Dynamite", "Scope, Coach Gun, Dynamite, B.O.B"], "8.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Ashe Bot Behavior", 2, 0))
+    bot_behavior.append(createWorkshopSetting(enum["None", "Scope", "Scope, Coach Gun", "Scope, Coach Gun, Dynamite", "Scope, Coach Gun, Dynamite, B.O.B"], "8.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Ashe Bot Behavior", 4, 0))
     bot_behavior.append(createWorkshopSetting(enum["Recon Form", "Recon Form, Assault Form", "Recon Form, Assault Form, Grenade", "Recon, Assault, Grenade, Artillery Form"], "8.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Bastion Bot Behavior", 2, 1))
     bot_behavior.append(createWorkshopSetting(enum["Roll", "Roll, Mag Nade", "Roll, Mag Nade, High Noon"], "8.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Cassidy Bot Behavior", 1, 2))
 	bot_behavior.append(createWorkshopSetting(enum["Flight", "Flight, Stickies", "Flight, Stickies, Beam"], "8.2. Damage Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Echo Bot Behavior", 2, 3))
@@ -734,14 +747,17 @@ rule "Initialize: Workshop Settings":
     bot_behavior.append(createWorkshopSetting(enum["Fade", "Fade, Damage Orb", "Fade, Damage + Heal Orb", "Fade, Damage + Heal Orb, Coalescence"], "8.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Moira Bot Behavior", 1, 8))
     bot_behavior.append(createWorkshopSetting(enum["Volley", "Volley, Discord", "Volley, Discord, Transcendence"], "8.3. Support Bot Behavior (Certain abilities need 'Bots React' and/or 'Pressure mode' to be on)", "Zenyatta Bot Behavior", 1, 9))
 
+    show_debug_info = createWorkshopSetting(bool, "9. Server Settings", "Show Server Load and Coordinates", false, 0)
+    privileged_host = createWorkshopSetting(bool, "9. Server Settings", "Public Lobby Mode (Prevent Non-Host Players from Modifiying Bots)", false, 1) 
+    match_timer = createWorkshopSetting(int[0:60], "9. Server Settings", "Match Timer (in minutes) (Set for replay support)", 0, 2) 
 
 rule "Initialize: Setup":
 
-    pauseMatchTime()
+    if match_timer == 0:
+        pauseMatchTime()
     ## Disable Inspector for performance
     if show_debug_info == false:
         disableInspector()
-    
 
 rule "Initialize: Static Global Variables":
     
@@ -975,7 +991,7 @@ rule "Initialize: Static Global Variables":
     hero_react_block[hero_array_index] = [0.75, 0.50, 0.00, 0.00, 0.00]
     hero_react_dodge[hero_array_index] = [0.00, 0.00, 0.00, 0.00, 0.90]
     hero_react_stun[hero_array_index] = [0.00, 0.00, 0.00, 0.00, 0.00]
-    hero_name_array[hero_array_index] = "Boneback"
+    hero_name_array[hero_array_index] = "Backbone"
 
     hero_array_index += 1
     hero_array[hero_array_index] = Hero.PHARAH
@@ -1131,7 +1147,7 @@ rule "Initialize: Static Global Variables":
     hero_react_block[hero_array_index] = [0.00, 0.0, 0.00, 0.00, 1.00]
     hero_react_dodge[hero_array_index] = [0.00, 0.00, 0.00, 0.00, 1.00]
     hero_react_stun[hero_array_index] = [0.00, 0.00, 0.00, 0.00, 0.00]
-    hero_name_array[hero_array_index] = "Crimzo"
+    hero_name_array[hero_array_index] = "SirMajed"
 
     hero_array_index += 1
     hero_array[hero_array_index] = Hero.KIRIKO
@@ -1155,7 +1171,7 @@ rule "Initialize: Static Global Variables":
     hero_react_block[hero_array_index] = [0.50, 0.00, 0.00, 0.00, 0.00]
     hero_react_dodge[hero_array_index] = [0.00, 0.00, 0.00, 0.00, 0.00]
     hero_react_stun[hero_array_index] = [0.00, 0.00, 0.00, 0.00, 0.00]
-    hero_name_array[hero_array_index] = "Rupal"
+    hero_name_array[hero_array_index] = "RakAttack"
 
     hero_array_index += 1
     hero_array[hero_array_index] = Hero.LUCIO
@@ -1239,7 +1255,7 @@ rule "Initialize Dynamic Global Variables":
         "32.33 percentage of survival!",
         "Your gun is so cute!",
         "01100111 01100111",
-        "Chengdu Hunters MVP!",
+        "Enter '/log' to redeem a free skin!",
         "Boo!",
         "Also Try Risk of Rain!"
         ]
@@ -1306,33 +1322,83 @@ rule "Initialize Dynamic Global Variables":
     if bot_count > 0:
         create_all_bots()
 
+rule "Global Menu":
+    @Event global
+    
+    waitUntil(data_loaded[1] == true, 9999)
+    stats_hud()
+    settings_prompt_hud()
+    menu_hud()
+    misc_hud()
+
+
+def stats_hud():
+    @Name "SUB: stats_hud"
+
+    hudSubtext(localPlayer, "\n", HudPosition.LEFT, -9999, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubtext(localPlayer, "Elims:  {0}  ".format(ceil(localPlayer.stat_kills)), HudPosition.LEFT, 0.1, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubtext(localPlayer, "Elims/min:  {0}".format(ceil(localPlayer.stat_kills / (localPlayer.stat_timer / 60))), HudPosition.LEFT, 0.2, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubtext(localPlayer, "Accuracy:  {0}  %".format(ceil(100 * localPlayer.getHeroStatistic(localPlayer.getCurrentHero(), HeroStat.WEAPON_ACCURACY))), HudPosition.LEFT, 0.3, Color.LIME_GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubtext(localPlayer, "Crit Accuracy:  {0}  %".format(ceil(100 * localPlayer.getHeroStatistic(localPlayer.getCurrentHero(), HeroStat.CRITICAL_HIT_ACCURACY))), HudPosition.LEFT, 0.4, Color.TURQUOISE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubtext(localPlayer, "Target Distance:  {0} m".format(round(distance(localPlayer.look_target.getEyePosition(), localPlayer.getEyePosition()))), HudPosition.LEFT, 0.5, Color.BLUE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+
+    # Pressure Damage Data
+    hudSubtext([i for i in localPlayer if pressure_type != 0], 
+    "KDR:  {0}".format(localPlayer.stat_kills / localPlayer.stat_deaths), HudPosition.LEFT, -0.01, Color.ROSE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubtext([i for i in localPlayer if pressure_type != 0], 
+    "Deaths:  {0}".format(localPlayer.stat_deaths), HudPosition.LEFT, 0.11, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubtext([i for i in localPlayer if pressure_type != 0], 
+    "Net Damage:  {0}".format(localPlayer.stat_dmg_dealt - localPlayer.stat_dmg_taken), HudPosition.LEFT, 0.51, Color.PURPLE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubtext([i for i in localPlayer if speed_mode_enabled == true], 
+    "\nSpeed High Score:  {0}%".format(speed_score), HudPosition.RIGHT, -0.99, Color.BLACK, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubtext([i for i in localPlayer if speed_mode_enabled == true], 
+    "Speed Multiplier:  {0}%".format(speed_multi), HudPosition.RIGHT,  -0.98, Color.LIME_GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    if speed_kill_target > 1:
+        hudSubtext([i for i in localPlayer if speed_mode_enabled == true], 
+        "Kills:  {0} / {1}".format(speed_kill_count, speed_kill_target), HudPosition.RIGHT,  -0.97, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    #Speed Mode Data
+    hudSubtext([i for i in localPlayer if speed_mode_enabled == true], 
+    "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n{0}".format(speed_timer), HudPosition.TOP, 666, Color.GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+
+    
 
 # Lobby Rules
+rule "Set Match Timer":
+    @Event global
+    @Condition isGameInProgress() == true
+    @Condition match_timer > 0
+
+    setMatchTime(match_timer*60)
+
+
 rule "Player Joined: Team 1 Defaults":
     @Event playerJoined
     @Team 1
     
-    # Default settings and hud generation
     eventPlayer.disableGamemodeHud()
-    waitUntil(data_loaded[1] == true, 9999)
-    if show_main_hud == true:
-        main_hud()
-        create_settings_prompt()
-    if eventPlayer == hostPlayer or show_main_hud == false:
-        menu_hud()
-    else:
-        default_menu_variables()
-    if show_main_hud == true:
-        misc_hud()
-    elif eventPlayer != hostPlayer:
-        hudSubtext(eventPlayer, 
-        "Code: VXEAT", 
-        HudPosition.RIGHT, 
-        -1, 
-        rgb(random.randint(0,255), random.randint(0,255), random.randint(0,255)), 
-        HudReeval.VISIBILITY_STRING_AND_COLOR, 
-        SpecVisibility.DEFAULT)
-    
+    default_player_menu()
+
+    smallMessage(hostPlayer, "TEST: Hello!!!!")
+    wait(5)
+    smallMessage(hostPlayer, "TEST: Hello!!!!")
+    if getNumberOfPlayers(Team.2) < bot_count:
+        bot_gen_index = getNumberOfPlayers(Team.2)
+        create_bot()
+
+
+rule "Player Left: Re-Add Bot":
+    @Event playerLeft
+    @Team 1
+
+    smallMessage(hostPlayer, "le;ftttt")
+    wait(5)
+    smallMessage(hostPlayer, "le;ftttt")
+
+    if getNumberOfPlayers(Team.2) < bot_count:
+    #    while getNumberOfPlayers(Team.2) < bot_count - getNumberOfPlayers(Team.1) + 4:
+        bot_gen_index = getNumberOfPlayers(Team.2)
+        create_bot()
+
 
 rule "Player Joined: Team 2 Defaults":
     @Event playerJoined
@@ -1385,15 +1451,14 @@ rule "Player Spawned":
 
     eventPlayer.teleport(default_spawn_pt)
 
-    if eventPlayer != hostPlayer and show_main_hud == true:
-        wait(5)
-        smallMessage(eventPlayer, "For access to the player menu, ask the host to disable the show menu hud option in the workshop settings")
 
 rule "Player Left":
     @Event playerLeft
     @Condition eventPlayer.isDummy() == false
     
-    destroyDummy(Team.1, eventPlayer.getSlot() + 6)
+    if getPlayersInSlot(Team.1, eventPlayer.getSlot() + 6).isDummy() == true:
+        destroyDummy(Team.1, eventPlayer.getSlot() + 6)
+
     player_list.remove(eventPlayer)
 
 
@@ -1414,7 +1479,7 @@ rule "Menu Controls: Toggle Menu with Interact":
     @Team 1
     # Change this condition to whatever button(s) you want to trigger the main menu. 
     @Condition eventPlayer.isHoldingButton(Button.INTERACT) == true
-    @Condition (eventPlayer == hostPlayer or show_main_hud == false)
+
     if console_ui == true:
         wait(1)
         if eventPlayer.isHoldingButton(Button.INTERACT) == false:
@@ -1479,7 +1544,7 @@ rule "Menu Controls: Up Scroll":
     @Condition (console_ui == false and eventPlayer.getThrottle() == Vector.FORWARD) or (console_ui == true and eventPlayer.isHoldingButton(Button.ULTIMATE))
     
     menu_up_check()
-    while eventPlayer.item_visible[eventPlayer.menu_index] == false:
+    while eventPlayer.menu_item_hidden[eventPlayer.menu_index] == true:
         menu_up_check()
     ring_check()
 
@@ -1493,7 +1558,7 @@ rule "Menu Controls: Down Scroll":
     @Condition (console_ui == false and eventPlayer.getThrottle() == Vector.BACKWARD) or (console_ui == true and eventPlayer.isHoldingButton(Button.JUMP))
     
     menu_down_check()
-    while eventPlayer.item_visible[eventPlayer.menu_index] == false:
+    while eventPlayer.menu_item_hidden[eventPlayer.menu_index] == true:
         menu_down_check()
     ring_check()
 
@@ -1501,9 +1566,9 @@ def menu_up_check():
     @Name "SUB: menu_up_check"
 
     # If the menu index is equal to the start of the submenu start location
-    if eventPlayer.menu_index - eventPlayer.submenu_start_index[eventPlayer.submenu_index] <= 0:
+    if eventPlayer.menu_index - submenu_start_index[eventPlayer.submenu_index] <= 0:
         # then loop to the end of the submenu
-        eventPlayer.menu_index = eventPlayer.submenu_start_index[eventPlayer.submenu_index+1] - 1
+        eventPlayer.menu_index = submenu_start_index[eventPlayer.submenu_index+1] - 1
     else:
         # otherwise move up 1 on the menu.
         eventPlayer.menu_index -= 1
@@ -1512,9 +1577,9 @@ def menu_down_check():
         @Name "SUB: menu_down_check"    
 
     # If the menu index is equal to the end of our submenu
-    if eventPlayer.menu_index >= eventPlayer.submenu_start_index[eventPlayer.submenu_index+1] - 1:
+    if eventPlayer.menu_index >= submenu_start_index[eventPlayer.submenu_index+1] - 1:
         # then loop to the start of the submenu
-        eventPlayer.menu_index = eventPlayer.submenu_start_index[eventPlayer.submenu_index]
+        eventPlayer.menu_index = submenu_start_index[eventPlayer.submenu_index]
     else:
         # then move down 1 on the menu.
         eventPlayer.menu_index += 1
@@ -1541,102 +1606,79 @@ def enable_player_input():
     eventPlayer.setMoveSpeed(eventPlayer.custom_speed)
 
 
-def default_menu_variables():
-    @Name "SUB: default_menu_variables"
-
-    # Default menu variables
-    eventPlayer.menu_index = 0
-    eventPlayer.submenu_index = 0
-    eventPlayer.submenu_start_index[0] = 0
-    eventPlayer.submenu_start_index[1] = 1
-    eventPlayer.menu_max_pos = -1
-    eventPlayer.menu_label_size = -1
-    eventPlayer.menu_opt_size = -1
-    eventPlayer.sub_size = 0
-    eventPlayer.menu_off_opt_color = default_menu_off_index_color
-
-    # Default menu option variables
-    eventPlayer.infinite_ammo = false
-    eventPlayer.strafe_stun_timer = 0
-    eventPlayer.proj_type = 0
-    eventPlayer.proj_effects = [null, null]
-    eventPlayer.buff_effects = [null, null]
-    eventPlayer.custom_speed = 100
-    eventPlayer.menu_reset_bots = false
-
-
-def create_settings_prompt():
-    @Name "SUB: create_settings_prompt"
+def settings_prompt_hud():
+    @Name "SUB: settings_prompt_hud"
     
     # Settings Headers
     if console_ui == false:
-        if eventPlayer == hostPlayer:
-            hudSubheader([i for i in eventPlayer if not eventPlayer.menu_visible], 
-            "Press  {0}  to open menu".format(buttonString(Button.INTERACT)), HudPosition.LEFT, 1000, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-            hudSubheader([i for i in eventPlayer if eventPlayer.menu_visible], 
-            "Press  {0}  to close menu".format(buttonString(Button.INTERACT)), HudPosition.LEFT, 1001, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-           
-        hudSubheader([i for i in eventPlayer if eventPlayer.menu_visible], 
+        hudSubheader([i for i in localPlayer if not localPlayer.menu_visible], 
+        "Press  {0}  to open menu".format(buttonString(Button.INTERACT)), HudPosition.LEFT, 1000, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+        hudSubheader([i for i in localPlayer if localPlayer.menu_visible], 
+        "Press  {0}  to close menu".format(buttonString(Button.INTERACT)), HudPosition.LEFT, 1001, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+        
+        hudSubheader([i for i in localPlayer if localPlayer.menu_visible], 
         "—  Controls  —", HudPosition.LEFT, 1002, Color.BLACK, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-        hudSubheader([i for i in eventPlayer if eventPlayer.menu_visible], 
+        hudSubheader([i for i in localPlayer if localPlayer.menu_visible], 
         "Select: {0}".format(buttonString(Button.ABILITY_2)), HudPosition.LEFT, 1003, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-        hudSubheader([i for i in eventPlayer if eventPlayer.menu_visible], 
+        hudSubheader([i for i in localPlayer if localPlayer.menu_visible], 
         "Menu Up: Forward", HudPosition.LEFT, 1004, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-        hudSubheader([i for i in eventPlayer if eventPlayer.menu_visible], 
+        hudSubheader([i for i in localPlayer if localPlayer.menu_visible], 
         "Menu Down: Backward", HudPosition.LEFT, 1005, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-        hudSubheader([i for i in eventPlayer if eventPlayer.menu_visible], 
+        hudSubheader([i for i in localPlayer if localPlayer.menu_visible], 
         "Small Step: left / right", HudPosition.LEFT, 1006, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-        hudSubheader([i for i in eventPlayer if eventPlayer.menu_visible], 
+        hudSubheader([i for i in localPlayer if localPlayer.menu_visible], 
         "Large Step: {0} / {1}".format(buttonString(Button.ULTIMATE), buttonString(Button.ABILITY_2)), HudPosition.LEFT, 1007, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     else:
-        hudSubheader([i for i in eventPlayer if not eventPlayer.menu_visible], 
+        hudSubheader([i for i in localPlayer if not localPlayer.menu_visible], 
         "Press  {0}  for 1 second to open menu".format(buttonString(Button.INTERACT)), HudPosition.LEFT, 1000, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-        hudSubheader([i for i in eventPlayer if eventPlayer.menu_visible], 
+        hudSubheader([i for i in localPlayer if localPlayer.menu_visible], 
         "Press  {0}  for 1 second to close menu".format(buttonString(Button.INTERACT)), HudPosition.LEFT, 1001, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-        hudSubheader([i for i in eventPlayer if eventPlayer.menu_visible], 
+        hudSubheader([i for i in localPlayer if localPlayer.menu_visible], 
         "—  Controls  —", HudPosition.LEFT, 1002, Color.BLACK, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-        hudSubheader([i for i in eventPlayer if eventPlayer.menu_visible], 
+        hudSubheader([i for i in localPlayer if localPlayer.menu_visible], 
         "Select: {0}".format(buttonString(Button.ABILITY_2)), HudPosition.LEFT, 1003, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-        hudSubheader([i for i in eventPlayer if eventPlayer.menu_visible], 
+        hudSubheader([i for i in localPlayer if localPlayer.menu_visible], 
         "Menu Up: {0}".format(buttonString(Button.ULTIMATE)), HudPosition.LEFT, 1004, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-        hudSubheader([i for i in eventPlayer if eventPlayer.menu_visible], 
+        hudSubheader([i for i in localPlayer if localPlayer.menu_visible], 
         "Menu Down: {0}".format(buttonString(Button.JUMP)), HudPosition.LEFT, 1005, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-        hudSubheader([i for i in eventPlayer if eventPlayer.menu_visible], 
+        hudSubheader([i for i in localPlayer if localPlayer.menu_visible], 
         "Small Step: {0} / {1}".format(buttonString(Button.ABILITY_1), buttonString(Button.ABILITY_2)), HudPosition.LEFT, 1006, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-        hudSubheader([i for i in eventPlayer if eventPlayer.menu_visible], 
+        hudSubheader([i for i in localPlayer if localPlayer.menu_visible], 
         "Large Step: {0} / {1}".format(buttonString(Button.SECONDARY_FIRE), buttonString(Button.PRIMARY_FIRE)), HudPosition.LEFT, 1007, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+
+
 def increment_for_menu_label():
     @Name "SUB: increment_menu_label"
 
-    eventPlayer.menu_label_size += 1
-    eventPlayer.menu_max_pos += 1
-    eventPlayer.item_visible[eventPlayer.menu_label_size] = true
+    menu_label_size += 1
+    menu_max_pos += 1
 
 
 def increment_for_menu_item():
     @Name "SUB: increment_for_menu_item"
 
-    eventPlayer.menu_opt_size += 1
-    eventPlayer.menu_max_pos += 1
-    eventPlayer.submenu_start_index[eventPlayer.sub_size+1] = eventPlayer.menu_opt_size+1
-    eventPlayer.item_visible[eventPlayer.menu_opt_size] = true
+    menu_opt_size += 1
+    menu_max_pos += 1
+    submenu_start_index[sub_size+1] = menu_opt_size+1
 
 
 def increment_for_submenu_item():
     @Name "SUB: increment_for_new_submenu"
 
-    eventPlayer.sub_size += 1
-    eventPlayer.menu_max_pos = -1
+    sub_size += 1
+    menu_max_pos = -1
 
 
 def new_menu_label_header():
     @Name "SUB: new_menu_label_header"
 
-    hudHeader([i for i in eventPlayer if eventPlayer.menu_visible and eventPlayer.submenu_index == evalOnce(eventPlayer.sub_size)], 
-    "{0}".format(eventPlayer.menu_label[evalOnce(eventPlayer.menu_label_size)]),
+    hudHeader([i for i in localPlayer if localPlayer.menu_visible
+        and localPlayer.submenu_index == evalOnce(sub_size)
+        and localPlayer.menu_label_hidden[evalOnce(menu_label_size)] != true], 
+    "{0}".format(menu_label[evalOnce(menu_label_size)]),
     HudPosition.TOP,
-    evalOnce(eventPlayer.menu_max_pos),
-    eventPlayer.menu_label_color[evalOnce(eventPlayer.menu_label_size)],
+    evalOnce(menu_max_pos),
+    menu_label_color[evalOnce(menu_label_size)],
     HudReeval.VISIBILITY_STRING_AND_COLOR,
     SpecVisibility.DEFAULT)
 
@@ -1644,11 +1686,13 @@ def new_menu_label_header():
 def new_menu_label_subtext():
     @Name "SUB: new_menu_label_subtext"
 
-    hudSubtext([i for i in eventPlayer if eventPlayer.menu_visible and eventPlayer.submenu_index == evalOnce(eventPlayer.sub_size)], 
-    "{0}".format(eventPlayer.menu_label[evalOnce(eventPlayer.menu_label_size)]),
+    hudSubtext([i for i in localPlayer if localPlayer.menu_visible
+        and localPlayer.submenu_index == evalOnce(sub_size)
+        and localPlayer.menu_label_hidden[evalOnce(menu_label_size)] != true], 
+    "{0}".format(menu_label[evalOnce(menu_label_size)]),
     HudPosition.TOP,
-    evalOnce(eventPlayer.menu_max_pos),
-    eventPlayer.menu_label_color[evalOnce(eventPlayer.menu_label_size)],
+    evalOnce(menu_max_pos),
+    menu_label_color[evalOnce(menu_label_size)],
     HudReeval.VISIBILITY_STRING_AND_COLOR,
     SpecVisibility.DEFAULT)
     
@@ -1658,26 +1702,26 @@ def new_menu_item_selection():
 
     # Case: index off
     hudSubheader(
-    [i for i in eventPlayer if eventPlayer.menu_visible 
-        and eventPlayer.menu_index != evalOnce(eventPlayer.menu_opt_size) 
-        and eventPlayer.submenu_index == evalOnce(eventPlayer.sub_size)
-        and eventPlayer.item_visible[evalOnce(eventPlayer.menu_opt_size)] == true], 
-    "{0}".format(eventPlayer.menu_off_opt_title[evalOnce(eventPlayer.menu_opt_size)]),
+    [i for i in localPlayer if localPlayer.menu_visible 
+        and localPlayer.menu_index != evalOnce(menu_opt_size) 
+        and localPlayer.submenu_index == evalOnce(sub_size)
+        and localPlayer.menu_item_hidden[evalOnce(menu_opt_size)] != true], 
+    "{0}".format(menu_off_opt_title[evalOnce(menu_opt_size)]),
     HudPosition.TOP,
-    evalOnce(eventPlayer.menu_max_pos),
-    eventPlayer.menu_off_opt_color,
+    evalOnce(menu_max_pos),
+    menu_off_opt_color,
     HudReeval.VISIBILITY_STRING_AND_COLOR,
     SpecVisibility.DEFAULT)
     # Case: index on
     hudSubheader(
-    [i for i in eventPlayer if eventPlayer.menu_visible 
-        and eventPlayer.menu_index == evalOnce(eventPlayer.menu_opt_size) 
-        and eventPlayer.submenu_index == evalOnce(eventPlayer.sub_size)
-        and eventPlayer.item_visible[evalOnce(eventPlayer.menu_opt_size)] == true],
-    "■  {0}".format(eventPlayer.menu_on_opt_title[evalOnce(eventPlayer.menu_opt_size)]),
+    [i for i in localPlayer if localPlayer.menu_visible 
+        and localPlayer.menu_index == evalOnce(menu_opt_size) 
+        and localPlayer.submenu_index == evalOnce(sub_size)
+        and localPlayer.menu_item_hidden[evalOnce(menu_opt_size)] != true],
+    "■  {0}".format(menu_on_opt_title[evalOnce(menu_opt_size)]),
     HudPosition.TOP,
-    evalOnce(eventPlayer.menu_max_pos),
-    eventPlayer.menu_on_opt_color[evalOnce(eventPlayer.menu_opt_size)],
+    evalOnce(menu_max_pos),
+    menu_on_opt_color[evalOnce(menu_opt_size)],
     HudReeval.VISIBILITY_STRING_AND_COLOR,
     SpecVisibility.DEFAULT)
 
@@ -1687,26 +1731,26 @@ def new_menu_item_toggle():
 
     # Case: index off
     hudSubheader(
-    [i for i in eventPlayer if eventPlayer.menu_visible 
-        and eventPlayer.menu_index != evalOnce(eventPlayer.menu_opt_size) 
-        and eventPlayer.submenu_index == evalOnce(eventPlayer.sub_size)
-        and eventPlayer.item_visible[evalOnce(eventPlayer.menu_opt_size)] == true], 
-    "{0}".format(eventPlayer.menu_off_opt_title[evalOnce(eventPlayer.menu_opt_size)]),
+    [i for i in localPlayer if localPlayer.menu_visible 
+        and localPlayer.menu_index != evalOnce(menu_opt_size) 
+        and localPlayer.submenu_index == evalOnce(sub_size)
+        and localPlayer.menu_item_hidden[evalOnce(menu_opt_size)] != true], 
+    "{0}".format(menu_off_opt_title[evalOnce(menu_opt_size)]),
     HudPosition.TOP,
-    evalOnce(eventPlayer.menu_max_pos),
-    eventPlayer.menu_off_opt_color,
+    evalOnce(menu_max_pos),
+    menu_off_opt_color,
     HudReeval.VISIBILITY_STRING_AND_COLOR,
     SpecVisibility.DEFAULT)
 
     # Case: index on, see menu_act_toggle to see how to update the menu_opt_var string.
-    hudSubheader([i for i in eventPlayer if eventPlayer.menu_visible 
-        and eventPlayer.menu_index == evalOnce(eventPlayer.menu_opt_size) 
-        and eventPlayer.submenu_index == evalOnce(eventPlayer.sub_size)
-        and eventPlayer.item_visible[evalOnce(eventPlayer.menu_opt_size)] == true],
-    "■  {0}{1}".format(eventPlayer.menu_on_opt_title[evalOnce(eventPlayer.menu_opt_size)], eventPlayer.menu_opt_var[evalOnce(eventPlayer.menu_opt_size)]), 
+    hudSubheader([i for i in localPlayer if localPlayer.menu_visible 
+        and localPlayer.menu_index == evalOnce(menu_opt_size) 
+        and localPlayer.submenu_index == evalOnce(sub_size)
+        and localPlayer.menu_item_hidden[evalOnce(menu_opt_size)] != true],
+    "■  {0}{1}".format(menu_on_opt_title[evalOnce(menu_opt_size)], localPlayer.menu_opt_var[evalOnce(menu_opt_size)]), 
     HudPosition.TOP,
-    evalOnce(eventPlayer.menu_max_pos),
-    eventPlayer.menu_on_opt_color[evalOnce(eventPlayer.menu_opt_size)],
+    evalOnce(menu_max_pos),
+    menu_on_opt_color[evalOnce(menu_opt_size)],
     HudReeval.VISIBILITY_STRING_AND_COLOR,
     SpecVisibility.DEFAULT)
 
@@ -1716,27 +1760,27 @@ def new_menu_item_cycle():
 
     # Case: index off
     hudSubheader(
-    [i for i in eventPlayer if eventPlayer.menu_visible
-        and eventPlayer.menu_index != evalOnce(eventPlayer.menu_opt_size) 
-        and eventPlayer.submenu_index == evalOnce(eventPlayer.sub_size)
-        and eventPlayer.item_visible[evalOnce(eventPlayer.menu_opt_size)] == true], 
-    "{0}".format(eventPlayer.menu_off_opt_title[evalOnce(eventPlayer.menu_opt_size)]),
+    [i for i in localPlayer if localPlayer.menu_visible
+        and localPlayer.menu_index != evalOnce(menu_opt_size) 
+        and localPlayer.submenu_index == evalOnce(sub_size)
+        and localPlayer.menu_item_hidden[evalOnce(menu_opt_size)] != true], 
+    "{0}".format(menu_off_opt_title[evalOnce(menu_opt_size)]),
     HudPosition.TOP, 
-    evalOnce(eventPlayer.menu_max_pos), 
-    eventPlayer.menu_off_opt_color, 
+    evalOnce(menu_max_pos), 
+    menu_off_opt_color, 
     HudReeval.VISIBILITY_STRING_AND_COLOR, 
     SpecVisibility.DEFAULT)
 
     # Case: index on, see menu_act_cycle to see how to update the menu_opt_var string.
     hudSubheader(
-    [i for i in eventPlayer if eventPlayer.menu_visible 
-        and eventPlayer.menu_index == evalOnce(eventPlayer.menu_opt_size) 
-        and eventPlayer.submenu_index == evalOnce(eventPlayer.sub_size)
-        and eventPlayer.item_visible[evalOnce(eventPlayer.menu_opt_size)] == true], 
-    "■ {0} ←  {1}  → ".format(eventPlayer.menu_on_opt_title[evalOnce(eventPlayer.menu_opt_size)], eventPlayer.menu_opt_var[evalOnce(eventPlayer.menu_opt_size)]),
+    [i for i in localPlayer if localPlayer.menu_visible 
+        and localPlayer.menu_index == evalOnce(menu_opt_size) 
+        and localPlayer.submenu_index == evalOnce(sub_size)
+        and localPlayer.menu_item_hidden[evalOnce(menu_opt_size)] != true], 
+    "■ {0} ←  {1}  → ".format(menu_on_opt_title[evalOnce(menu_opt_size)], localPlayer.menu_opt_var[evalOnce(menu_opt_size)]),
     HudPosition.TOP, 
-    evalOnce(eventPlayer.menu_max_pos), 
-    eventPlayer.menu_on_opt_color[evalOnce(eventPlayer.menu_opt_size)], 
+    evalOnce(menu_max_pos), 
+    menu_on_opt_color[evalOnce(menu_opt_size)], 
     HudReeval.VISIBILITY_STRING_AND_COLOR, 
     SpecVisibility.DEFAULT)
 
@@ -1746,43 +1790,42 @@ def new_menu_item_cycle_bar():
 
     # Case: index off
     hudSubheader(
-    [i for i in eventPlayer if eventPlayer.menu_visible 
-        and eventPlayer.menu_index != evalOnce(eventPlayer.menu_opt_size) 
-        and eventPlayer.submenu_index == evalOnce(eventPlayer.sub_size)
-        and eventPlayer.item_visible[evalOnce(eventPlayer.menu_opt_size)] == true], 
-    "{0}".format(eventPlayer.menu_off_opt_title[evalOnce(eventPlayer.menu_opt_size)]), 
+    [i for i in localPlayer if localPlayer.menu_visible 
+        and localPlayer.menu_index != evalOnce(menu_opt_size) 
+        and localPlayer.submenu_index == evalOnce(sub_size)
+        and localPlayer.menu_item_hidden[evalOnce(menu_opt_size)] != true], 
+    "{0}".format(menu_off_opt_title[evalOnce(menu_opt_size)]), 
     HudPosition.TOP, 
-    evalOnce(eventPlayer.menu_max_pos), 
-    eventPlayer.menu_off_opt_color, 
+    evalOnce(menu_max_pos), 
+    menu_off_opt_color, 
     HudReeval.VISIBILITY_STRING_AND_COLOR, 
     SpecVisibility.DEFAULT)
 
     # Case: index on, see menu_act_cycle_bar to see how to update the menu_opt_var string.
     hudSubheader(
-    [i for i in eventPlayer if eventPlayer.menu_visible 
-        and eventPlayer.menu_index == evalOnce(eventPlayer.menu_opt_size) 
-        and eventPlayer.submenu_index == evalOnce(eventPlayer.sub_size)
-        and eventPlayer.item_visible[evalOnce(eventPlayer.menu_opt_size)] == true], 
-    "■  {0}  {1}".format(eventPlayer.menu_on_opt_title[evalOnce(eventPlayer.menu_opt_size)], eventPlayer.menu_opt_var[evalOnce(eventPlayer.menu_opt_size)]), 
+    [i for i in localPlayer if localPlayer.menu_visible 
+        and localPlayer.menu_index == evalOnce(menu_opt_size) 
+        and localPlayer.submenu_index == evalOnce(sub_size)
+        and localPlayer.menu_item_hidden[evalOnce(menu_opt_size)] != true], 
+    "■  {0}  {1}".format(menu_on_opt_title[evalOnce(menu_opt_size)], localPlayer.menu_opt_var[evalOnce(menu_opt_size)]), 
     HudPosition.TOP, 
-    evalOnce(eventPlayer.menu_max_pos), 
-    eventPlayer.menu_on_opt_color[evalOnce(eventPlayer.menu_opt_size)], 
+    evalOnce(menu_max_pos), 
+    menu_on_opt_color[evalOnce(menu_opt_size)], 
     HudReeval.VISIBILITY_STRING_AND_COLOR, 
     SpecVisibility.DEFAULT)
 
     # Increment Menu Position
-    eventPlayer.menu_max_pos += 1
+    menu_max_pos += 1
 
     # Submenu hudheader
     hudHeader(
-    [i for i in eventPlayer if eventPlayer.menu_visible 
-    and eventPlayer.menu_index == evalOnce(eventPlayer.menu_opt_size) 
-    and eventPlayer.submenu_index == evalOnce(eventPlayer.sub_size)
-    and eventPlayer.item_visible[evalOnce(eventPlayer.menu_opt_size)] == true], 
-    "{0} ←  {1}  →".format(eventPlayer.bar_title[eventPlayer.menu_index], eventPlayer.bar_var[eventPlayer.menu_index]), 
+    [i for i in localPlayer if localPlayer.menu_visible 
+    and localPlayer.menu_index == evalOnce(menu_opt_size) 
+    and localPlayer.submenu_index == evalOnce(sub_size)], 
+    "{0} ←  {1}  →".format(localPlayer.bar_title[localPlayer.menu_index], localPlayer.bar_var[localPlayer.menu_index]), 
     HudPosition.TOP, 
-    evalOnce(eventPlayer.menu_max_pos), 
-    eventPlayer.bar_color[evalOnce(eventPlayer.menu_opt_size)], 
+    evalOnce(menu_max_pos), 
+    localPlayer.bar_color[evalOnce(menu_opt_size)], 
     HudReeval.VISIBILITY_STRING_AND_COLOR, 
     SpecVisibility.DEFAULT)
 
@@ -1790,7 +1833,7 @@ def new_menu_item_cycle_bar():
 def misc_hud():
     @Name "SUB: misc_hud"
     # Kitty!
-    hudSubtext([i for i in eventPlayer if eventPlayer.menu_visible],         
+    hudSubtext([i for i in localPlayer if localPlayer.menu_visible],         
     " ∧,,,∧                   ∧,,,∧\n( •‿• )   vxeat   ( •‿• )\n/⊃    /⊃             ⊂\\    ⊂\\", 
     HudPosition.TOP, 
     -1, 
@@ -1799,7 +1842,7 @@ def misc_hud():
     SpecVisibility.DEFAULT)
 
     # Splash text
-    hudSubtext([i for i in eventPlayer if eventPlayer.menu_visible], 
+    hudSubtext([i for i in localPlayer if localPlayer.menu_visible], 
     "{0}".format(splash_text[random.randint(0, len(splash_text)-1)]), 
     HudPosition.RIGHT, 
     -1, 
@@ -1809,7 +1852,7 @@ def misc_hud():
 
     # Debug info toggled via workshop settings menu
     if show_debug_info:
-        hudSubheader(hostPlayer,
+        hudSubheader(localPlayer,
         "Load (Curr/Avg/Peak):  {0}  /  {1}  /  {2}".format(getServerLoad(),getAverageServerLoad(),getPeakServerLoad()), 
         HudPosition.RIGHT,
         -0.9,
@@ -1817,130 +1860,260 @@ def misc_hud():
         HudReeval.VISIBILITY_AND_STRING,
         SpecVisibility.DEFAULT)
 
-        hudSubheader(eventPlayer,
-        "Coord: ({0},{1},{2})".format(eventPlayer.getPosition().x,eventPlayer.getPosition().y,eventPlayer.getPosition().z),
+        hudSubheader(localPlayer,
+        "Coord: ({0},{1},{2})".format(localPlayer.getPosition().x,localPlayer.getPosition().y,localPlayer.getPosition().z),
         HudPosition.RIGHT,
         -0.8,
         Color.WHITE,
         HudReeval.VISIBILITY_AND_STRING,
         SpecVisibility.DEFAULT)
-        
-        #hudSubheader(eventPlayer, 
-        #"Debug Values: {0}/{1}/{2}".format(
-        #    eventPlayer.player_used_dodge_cd,
-        #    eventPlayer.ability_react_chance,
-        #    hero_react_dodge[hero_array_index][4]),
-        #HudPosition.RIGHT,
-        #-0.6,
-        #Color.WHITE,
-        #HudReeval.VISIBILITY_AND_STRING,
-        #SpecVisibility.DEFAULT)
 
-    # Settings Notice
-    if show_main_hud == true and eventPlayer == hostPlayer:
-        hudHeader(eventPlayer, "Bots will not use defensive abilities and ultimates unless you enable them in the workshop settings menu", HudPosition.TOP, -2, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-        eventPlayer.bot_ability_var = getLastCreatedText()
-        wait(10)
-        destroyHudText(eventPlayer.bot_ability_var)
-
-
-def main_hud():
+def default_player_menu():
+    @Name "SUB: default_player_menu"
     
-    # Stats that are always displayed
-    hudSubtext(eventPlayer, "\n", HudPosition.LEFT, -9999, Color.WHITE, HudReeval.NONE, SpecVisibility.DEFAULT)
-    hudSubtext(eventPlayer, "Elims:  {0}  ".format(ceil(eventPlayer.stat_kills)), HudPosition.LEFT, 0.1, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-    hudSubtext(eventPlayer, "Elims/min:  {0}".format(ceil(eventPlayer.stat_kills / (eventPlayer.stat_timer / 60))), HudPosition.LEFT, 0.2, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-    hudSubtext(eventPlayer, "Accuracy:  {0}  %".format(ceil(100 * eventPlayer.getHeroStatistic(eventPlayer.getCurrentHero(), HeroStat.WEAPON_ACCURACY))), HudPosition.LEFT, 0.3, Color.LIME_GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-    hudSubtext(eventPlayer, "Crit Accuracy:  {0}  %".format(ceil(100 * eventPlayer.getHeroStatistic(eventPlayer.getCurrentHero(), HeroStat.CRITICAL_HIT_ACCURACY))), HudPosition.LEFT, 0.4, Color.TURQUOISE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-    hudSubtext(eventPlayer, "Target Distance:  {0} m".format(round(distance(eventPlayer.look_target.getEyePosition(), eventPlayer.getEyePosition()))), HudPosition.LEFT, 0.5, Color.BLUE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-    # Pressure Damage Data
-    hudSubtext([i for i in eventPlayer if pressure_type != 0], 
-    "KDR:  {0}".format(eventPlayer.stat_kills / eventPlayer.stat_deaths), HudPosition.LEFT, -0.01, Color.ROSE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-    hudSubtext([i for i in eventPlayer if pressure_type != 0], 
-    "Deaths:  {0}".format(eventPlayer.stat_deaths), HudPosition.LEFT, 0.11, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-    hudSubtext([i for i in eventPlayer if pressure_type != 0], 
-    "Net Damage:  {0}".format(eventPlayer.stat_dmg_dealt - eventPlayer.stat_dmg_taken), HudPosition.LEFT, 0.51, Color.PURPLE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-    hudSubtext([i for i in eventPlayer if speed_mode_enabled == true], 
-    "\nSpeed High Score:  {0}%".format(speed_score), HudPosition.RIGHT, -0.99, Color.BLACK, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-    hudSubtext([i for i in eventPlayer if speed_mode_enabled == true], 
-    "Speed Multiplier:  {0}%".format(speed_multi), HudPosition.RIGHT,  -0.98, Color.LIME_GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-    if speed_kill_target > 1:
-        hudSubtext([i for i in eventPlayer if speed_mode_enabled == true], 
-        "Kills:  {0} / {1}".format(speed_kill_count, speed_kill_target), HudPosition.RIGHT,  -0.97, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-    #Speed Mode Data
-    hudSubtext([i for i in eventPlayer if speed_mode_enabled == true], 
-    "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n{0}".format(speed_timer), HudPosition.TOP, 666, Color.GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    # Default menu variables
+    eventPlayer.menu_index = 0
+    eventPlayer.menu_opt_value = 0
+    eventPlayer.submenu_index = 0
+    eventPlayer.menu_label_hidden = false
+    eventPlayer.menu_item_hidden = false
+    # Default menu action variables
+    eventPlayer.infinite_ammo = false
+    eventPlayer.strafe_stun_timer = 0
+    eventPlayer.proj_type = 0
+    eventPlayer.proj_effects = [null, null]
+    eventPlayer.buff_effects = [null, null]
+    eventPlayer.custom_speed = 100
+    eventPlayer.menu_reset_bots = false
 
+    if privileged_host == true and eventPlayer != hostPlayer:
+        eventPlayer.menu_label_hidden[1] = true
+        eventPlayer.menu_item_hidden[3] = true
+        eventPlayer.menu_item_hidden[4] = true
+        eventPlayer.menu_item_hidden[5] = true
+
+    # Projectile Guide
+    eventPlayer.menu_opt_var[7] = "Guide Off"
+    eventPlayer.menu_opt_status[7] = 0
+    eventPlayer.menu_opt_len[7] = len(opt_array_abilities) - 1
+    ## Mercy Damage Boost Toggle
+    eventPlayer.menu_opt_var[8] = "off"
+    eventPlayer.menu_opt_status[8] = 0
+    ## Ana Nano Boost Toggle
+    eventPlayer.menu_opt_var[9] = "off"
+    eventPlayer.menu_opt_status[9] = 0
+    ## Kitsune Toggle
+    eventPlayer.menu_opt_var[10] = "off"
+    eventPlayer.menu_opt_status[10] = 0
+    ## Show Recall
+    eventPlayer.menu_opt_var[11] = "off"
+    eventPlayer.menu_opt_status[11] = 0
+    ## Return to Main Menu
+    eventPlayer.menu_opt_status[12] = 0
+    ## Movement Speed Cycle
+    eventPlayer.menu_index = 13
+    eventPlayer.menu_opt_value = 100
+    menu_speed_set_text_and_color()
+    eventPlayer.menu_opt_status[13] = 100
+    eventPlayer.menu_opt_len[13] = 1000
+    ## Infinite Ammo Toggle
+    eventPlayer.menu_opt_var[14] = "off"
+    eventPlayer.menu_opt_status[14] = 0
+    ## No Strafing Stun
+    increment_for_menu_item()
+    eventPlayer.menu_opt_var[15] = "off"
+    eventPlayer.menu_opt_status[15] = 0
+
+    if privileged_host == false or eventPlayer == hostPlayer:
+        ## Return to Main Menu
+        eventPlayer.menu_opt_status[16] = 0
+        ## Strafe Pattern
+        eventPlayer.menu_opt_var[17] = opt_array_movement[0][default_mvmt_type]
+        eventPlayer.menu_opt_status[17] = default_mvmt_type
+        eventPlayer.menu_opt_len[17] = len(opt_array_movement[0]) - 1
+        ## Custom Min Dist Cycle
+        eventPlayer.menu_opt_var[18] = "{0} m".format(custom_min_dist)
+        eventPlayer.menu_opt_status[18] = custom_min_dist
+        eventPlayer.menu_opt_len[18] = 200
+        eventPlayer.menu_item_hidden[18] = true
+        ## Custom Max Dist Cycle
+        increment_for_menu_item()
+        eventPlayer.menu_opt_var[19] = "{0} m".format(custom_max_dist)
+        eventPlayer.menu_opt_status[19] = custom_max_dist
+        eventPlayer.menu_opt_len[19] = 200
+        eventPlayer.menu_item_hidden[19] = true
+        ## Custom Max Dist Cycle
+        eventPlayer.menu_opt_var[20] = custom_strafe_points
+        eventPlayer.menu_opt_status[20] = custom_strafe_points - 1
+        eventPlayer.menu_opt_len[20] = 99
+        eventPlayer.menu_item_hidden[20] = true
+        ## Strafe Difficulty
+        eventPlayer.menu_opt_var[21] = opt_array_movement[1][default_bot_diff]
+        eventPlayer.menu_opt_status[21] = default_bot_diff
+        eventPlayer.menu_opt_len[21] = len(opt_array_movement[1]) - 1
+        ## Custom Min Wait Cycle
+        eventPlayer.menu_opt_var[22] = "{0} s".format(custom_min_wait)
+        eventPlayer.menu_item_hidden[22] = true
+        ## Custom Max Wait Cycle
+        eventPlayer.menu_opt_var[23] = "{0} s".format(custom_max_wait)
+        eventPlayer.menu_item_hidden[23] = true
+        ## Bot Speed
+        eventPlayer.menu_index = 24
+        eventPlayer.menu_opt_value = custom_bot_speed
+        menu_speed_set_text_and_color()
+        eventPlayer.menu_opt_status[24] = custom_bot_speed
+        eventPlayer.menu_opt_len[24] = 1000
+        ## Boucing Bots
+        if bounce_amount == 0:
+            eventPlayer.menu_opt_var[25] = "off"
+        else:
+            eventPlayer.menu_opt_var[25] = bounce_amount
+        eventPlayer.menu_opt_status[25] = bounce_amount
+        eventPlayer.menu_opt_len[25] = 100
+        ## Return to Main Menu
+        eventPlayer.menu_opt_status[26] = 0
+        ## Number of Bots
+        eventPlayer.menu_opt_var[27] = bot_count
+        eventPlayer.menu_opt_status[27] = bot_count
+        eventPlayer.menu_opt_len[27] = 12
+        ## Custom Spawn Toggle
+        eventPlayer.menu_opt_var[28] = opt_array_spawn_strings[spawn_type]
+        eventPlayer.menu_opt_status[28] = spawn_type
+        ## Bot Slot Cycle
+        eventPlayer.menu_opt_var[29] = 0
+        eventPlayer.menu_opt_status[29] = 0
+        eventPlayer.menu_opt_len[29] = 5
+        if spawn_type == 0:
+            eventPlayer.menu_item_hidden[29] = true
+        ## Slot Hero Pool
+        if hero_array_status[0] != "on":
+            eventPlayer.menu_opt_var[30] = "{0} : off".format(hero_array[0])
+        else:
+            eventPlayer.menu_opt_var[30] = "{0} : on".format(hero_array[0])
+        menu_on_opt_color[30] = default_menu_on_index_color
+        eventPlayer.bar_title[30] = ""
+        eventPlayer.bar_var[30] = heroIcon(hero_array[0])
+        eventPlayer.menu_opt_status[30] = 0
+        eventPlayer.menu_opt_len[30] = len(hero_array) - 1
+        eventPlayer.menu_index = 30
+        menu_hero_bar_color_set()
+        eventPlayer.menu_opt_status[30] = 0
+        ## Spawn Radius Cycle
+        eventPlayer.menu_opt_var[31] = "{0} m".format(spawn_radius)
+        eventPlayer.menu_opt_status[31] = spawn_radius
+        eventPlayer.menu_opt_len[31] = 100
+        ## Set Spawn Point
+        eventPlayer.menu_opt_status[32] = 0  
+        ## Return to Main Menu
+        eventPlayer.menu_opt_status[33] = 0    
+        ## Pressure Mode Toggle
+        eventPlayer.menu_opt_var[34] = opt_array_pressure[pressure_type]
+        eventPlayer.menu_opt_status[34] = pressure_type
+        eventPlayer.menu_opt_len[34] = len(opt_array_pressure) - 1
+        ## Pressure Mode Accuracy
+        eventPlayer.menu_opt_var[35] = "{0}%".format(pressure_accuracy)
+        eventPlayer.menu_index = 35
+        menu_pressure_cycle_color_set()
+        eventPlayer.menu_opt_status[35] = pressure_accuracy
+        eventPlayer.menu_opt_len[35] = 99
+        if pressure_type == 0:
+            eventPlayer.menu_item_hidden[35] = true
+        ## Speed Mode Toggle
+        if speed_mode_enabled == true:
+            eventPlayer.menu_opt_var[36] = "on"
+            eventPlayer.menu_opt_status[36] = 1
+        else:
+            eventPlayer.menu_opt_var[36] = "off"
+            eventPlayer.menu_opt_status[36] = 0
+
+        eventPlayer.menu_opt_var[37] = "{0} s".format(speed_max_time)
+        if speed_mode_enabled == false:
+            eventPlayer.menu_item_hidden[37] = true
+
+        eventPlayer.menu_opt_var[38] = "{0}%".format(speed_increment)
+        eventPlayer.menu_opt_status[38] = speed_increment
+        eventPlayer.menu_opt_len[38] = 100
+        if speed_mode_enabled == false:
+            eventPlayer.menu_item_hidden[38] = true
+
+        eventPlayer.menu_opt_var[39] = "{0}%".format(speed_decrement)
+        eventPlayer.menu_opt_status[39] = speed_decrement
+        eventPlayer.menu_opt_len[39] = 100
+        if speed_mode_enabled == false:
+            eventPlayer.menu_item_hidden[39] = true
+
+    eventPlayer.menu_index = 0
+    eventPlayer.menu_opt_value = 0
 
 def menu_hud():
     @Name "SUB: menu_hud"
-    default_menu_variables()
 
+    # Default Menu Variables
+    submenu_start_index[0] = 0
+    submenu_start_index[1] = 1
+    menu_max_pos = -1
+    menu_label_size = -1
+    menu_opt_size = -1
+    sub_size = 0
+    menu_off_opt_color = default_menu_off_index_color
+    
     increment_for_menu_label()
-    eventPlayer.menu_label[eventPlayer.menu_label_size] = "Player Settings"
-    eventPlayer.menu_label_color[eventPlayer.menu_label_size] = default_menu_label_color
+    menu_label[menu_label_size] = "Player Settings"
+    menu_label_color[menu_label_size] = default_menu_label_color
     new_menu_label_header()
 
     # Change Hero Select
     increment_for_menu_item()
-    eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Change Hero"
-    eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size]
-    eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
-    eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = null
+    menu_off_opt_title[menu_opt_size] = "Change Hero"
+    menu_on_opt_title[menu_opt_size] = menu_off_opt_title[menu_opt_size]
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
     new_menu_item_selection()
 
     # Assist Menu Select
     increment_for_menu_item()
-    eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Assists Menu"
-    eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Open Assists Menu"
-    eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
-    eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = null
+    menu_off_opt_title[menu_opt_size] = "Assists Menu"
+    menu_on_opt_title[menu_opt_size] = "Open Assists Menu"
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
     new_menu_item_selection()
 
     # Modifiers Select
     increment_for_menu_item()
-    eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Modifiers Menu"
-    eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Open Modifiers Menu"
-    eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
-    eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = null
+    menu_off_opt_title[menu_opt_size] = "Modifiers Menu"
+    menu_on_opt_title[menu_opt_size] = "Open Modifiers Menu"
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
     new_menu_item_selection()
 
-    if eventPlayer == hostPlayer:
-        # Bot Settings Label
-        increment_for_menu_label()
-        eventPlayer.menu_label[eventPlayer.menu_label_size] = "Bot Settings"
-        eventPlayer.menu_label_color[eventPlayer.menu_label_size] = default_menu_label_color
-        new_menu_label_header()
-        
-        # Movement Settings
-        increment_for_menu_item()
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Movement Menu"
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Open Movement Menu"
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
-        eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = null
-        new_menu_item_selection()
+    # Bot Settings Label
+    increment_for_menu_label()
+    menu_label[menu_label_size] = "Bot Settings"
+    menu_label_color[menu_label_size] = default_menu_label_color
+    new_menu_label_header()
+    
+    # Movement Settings
+    increment_for_menu_item()
+    menu_off_opt_title[menu_opt_size] = "Movement Menu"
+    menu_on_opt_title[menu_opt_size] = "Open Movement Menu"
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
+    new_menu_item_selection()
 
-        # Spawn Point Settings
-        increment_for_menu_item()
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Spawn Menu"
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Open Spawn Menu"
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
-        eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = null
-        new_menu_item_selection()
+    # Spawn Point Settings
+    increment_for_menu_item()
+    menu_off_opt_title[menu_opt_size] = "Spawn Menu"
+    menu_on_opt_title[menu_opt_size] = "Open Spawn Menu"
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
+    new_menu_item_selection()
 
-        # Spawn Point Settings
-        increment_for_menu_item()
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Game Mode Menu"
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Open Mode Menu"
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
-        eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = null
-        new_menu_item_selection()
-
+    # Spawn Point Settings
+    increment_for_menu_item()
+    menu_off_opt_title[menu_opt_size] = "Game Mode Menu"
+    menu_on_opt_title[menu_opt_size] = "Open Mode Menu"
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
+    new_menu_item_selection()
 
     # Help info label
     increment_for_menu_label()
-    eventPlayer.menu_label[eventPlayer.menu_label_size] = "\n   For more info on settings \n Go to Workshop.codes/VXEAT\n"
-    eventPlayer.menu_label_color[eventPlayer.menu_label_size] = Color.SKY_BLUE
+    menu_label[menu_label_size] = "\n   For more info on settings \n Go to Workshop.codes/VXEAT\n"
+    menu_label_color[menu_label_size] = Color.SKY_BLUE
     new_menu_label_subtext()
 
 
@@ -1949,63 +2122,51 @@ def menu_hud():
 
     ## Assist Submenu Header
     increment_for_menu_label()
-    eventPlayer.menu_label[eventPlayer.menu_label_size] = "Player Assists"
-    eventPlayer.menu_label_color[eventPlayer.menu_label_size] = default_menu_label_color
+    menu_label[menu_label_size] = "Player Assists"
+    menu_label_color[menu_label_size] = default_menu_label_color
     new_menu_label_header()
 
     ## Return to Main Menu
     increment_for_menu_item()
-    eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Back to Main Menu"
-    eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size]
-    eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
-    eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = 0
+    menu_off_opt_title[menu_opt_size] = "Back to Main Menu"
+    menu_on_opt_title[menu_opt_size] = menu_off_opt_title[menu_opt_size]
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
     new_menu_item_selection()
 
     # Projectile Guide
     increment_for_menu_item()
-    eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Projectile Guide"
-    eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = ""
-    eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = "Guide Off"
-    eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
-    eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = 0
-    eventPlayer.menu_opt_len[eventPlayer.menu_opt_size] = len(opt_array_abilities) - 1
+    menu_off_opt_title[menu_opt_size] = "Projectile Guide"
+    menu_on_opt_title[menu_opt_size] = ""
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
     new_menu_item_cycle()
 
     ## Mercy Damage Boost Toggle
     increment_for_menu_item()
-    eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Mercy Damage Boost"
-    eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Damage Boost: "
-    eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = "off"
-    eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = Color.RED
-    eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = 0
+    menu_off_opt_title[menu_opt_size] = "Mercy Damage Boost"
+    menu_on_opt_title[menu_opt_size] = "Damage Boost: "
+    menu_on_opt_color[menu_opt_size] = Color.RED
     new_menu_item_toggle()
 
     ## Ana Nano Boost Toggle
     increment_for_menu_item()
-    eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Ana Nano Boost"
-    eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Nano Boost: "
-    eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = "off"
-    eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = Color.RED
-    eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = 0
+    menu_off_opt_title[menu_opt_size] = "Ana Nano Boost"
+    menu_on_opt_title[menu_opt_size] = "Nano Boost: "
+    menu_on_opt_color[menu_opt_size] = Color.RED
     new_menu_item_toggle()
 
 
     ## Kitsune Toggle
     increment_for_menu_item()
-    eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Kiriko Kitsune"
-    eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Kitsune: "
-    eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = "off"
-    eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = Color.RED
-    eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = 0
+    menu_off_opt_title[menu_opt_size] = "Kiriko Kitsune"
+    menu_on_opt_title[menu_opt_size] = "Kitsune: "
+    menu_on_opt_color[menu_opt_size] = Color.RED
     new_menu_item_toggle()
 
     ## Show Recall
     increment_for_menu_item()
-    eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Tracer Bot Recall Indicator"
-    eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Show Recall: "
-    eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = "off"
-    eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = Color.RED
-    eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = 0
+    menu_off_opt_title[menu_opt_size] = "Tracer Bot Recall Indicator"
+    menu_on_opt_title[menu_opt_size] = "Show Recall: "
+    menu_on_opt_color[menu_opt_size] = Color.RED
     new_menu_item_toggle()
 
 
@@ -2014,374 +2175,274 @@ def menu_hud():
 
     ## Modifiers Submenu Header
     increment_for_menu_label()
-    eventPlayer.menu_label[eventPlayer.menu_label_size] = "Player Modifiers"
-    eventPlayer.menu_label_color[eventPlayer.menu_label_size] = default_menu_label_color
+    menu_label[menu_label_size] = "Player Modifiers"
+    menu_label_color[menu_label_size] = default_menu_label_color
     new_menu_label_header()
 
     ## Return to Main Menu
     increment_for_menu_item()
-    eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Back to Main Menu"
-    eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size]
-    eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
-    eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = 0
+    menu_off_opt_title[menu_opt_size] = "Back to Main Menu"
+    menu_on_opt_title[menu_opt_size] = menu_off_opt_title[menu_opt_size]
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
     new_menu_item_selection()
 
     ## Movement Speed Cycle
     increment_for_menu_item()
-    eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Movement Speed"
-    eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Speed: "
-    eventPlayer.menu_index = eventPlayer.menu_opt_size
-    eventPlayer.menu_opt_value = 100
+    menu_off_opt_title[menu_opt_size] = "Movement Speed"
+    menu_on_opt_title[menu_opt_size] = "Speed: "
     menu_speed_set_text_and_color()
-    eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = 100
-    eventPlayer.menu_opt_len[eventPlayer.menu_opt_size] = 1000
     new_menu_item_cycle()
 
     ## Infinite Ammo Toggle
     increment_for_menu_item()
-    eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Infinite Ammo"
-    eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Infinite Ammo: "
-    eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = "off"
-    eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = Color.RED
-    eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = 0
+    menu_off_opt_title[menu_opt_size] = "Infinite Ammo"
+    menu_on_opt_title[menu_opt_size] = "Infinite Ammo: "
+    menu_on_opt_color[menu_opt_size] = Color.RED
     new_menu_item_toggle()
 
     ## Movement Speed Cycle
     increment_for_menu_item()
-    eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "No Strafing Stun"
-    eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Timer: "
-    eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = "off"
-    eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
-    eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = 0
+    menu_off_opt_title[menu_opt_size] = "No Strafing Stun"
+    menu_on_opt_title[menu_opt_size] = "Timer: "
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
     new_menu_item_cycle()
 
-    if eventPlayer == hostPlayer:
-        # Movement Submenu
-        increment_for_submenu_item()
+    # Movement Submenu
+    increment_for_submenu_item()
 
-        ## Movement Header
-        increment_for_menu_label()
-        eventPlayer.menu_label[eventPlayer.menu_label_size] = "Bot Movement Settings"
-        eventPlayer.menu_label_color[eventPlayer.menu_label_size] = default_menu_label_color
-        new_menu_label_header()
-        
-        ## Return to Main Menu
-        increment_for_menu_item()
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Back to Main Menu"
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size]
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
-        eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = 0
-        new_menu_item_selection()
+    ## Movement Header
+    increment_for_menu_label()
+    menu_label[menu_label_size] = "Bot Movement Settings"
+    menu_label_color[menu_label_size] = default_menu_label_color
+    new_menu_label_header()
+    
+    ## Return to Main Menu
+    increment_for_menu_item()
+    menu_off_opt_title[menu_opt_size] = "Back to Main Menu"
+    menu_on_opt_title[menu_opt_size] = menu_off_opt_title[menu_opt_size]
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
+    new_menu_item_selection()
 
-        ## Strafe Pattern
-        increment_for_menu_item()
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Strafe Pattern"
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Pattern: "
-        eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = opt_array_movement[0][default_mvmt_type]
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
-        eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = default_mvmt_type
-        eventPlayer.menu_opt_len[eventPlayer.menu_opt_size] = len(opt_array_movement[0]) - 1
-        new_menu_item_cycle()
+    ## Strafe Pattern
+    increment_for_menu_item()
+    menu_off_opt_title[menu_opt_size] = "Strafe Pattern"
+    menu_on_opt_title[menu_opt_size] = "Pattern: "
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
+    new_menu_item_cycle()
 
-        ## Custom Min Dist Cycle
-        increment_for_menu_item()
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Min Distance"
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Min: "
-        eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = "{0} m".format(custom_min_dist)
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
-        eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = custom_min_dist
-        eventPlayer.menu_opt_len[eventPlayer.menu_opt_size] = 200
-        new_menu_item_cycle()
-        eventPlayer.item_visible[eventPlayer.menu_opt_size] = false
+    ## Custom Min Dist Cycle
+    increment_for_menu_item()
+    menu_off_opt_title[menu_opt_size] = "Min Distance"
+    menu_on_opt_title[menu_opt_size] = "Min: "
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
+    new_menu_item_cycle()
 
-        ## Custom Max Dist Cycle
-        increment_for_menu_item()
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Max Distance"
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Max: "
-        eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = "{0} m".format(custom_max_dist)
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
-        eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = custom_max_dist
-        eventPlayer.menu_opt_len[eventPlayer.menu_opt_size] = 200
-        new_menu_item_cycle()
-        eventPlayer.item_visible[eventPlayer.menu_opt_size] = false
+    ## Custom Max Dist Cycle
+    increment_for_menu_item()
+    menu_off_opt_title[menu_opt_size] = "Max Distance"
+    menu_on_opt_title[menu_opt_size] = "Max: "
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
+    new_menu_item_cycle()
 
-        ## Custom Max Dist Cycle
-        increment_for_menu_item()
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Fixed Points"
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Points: "
-        eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = custom_strafe_points
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
-        eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = custom_strafe_points - 1
-        eventPlayer.menu_opt_len[eventPlayer.menu_opt_size] = 99
-        new_menu_item_cycle()
-        eventPlayer.item_visible[eventPlayer.menu_opt_size] = false
+    ## Custom Max Dist Cycle
+    increment_for_menu_item()
+    menu_off_opt_title[menu_opt_size] = "Fixed Points"
+    menu_on_opt_title[menu_opt_size] = "Points: "
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
+    new_menu_item_cycle()
 
-        ## Strafe Difficulty
-        increment_for_menu_item()
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Strafe Difficulty"
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Difficulty: "
-        eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = opt_array_movement[1][default_bot_diff]
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = opt_array_movement[2][default_bot_diff]
-        eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = default_bot_diff
-        eventPlayer.menu_opt_len[eventPlayer.menu_opt_size] = len(opt_array_movement[1]) - 1
-        new_menu_item_cycle()
+    ## Strafe Difficulty
+    increment_for_menu_item()
+    menu_off_opt_title[menu_opt_size] = "Strafe Difficulty"
+    menu_on_opt_title[menu_opt_size] = "Difficulty: "
+    menu_on_opt_color[menu_opt_size] = opt_array_movement[2][default_bot_diff]
+    new_menu_item_cycle()
 
-        ## Custom Min Wait Cycle
-        increment_for_menu_item()
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Min Strafe Wait"
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Min: "
-        eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = "{0} s".format(custom_min_wait)
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
-        new_menu_item_cycle()
-        eventPlayer.item_visible[eventPlayer.menu_opt_size] = false
+    ## Custom Min Wait Cycle
+    increment_for_menu_item()
+    menu_off_opt_title[menu_opt_size] = "Min Strafe Wait"
+    menu_on_opt_title[menu_opt_size] = "Min: "
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
+    new_menu_item_cycle()
 
+    ## Custom Max Wait Cycle
+    increment_for_menu_item()
+    menu_off_opt_title[menu_opt_size] = "Max Strafe Wait"
+    menu_on_opt_title[menu_opt_size] = "Max: "
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
+    new_menu_item_cycle()
 
-        ## Custom Max Wait Cycle
-        increment_for_menu_item()
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Max Strafe Wait"
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Max: "
-        eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = "{0} s".format(custom_max_wait)
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
-        new_menu_item_cycle()
-        eventPlayer.item_visible[eventPlayer.menu_opt_size] = false
+    ## Bot Speed
+    increment_for_menu_item()
+    menu_off_opt_title[menu_opt_size] = "Movement Speed"
+    menu_on_opt_title[menu_opt_size] = "Speed: "
+    menu_speed_set_text_and_color()
+    new_menu_item_cycle()
 
+    ## Boucing Bots
+    increment_for_menu_item()
+    menu_off_opt_title[menu_opt_size] = "Bouncing Bots"
+    menu_on_opt_title[menu_opt_size] = "Bounce: "
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
+    new_menu_item_cycle()
 
-        ## Bot Speed
-        increment_for_menu_item()
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Movement Speed"
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Speed: "
-        eventPlayer.menu_index = eventPlayer.menu_opt_size
-        eventPlayer.menu_opt_value = custom_bot_speed
-        menu_speed_set_text_and_color()
-        eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = custom_bot_speed
-        eventPlayer.menu_opt_len[eventPlayer.menu_opt_size] = 1000
-        new_menu_item_cycle()
+    # General Submenu
+    increment_for_submenu_item()
 
-        ## Boucing Bots
-        increment_for_menu_item()
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Bouncing Bots"
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Bounce: "
-        if bounce_amount == 0:
-            eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = "off"
-        else:
-            eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = bounce_amount
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
-        eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = bounce_amount
-        eventPlayer.menu_opt_len[eventPlayer.menu_opt_size] = 100
-        new_menu_item_cycle()
+    ## Spawn Submenu Header
+    increment_for_menu_label()
+    menu_label[menu_label_size] = "Bot Spawn Settings"
+    menu_label_color[menu_label_size] = default_menu_label_color
+    new_menu_label_header()
+    
+    ## Return to Main Menu
+    increment_for_menu_item()
+    menu_off_opt_title[menu_opt_size] = "Back to Main Menu"
+    menu_on_opt_title[menu_opt_size] = menu_off_opt_title[menu_opt_size]
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
+    new_menu_item_selection()
 
-        # General Submenu
-        increment_for_submenu_item()
+    ## Number of Bots
+    increment_for_menu_item()
+    menu_off_opt_title[menu_opt_size] = "Number of Bots"
+    menu_on_opt_title[menu_opt_size] = "Count: "
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
+    new_menu_item_cycle()
 
-        ## Spawn Submenu Header
-        increment_for_menu_label()
-        eventPlayer.menu_label[eventPlayer.menu_label_size] = "Bot Spawn Settings"
-        eventPlayer.menu_label_color[eventPlayer.menu_label_size] = default_menu_label_color
-        new_menu_label_header()
-        
-        ## Return to Main Menu
-        increment_for_menu_item()
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Back to Main Menu"
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size]
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
-        eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = 0
-        new_menu_item_selection()
+    ## Custom Spawn Toggle
+    increment_for_menu_item()
+    menu_off_opt_title[menu_opt_size] = "Spawn Type"
+    menu_on_opt_title[menu_opt_size] = "Type: "
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
+    new_menu_item_toggle()
 
-        ## Number of Bots
-        increment_for_menu_item()
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Number of Bots"
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Count: "
-        eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = bot_count
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
-        eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = bot_count
-        eventPlayer.menu_opt_len[eventPlayer.menu_opt_size] = 12
-        new_menu_item_cycle()
+    ## Bot Slot Cycle
+    increment_for_menu_item()
+    menu_off_opt_title[menu_opt_size] = "Bot Slot"
+    menu_on_opt_title[menu_opt_size] = "Slot: "
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
+    new_menu_item_cycle()
 
-        ## Custom Spawn Toggle
-        increment_for_menu_item()
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Spawn Type"
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Type: "
-        eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = opt_array_spawn_strings[spawn_type]
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
-        eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = spawn_type
-        new_menu_item_toggle()
+    ## Slot Hero Pool
+    increment_for_menu_item()
+    if spawn_type == 0:
+        menu_off_opt_title[menu_opt_size] = "Hero Pool"
+    else:
+        menu_off_opt_title[menu_opt_size] = "Slot 0 Hero Pool"
+    menu_on_opt_title[menu_opt_size] = ""
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
+    menu_hero_bar_color_set()
+    
+    new_menu_item_cycle_bar()
 
-        ## Bot Slot Cycle
-        increment_for_menu_item()
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Bot Slot"
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Slot: "
-        eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = 0
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
-        eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = 0
-        eventPlayer.menu_opt_len[eventPlayer.menu_opt_size] = 5
-        new_menu_item_cycle()
-        if spawn_type == 0:
-            eventPlayer.item_visible[eventPlayer.menu_opt_size] = false
+    ## Spawn Radius Cycle
+    increment_for_menu_item()
+    if spawn_type == 0:
+        menu_off_opt_title[menu_opt_size] = "Spawn Radius"
+    else:
+        menu_off_opt_title[menu_opt_size] = "Slot 0 Radius"
+    menu_on_opt_title[menu_opt_size] = "Radius: "
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
+    new_menu_item_cycle()
 
-        ## Slot Hero Pool
-        
-        increment_for_menu_item()
-        if spawn_type == 0:
-            eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Hero Pool"
-        else:
-            eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Slot 0 Hero Pool"
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = ""
-        if hero_array_status[0] != "on":
-            eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = "{0} : off".format(hero_array[0])
-        else:
-            eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = "{0} : on".format(hero_array[0])
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
-        eventPlayer.bar_title[eventPlayer.menu_opt_size] = ""
-        eventPlayer.bar_var[eventPlayer.menu_opt_size] = heroIcon(hero_array[0])
-        eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = 0
-        eventPlayer.menu_opt_len[eventPlayer.menu_opt_size] = len(hero_array) - 1
-        eventPlayer.menu_index = eventPlayer.menu_opt_size
-        menu_hero_bar_color_set()
-        eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = 0
-        
-        new_menu_item_cycle_bar()
-
-        ## Spawn Radius Cycle
-        increment_for_menu_item()
-        if spawn_type == 0:
-            eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Spawn Radius"
-        else:
-            eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Slot 0 Radius"
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Radius: "
-        eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = "{0} m".format(spawn_radius)
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
-        eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = spawn_radius
-        eventPlayer.menu_opt_len[eventPlayer.menu_opt_size] = 100
-        new_menu_item_cycle()
-
-        ## Return to Main Menu
-        increment_for_menu_item()
-        if spawn_type == 0:
-            eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Set Spawn Point"
-        else:
-            eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Set Slot 0 Spawn Point"
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size]
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
-        eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = 0
-        new_menu_item_selection()
+    ## Return to Main Menu
+    increment_for_menu_item()
+    if spawn_type == 0:
+        menu_off_opt_title[menu_opt_size] = "Set Spawn Point"
+    else:
+        menu_off_opt_title[menu_opt_size] = "Set Slot 0 Spawn Point"
+    menu_on_opt_title[menu_opt_size] = menu_off_opt_title[menu_opt_size]
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
+    new_menu_item_selection()
 
 
-        # Modes Submenu
-        increment_for_submenu_item()
+    # Modes Submenu
+    increment_for_submenu_item()
 
-        ## Modes Submenu Header
-        increment_for_menu_label()
-        eventPlayer.menu_label[eventPlayer.menu_label_size] = "Game Mode Settings"
-        eventPlayer.menu_label_color[eventPlayer.menu_label_size] = default_menu_label_color
-        new_menu_label_header()
-        
-        ## Return to Main Menu
-        increment_for_menu_item()
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Back to Main Menu"
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size]
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
-        eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = 0
-        new_menu_item_selection()
+    ## Modes Submenu Header
+    increment_for_menu_label()
+    menu_label[menu_label_size] = "Game Mode Settings"
+    menu_label_color[menu_label_size] = default_menu_label_color
+    new_menu_label_header()
+    
+    ## Return to Main Menu
+    increment_for_menu_item()
+    menu_off_opt_title[menu_opt_size] = "Back to Main Menu"
+    menu_on_opt_title[menu_opt_size] = menu_off_opt_title[menu_opt_size]
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
+    new_menu_item_selection()
 
-        ## Pressure Mode Toggle
-        increment_for_menu_item()
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Pressure Mode"
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Pressure: "
-        eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = opt_array_pressure[pressure_type]
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
-        eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = pressure_type
-        eventPlayer.menu_opt_len[eventPlayer.menu_opt_size] = len(opt_array_pressure) - 1
-        new_menu_item_cycle()
+    ## Pressure Mode Toggle
+    increment_for_menu_item()
+    menu_off_opt_title[menu_opt_size] = "Pressure Mode"
+    menu_on_opt_title[menu_opt_size] = "Pressure: "
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
+    new_menu_item_cycle()
 
-        increment_for_menu_item()
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Bot Accuracy"
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Accuracy: "
-        eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = "{0}%".format(pressure_accuracy)
+    ## Pressure Mode Accuracy
+    increment_for_menu_item()
+    menu_off_opt_title[menu_opt_size] = "Bot Accuracy"
+    menu_on_opt_title[menu_opt_size] = "Accuracy: "
 
-        eventPlayer.menu_index = eventPlayer.menu_opt_size
-        menu_pressure_cycle_color_set()
+    menu_pressure_cycle_color_set()
 
-        eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = pressure_accuracy
-        eventPlayer.menu_opt_len[eventPlayer.menu_opt_size] = 99
-        new_menu_item_cycle()
-        if pressure_type == 0:
-            eventPlayer.item_visible[eventPlayer.menu_opt_size] = false
+    new_menu_item_cycle()
 
-        ## Speed Mode Toggle
-        increment_for_menu_item()
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Speed Mode"
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Speed: "
-        if speed_mode_enabled == true:
-        eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = "off"
-        if speed_mode_enabled == true:
-            eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = "on"
-            eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = Color.GREEN
-            eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = 1
-        else:
-            eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = "off"
-            eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = Color.RED
-            eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = 0
-        new_menu_item_toggle()
+    ## Speed Mode Toggle
+    increment_for_menu_item()
+    menu_off_opt_title[menu_opt_size] = "Speed Mode"
+    menu_on_opt_title[menu_opt_size] = "Speed: "
+    if speed_mode_enabled == true:
+        menu_on_opt_color[menu_opt_size] = Color.GREEN
+    else:
+        menu_on_opt_color[menu_opt_size] = Color.RED
+    new_menu_item_toggle()
 
-        increment_for_menu_item()
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Speed Timer"
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Time: "
-        eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = "{0} s".format(speed_max_time)
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
-        new_menu_item_cycle()
-        if speed_mode_enabled == false:
-            eventPlayer.item_visible[eventPlayer.menu_opt_size] = false
+    increment_for_menu_item()
+    menu_off_opt_title[menu_opt_size] = "Speed Timer"
+    menu_on_opt_title[menu_opt_size] = "Time: "
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
+    new_menu_item_cycle()
 
-        increment_for_menu_item()
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Increment Step"
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Speed: "
-        eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = "{0}%".format(speed_increment)
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
-        eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = speed_increment
-        eventPlayer.menu_opt_len[eventPlayer.menu_opt_size] = 100
-        new_menu_item_cycle()
-        if speed_mode_enabled == false:
-            eventPlayer.item_visible[eventPlayer.menu_opt_size] = false
+    increment_for_menu_item()
+    menu_off_opt_title[menu_opt_size] = "Increment Step"
+    menu_on_opt_title[menu_opt_size] = "Speed: "
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
+    new_menu_item_cycle()
 
-        increment_for_menu_item()
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_opt_size] = "Decrement Step"
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_opt_size] = "Speed: "
-        eventPlayer.menu_opt_var[eventPlayer.menu_opt_size] = "{0}%".format(speed_decrement)
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_opt_size] = default_menu_on_index_color
-        eventPlayer.menu_opt_status[eventPlayer.menu_opt_size] = speed_decrement
-        eventPlayer.menu_opt_len[eventPlayer.menu_opt_size] = 100
-        new_menu_item_cycle()
-        if speed_mode_enabled == false:
-            eventPlayer.item_visible[eventPlayer.menu_opt_size] = false
+    increment_for_menu_item()
+    menu_off_opt_title[menu_opt_size] = "Decrement Step"
+    menu_on_opt_title[menu_opt_size] = "Speed: "
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
+    new_menu_item_cycle()
 
-    eventPlayer.menu_index = 0
-    eventPlayer.menu_opt_value = 0
+
 
 
 def menu_speed_set_text_and_color():
-    @Name "menu_speed_set_text_and_color"
+    @Name "SUB: menu_speed_set_text_and_color"
 
     if eventPlayer.menu_opt_value == 100:
         eventPlayer.menu_opt_var[eventPlayer.menu_index] = opt_array_speed[1][0]
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_index] = opt_array_speed[2][0]
+        menu_on_opt_color[eventPlayer.menu_index] = opt_array_speed[2][0]
     elif eventPlayer.menu_opt_value == 125:
         eventPlayer.menu_opt_var[eventPlayer.menu_index] = opt_array_speed[1][1]
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_index] = opt_array_speed[2][1]
+        menu_on_opt_color[eventPlayer.menu_index] = opt_array_speed[2][1]
     elif eventPlayer.menu_opt_value == 130:
         eventPlayer.menu_opt_var[eventPlayer.menu_index] = opt_array_speed[1][2]
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_index] = opt_array_speed[2][2]
+        menu_on_opt_color[eventPlayer.menu_index] = opt_array_speed[2][2]
     elif eventPlayer.menu_opt_value == 155:
         eventPlayer.menu_opt_var[eventPlayer.menu_index] = opt_array_speed[1][3]
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_index] = opt_array_speed[2][3]
+        menu_on_opt_color[eventPlayer.menu_index] = opt_array_speed[2][3]
     elif eventPlayer.menu_opt_value == 160:
         eventPlayer.menu_opt_var[eventPlayer.menu_index] = opt_array_speed[1][4]
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_index] = opt_array_speed[2][4]
+        menu_on_opt_color[eventPlayer.menu_index] = opt_array_speed[2][4]
     elif eventPlayer.menu_opt_value == 175:
         eventPlayer.menu_opt_var[eventPlayer.menu_index] = opt_array_speed[1][5]
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_index] = opt_array_speed[2][5]
+        menu_on_opt_color[eventPlayer.menu_index] = opt_array_speed[2][5]
     else:
         eventPlayer.menu_opt_var[eventPlayer.menu_index] = "{0} %".format(eventPlayer.menu_opt_value)
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_index] = default_menu_on_index_color
+        menu_on_opt_color[eventPlayer.menu_index] = default_menu_on_index_color
 
 
 def menu_hero_bar_color_set():
@@ -2393,21 +2454,23 @@ def menu_hero_bar_color_set():
         eventPlayer.bar_color[eventPlayer.menu_index] = Color.RED
 
 def menu_pressure_cycle_color_set():
+    @Name "SUB: menu_pressure_cycle_color_set"
     
     if pressure_accuracy == 100:
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_index] = Color.BLACK
+        menu_on_opt_color[eventPlayer.menu_index] = Color.BLACK
     elif pressure_accuracy >= 90:
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_index] = Color.RED  
+        menu_on_opt_color[eventPlayer.menu_index] = Color.RED  
     elif pressure_accuracy >= 80:
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_index] = Color.ROSE  
+        menu_on_opt_color[eventPlayer.menu_index] = Color.ROSE  
     elif pressure_accuracy >= 70:
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_index] = Color.ORANGE
+        menu_on_opt_color[eventPlayer.menu_index] = Color.ORANGE
     elif pressure_accuracy >= 50:
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_index] = Color.YELLOW
+        menu_on_opt_color[eventPlayer.menu_index] = Color.YELLOW
     elif pressure_accuracy >= 30:
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_index] = Color.GREEN        
+        menu_on_opt_color[eventPlayer.menu_index] = Color.GREEN        
     else:
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_index] = Color.SKY_BLUE
+        menu_on_opt_color[eventPlayer.menu_index] = Color.SKY_BLUE
+
 
 # Player Menu
 rule "Menu Actions: Input Read":
@@ -2435,7 +2498,7 @@ rule "Menu Actions: Input Read":
         else:
             eventPlayer.menu_input = -2
 
-    eventPlayer.menu_substart_value = eventPlayer.submenu_start_index[eventPlayer.submenu_index]
+    eventPlayer.menu_substart_value = submenu_start_index[eventPlayer.submenu_index]
     eventPlayer.menu_opt_value = eventPlayer.menu_opt_status[eventPlayer.menu_index]
     eventPlayer.menu_wait = 0.1
 
@@ -2552,15 +2615,16 @@ rule "Menu Actions: Input Read":
             
 ## Menu Action helpers
 def menu_status_io_toggle():
+    @Name "SUB: menu_status_io_toggle"
 
     if eventPlayer.menu_opt_value == 1:
         eventPlayer.menu_opt_value = 0
         eventPlayer.menu_opt_var[eventPlayer.menu_index] = "off"
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_index] = Color.RED
+        menu_on_opt_color[eventPlayer.menu_index] = Color.RED
     else:
         eventPlayer.menu_opt_value = 1
         eventPlayer.menu_opt_var[eventPlayer.menu_index] = "on"
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_index] = Color.GREEN
+        menu_on_opt_color[eventPlayer.menu_index] = Color.GREEN
     eventPlayer.menu_opt_status[eventPlayer.menu_index] = eventPlayer.menu_opt_value
 
 
@@ -2610,10 +2674,10 @@ def menu_act_toggle_assists_menu():
 
     if eventPlayer.submenu_index == 0:
         eventPlayer.submenu_index = 1
-        eventPlayer.menu_index = eventPlayer.submenu_start_index[eventPlayer.submenu_index]
+        eventPlayer.menu_index = submenu_start_index[eventPlayer.submenu_index]
     else:
         eventPlayer.submenu_index = 0
-        eventPlayer.menu_index = 1 + eventPlayer.submenu_start_index[eventPlayer.submenu_index]
+        eventPlayer.menu_index = 1 + submenu_start_index[eventPlayer.submenu_index]
 
         
 def menu_act_toggle_mercy():
@@ -2709,10 +2773,10 @@ def menu_act_toggle_modifiers_menu():
 
     if eventPlayer.submenu_index == 0:
         eventPlayer.submenu_index = 2
-        eventPlayer.menu_index = eventPlayer.submenu_start_index[eventPlayer.submenu_index]
+        eventPlayer.menu_index = submenu_start_index[eventPlayer.submenu_index]
     else:
         eventPlayer.submenu_index = 0
-        eventPlayer.menu_index = 2 + eventPlayer.submenu_start_index[eventPlayer.submenu_index]
+        eventPlayer.menu_index = 2 + submenu_start_index[eventPlayer.submenu_index]
 
 
 def menu_act_cycle_player_speed():
@@ -2813,15 +2877,15 @@ def menu_act_proj_guide():
     destroyEffect(eventPlayer.proj_effects[1])
     eventPlayer.proj_type = eventPlayer.menu_opt_value
     if eventPlayer.menu_opt_value == 0:
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_index] = ""
+        menu_on_opt_title[eventPlayer.menu_index] = ""
         eventPlayer.menu_opt_var[eventPlayer.menu_index] = "Guide off"
-        eventPlayer.menu_on_opt_color[eventPlayer.menu_index] = Color.YELLOW
+        menu_on_opt_color[eventPlayer.menu_index] = Color.YELLOW
     else:
         update_projectile_data()
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_index] = opt_array_abilities[eventPlayer.menu_opt_value]
+        menu_on_opt_title[eventPlayer.menu_index] = opt_array_abilities[eventPlayer.menu_opt_value]
         eventPlayer.menu_opt_var[eventPlayer.menu_index] = "{0}m/s".format(hero_proj_speed[eventPlayer.curr_hero_index][eventPlayer.proj_type-1])
         if eventPlayer.proj_speed != 0:
-            eventPlayer.menu_on_opt_color[eventPlayer.menu_index] = Color.GREEN
+            menu_on_opt_color[eventPlayer.menu_index] = Color.GREEN
             createBeam(eventPlayer, Beam.GRAPPLE, eventPlayer.aim_spot, eventPlayer.aim_spot + directionTowards(eventPlayer.aim_spot, eventPlayer.getEyePosition()) * (distance(eventPlayer.getEyePosition(), eventPlayer.aim_spot) / 2), Color.WHITE, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
             eventPlayer.proj_effects[0] = getLastCreatedEntity()
             createEffect(eventPlayer, Effect.SPHERE, Color.YELLOW, eventPlayer.aim_spot, 0.15, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
@@ -2831,7 +2895,7 @@ def menu_act_proj_guide():
                 smallMessage(eventPlayer, "    Bug: For arcing projectiles, the guide will underestimate aim height.")
                 smallMessage(eventPlayer, "    Degree of error correlates directly with target distance and inversely with projectile speed.")
         else:
-            eventPlayer.menu_on_opt_color[eventPlayer.menu_index] = Color.RED
+            menu_on_opt_color[eventPlayer.menu_index] = Color.RED
 
 
 def menu_act_toggle_movement_menu():
@@ -2841,10 +2905,10 @@ def menu_act_toggle_movement_menu():
     #waitUntil(eventPlayer.isHoldingButton(Button.ABILITY_2) == false and eventPlayer.isHoldingButton(Button.PRIMARY_FIRE) == false,9999)
     if eventPlayer.submenu_index == 0:
         eventPlayer.submenu_index = 3
-        eventPlayer.menu_index = eventPlayer.submenu_start_index[eventPlayer.submenu_index]
+        eventPlayer.menu_index = submenu_start_index[eventPlayer.submenu_index]
     else:
         eventPlayer.submenu_index = 0
-        eventPlayer.menu_index = 3 + eventPlayer.submenu_start_index[eventPlayer.submenu_index]
+        eventPlayer.menu_index = 3 + submenu_start_index[eventPlayer.submenu_index]
 
 
 def menu_act_cycle_pattern():
@@ -2855,17 +2919,17 @@ def menu_act_cycle_pattern():
     default_mvmt_type = eventPlayer.menu_opt_value
 
     if eventPlayer.menu_opt_value == 4:
-        eventPlayer.item_visible[eventPlayer.menu_index+1] = true
-        eventPlayer.item_visible[eventPlayer.menu_index+2] = true
-        eventPlayer.item_visible[eventPlayer.menu_index+3] = false
+        eventPlayer.menu_item_hidden[eventPlayer.menu_index+1] = false
+        eventPlayer.menu_item_hidden[eventPlayer.menu_index+2] = false
+        eventPlayer.menu_item_hidden[eventPlayer.menu_index+3] = true
     elif eventPlayer.menu_opt_value == 5 or eventPlayer.menu_opt_value == 6:
-        eventPlayer.item_visible[eventPlayer.menu_index+1] = false
-        eventPlayer.item_visible[eventPlayer.menu_index+2] = false
-        eventPlayer.item_visible[eventPlayer.menu_index+3] = true
+        eventPlayer.menu_item_hidden[eventPlayer.menu_index+1] = true
+        eventPlayer.menu_item_hidden[eventPlayer.menu_index+2] = true
+        eventPlayer.menu_item_hidden[eventPlayer.menu_index+3] = false
     else:
-        eventPlayer.item_visible[eventPlayer.menu_index+1] = false
-        eventPlayer.item_visible[eventPlayer.menu_index+2] = false
-        eventPlayer.item_visible[eventPlayer.menu_index+3] = false
+        eventPlayer.menu_item_hidden[eventPlayer.menu_index+1] = true
+        eventPlayer.menu_item_hidden[eventPlayer.menu_index+2] = true
+        eventPlayer.menu_item_hidden[eventPlayer.menu_index+3] = true
 
     eventPlayer.menu_reset_bots = true
 
@@ -2924,16 +2988,16 @@ def menu_act_cycle_difficulty():
 
     menu_status_cycle()
     eventPlayer.menu_opt_var[eventPlayer.menu_index] = opt_array_movement[1][eventPlayer.menu_opt_value]
-    eventPlayer.menu_on_opt_color[eventPlayer.menu_index] = opt_array_movement[2][eventPlayer.menu_opt_value]
-    eventPlayer.item_visible[eventPlayer.menu_index+1] = true
+    menu_on_opt_color[eventPlayer.menu_index] = opt_array_movement[2][eventPlayer.menu_opt_value]
+    eventPlayer.menu_item_hidden[eventPlayer.menu_index+1] = false
     if eventPlayer.menu_opt_value == 0:
-        eventPlayer.item_visible[eventPlayer.menu_index+1] = true
-        eventPlayer.item_visible[eventPlayer.menu_index+2] = true
+        eventPlayer.menu_item_hidden[eventPlayer.menu_index+1] = false
+        eventPlayer.menu_item_hidden[eventPlayer.menu_index+2] = false
         mvmt_min_wait = custom_min_wait
         mvmt_max_wait = custom_max_wait
     else:
-        eventPlayer.item_visible[eventPlayer.menu_index+1] = false
-        eventPlayer.item_visible[eventPlayer.menu_index+2] = false
+        eventPlayer.menu_item_hidden[eventPlayer.menu_index+1] = true
+        eventPlayer.menu_item_hidden[eventPlayer.menu_index+2] = true
         mvmt_min_wait = opt_array_movement[3][eventPlayer.menu_opt_value]
         mvmt_max_wait = opt_array_movement[4][eventPlayer.menu_opt_value]
 
@@ -3074,10 +3138,10 @@ def menu_act_toggle_spawn_menu():
     #waitUntil(eventPlayer.isHoldingButton(Button.ABILITY_2) == false and eventPlayer.isHoldingButton(Button.PRIMARY_FIRE) == false,9999)
     if eventPlayer.submenu_index == 0:
         eventPlayer.submenu_index = 4
-        eventPlayer.menu_index = eventPlayer.submenu_start_index[eventPlayer.submenu_index]
+        eventPlayer.menu_index = submenu_start_index[eventPlayer.submenu_index]
     else:
         eventPlayer.submenu_index = 0
-        eventPlayer.menu_index = 4 + eventPlayer.submenu_start_index[eventPlayer.submenu_index]
+        eventPlayer.menu_index = 4 + submenu_start_index[eventPlayer.submenu_index]
 
 
 def menu_act_num_bots():
@@ -3101,11 +3165,11 @@ def menu_act_num_bots():
     eventPlayer.menu_opt_len[eventPlayer.menu_index+2] = bot_slot
 
     if eventPlayer.menu_opt_status[eventPlayer.menu_index+1] == 1:
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_index+3] = "Slot {0} Hero Pool".format(bot_slot)
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_index+3] = "Slot {0}".format(bot_slot)
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_index+4] = "Slot {0} Radius".format(bot_slot)
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_index+5] = "Set Slot {0} Spawn Point".format(bot_slot)
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_index+5] = "Set Slot {0} Spawn Point".format(bot_slot)
+        menu_off_opt_title[eventPlayer.menu_index+3] = "Slot {0} Hero Pool".format(bot_slot)
+        menu_on_opt_title[eventPlayer.menu_index+3] = "Slot {0}".format(bot_slot)
+        menu_on_opt_title[eventPlayer.menu_index+4] = "Slot {0} Radius".format(bot_slot)
+        menu_off_opt_title[eventPlayer.menu_index+5] = "Set Slot {0} Spawn Point".format(bot_slot)
+        menu_on_opt_title[eventPlayer.menu_index+5] = "Set Slot {0} Spawn Point".format(bot_slot)
         
     eventPlayer.menu_reset_bots = true
     smallMessage(eventPlayer, "    Bot count updated. Exit menu to refresh bots.")
@@ -3116,22 +3180,22 @@ def menu_act_toggle_spawn_type():
 
     if eventPlayer.menu_opt_value == 1:
         eventPlayer.menu_opt_value = 0
-        eventPlayer.item_visible[eventPlayer.menu_index+1] = false
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_index+2] = "Hero Pool"
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_index+2] = ""
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_index+3] = "Spawn Radius"
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_index+3] = "Radius"
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_index+4] = "Set Spawn Point"
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_index+4] = "Set Spawn Point"
+        eventPlayer.menu_item_hidden[eventPlayer.menu_index+1] = true
+        menu_off_opt_title[eventPlayer.menu_index+2] = "Hero Pool"
+        menu_on_opt_title[eventPlayer.menu_index+2] = ""
+        menu_off_opt_title[eventPlayer.menu_index+3] = "Spawn Radius"
+        menu_on_opt_title[eventPlayer.menu_index+3] = "Radius"
+        menu_off_opt_title[eventPlayer.menu_index+4] = "Set Spawn Point"
+        menu_on_opt_title[eventPlayer.menu_index+4] = "Set Spawn Point"
     else:
         eventPlayer.menu_opt_value = 1
-        eventPlayer.item_visible[eventPlayer.menu_index+1] = true
+        eventPlayer.menu_item_hidden[eventPlayer.menu_index+1] = false
 
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_index+2] = "Slot {0} Hero Pool".format(bot_slot)
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_index+3] = "Slot {0} Spawn Radius".format(bot_slot)
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_index+3] = "Slot {0} Radius".format(bot_slot)
-        eventPlayer.menu_off_opt_title[eventPlayer.menu_index+4] = "Set Slot {0} Spawn Point".format(bot_slot)
-        eventPlayer.menu_on_opt_title[eventPlayer.menu_index+4] = "Set Slot {0} Spawn Point".format(bot_slot)
+        menu_off_opt_title[eventPlayer.menu_index+2] = "Slot {0} Hero Pool".format(bot_slot)
+        menu_off_opt_title[eventPlayer.menu_index+3] = "Slot {0} Spawn Radius".format(bot_slot)
+        menu_on_opt_title[eventPlayer.menu_index+3] = "Slot {0} Radius".format(bot_slot)
+        menu_off_opt_title[eventPlayer.menu_index+4] = "Set Slot {0} Spawn Point".format(bot_slot)
+        menu_on_opt_title[eventPlayer.menu_index+4] = "Set Slot {0} Spawn Point".format(bot_slot)
 
     eventPlayer.menu_opt_status[eventPlayer.menu_index] = eventPlayer.menu_opt_value
     spawn_type = eventPlayer.menu_opt_value
@@ -3145,12 +3209,12 @@ def menu_act_cycle_slot():
     menu_status_cycle()
     bot_slot = eventPlayer.menu_opt_value
     eventPlayer.menu_opt_var[eventPlayer.menu_index] = bot_slot
-    eventPlayer.menu_off_opt_title[eventPlayer.menu_index+1] = "Slot {0} Hero Pool".format(bot_slot)
-    #eventPlayer.menu_on_opt_title[eventPlayer.menu_index+1] = "Slot {0}".format(bot_slot)
-    eventPlayer.menu_off_opt_title[eventPlayer.menu_index+2] = "Slot {0} Spawn Radius".format(bot_slot)
-    eventPlayer.menu_on_opt_title[eventPlayer.menu_index+2] = "Slot {0} Radius".format(bot_slot)
-    eventPlayer.menu_off_opt_title[eventPlayer.menu_index+3] = "Set Slot {0} Spawn Point".format(bot_slot)
-    eventPlayer.menu_on_opt_title[eventPlayer.menu_index+3] = "Set Slot {0} Spawn Point".format(bot_slot)
+    menu_off_opt_title[eventPlayer.menu_index+1] = "Slot {0} Hero Pool".format(bot_slot)
+    #menu_on_opt_title[eventPlayer.menu_index+1] = "Slot {0}".format(bot_slot)
+    menu_off_opt_title[eventPlayer.menu_index+2] = "Slot {0} Spawn Radius".format(bot_slot)
+    menu_on_opt_title[eventPlayer.menu_index+2] = "Slot {0} Radius".format(bot_slot)
+    menu_off_opt_title[eventPlayer.menu_index+3] = "Set Slot {0} Spawn Point".format(bot_slot)
+    menu_on_opt_title[eventPlayer.menu_index+3] = "Set Slot {0} Spawn Point".format(bot_slot)
 
 
 def menu_act_hero_pool():
@@ -3195,7 +3259,7 @@ def menu_act_hero_pool():
 
 
 def menu_act_cycle_radius():
-    @Name "menu_act_cycle_radius"
+    @Name "SUB: menu_act_cycle_radius"
 
     menu_status_cycle()
     spawn_radius = eventPlayer.menu_opt_value
@@ -3210,7 +3274,7 @@ def menu_act_cycle_radius():
 
 
 def menu_act_set_spawn_pt():
-    @Name "menu_act_set_spawn_pt"
+    @Name "SUB: menu_act_set_spawn_pt"
     default_spawn_pt = eventPlayer.getPosition()
     if spawn_type == 0:
         
@@ -3230,10 +3294,10 @@ def menu_act_toggle_game_modes():
     #waitUntil(eventPlayer.isHoldingButton(Button.ABILITY_2) == false and eventPlayer.isHoldingButton(Button.PRIMARY_FIRE) == false,9999)
     if eventPlayer.submenu_index == 0:
         eventPlayer.submenu_index = 5
-        eventPlayer.menu_index = eventPlayer.submenu_start_index[eventPlayer.submenu_index]
+        eventPlayer.menu_index = submenu_start_index[eventPlayer.submenu_index]
     else:
         eventPlayer.submenu_index = 0
-        eventPlayer.menu_index = 5 + eventPlayer.submenu_start_index[eventPlayer.submenu_index]
+        eventPlayer.menu_index = 5 + submenu_start_index[eventPlayer.submenu_index]
 
 
 def menu_act_cycle_pressure_mode():
@@ -3250,9 +3314,9 @@ def menu_act_cycle_pressure_mode():
     eventPlayer.menu_opt_var[eventPlayer.menu_index] = opt_array_pressure[pressure_type]
 
     if pressure_type == 0:
-        eventPlayer.item_visible[eventPlayer.menu_index+1] = false
+        eventPlayer.menu_item_hidden[eventPlayer.menu_index+1] = true
     else:
-        eventPlayer.item_visible[eventPlayer.menu_index+1] = true
+        eventPlayer.menu_item_hidden[eventPlayer.menu_index+1] = false
 
 def menu_act_cycle_accuracy():
     @Name "SUB: menu_act_cycle_accuracy"
@@ -3272,9 +3336,9 @@ def menu_act_toggle_speed():
         if speed_player == true:
             eventPlayer.custom_speed = 100
         getPlayers(Team.2).setMoveSpeed(custom_bot_speed)
-        eventPlayer.item_visible[eventPlayer.menu_index+1] = false
-        eventPlayer.item_visible[eventPlayer.menu_index+2] = false
-        eventPlayer.item_visible[eventPlayer.menu_index+3] = false
+        eventPlayer.menu_item_hidden[eventPlayer.menu_index+1] = true
+        eventPlayer.menu_item_hidden[eventPlayer.menu_index+2] = true
+        eventPlayer.menu_item_hidden[eventPlayer.menu_index+3] = true
         smallMessage(eventPlayer, "    Speed Mode disabled")
     else:
         speed_mode_enabled = true
@@ -3285,9 +3349,9 @@ def menu_act_toggle_speed():
         if speed_player == true:
             eventPlayer.custom_speed = speed_base
         getPlayers(Team.2).setMoveSpeed(speed_base)
-        eventPlayer.item_visible[eventPlayer.menu_index+1] = true
-        eventPlayer.item_visible[eventPlayer.menu_index+2] = true
-        eventPlayer.item_visible[eventPlayer.menu_index+3] = true
+        eventPlayer.menu_item_hidden[eventPlayer.menu_index+1] = false
+        eventPlayer.menu_item_hidden[eventPlayer.menu_index+2] = false
+        eventPlayer.menu_item_hidden[eventPlayer.menu_index+3] = false
         smallMessage(eventPlayer, "    Speed Mode enabled")
         
 
@@ -4162,6 +4226,15 @@ def calc_arc_proj_lead():
 
 
 # Bot Pressure
+rule "Pressure Mode aim visualizer":
+    @Event eachPlayer
+    @Team 2
+    @Condition eventPlayer.apply_pressure == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition pressure_beam == true
+
+    createBeam(eventPlayer.pressure_target, Beam.MERCY_BOOST, eventPlayer.getEyePosition(), eventPlayer.pressure_target.getEyePosition() + eventPlayer.look_offset, Color.WHITE, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+
 rule "Bot Pressure: Set Pressure Bot":
     @Event eachPlayer
     @Team 1
@@ -6435,116 +6508,67 @@ rule "Bot Abilities: Zarya Ultimate (BB2)":
         
 ## DPS Bot Abilities
 ### Ashe Bot Abilities
-rule "Bot Abilities: Ashe Scope (Pn)":
+
+rule "Bot Abilities: Ashe Primary + Secondary":
     @Event eachPlayer
     @Team 2
     @Hero ashe
-    @Condition bots_use_abilities == true
-    @Condition bot_behavior[11] >= 1
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.apply_pressure == false
+    @Condition eventPlayer.apply_pressure == true
+    @Condition eventPlayer.bot_ability_lock[1] == false
+
+    eventPlayer.bot_ability_lock[0] = true
+    eventPlayer.ability_acc = 2
+    eventPlayer.general_randomizer = random.randint(0,9)
+    if bot_behavior[11] == 0 or eventPlayer.look_target.getNormalizedHealth() < 0.4:
+        eventPlayer.general_randomizer = eventPlayer.getAmmo(0)
+        ashe_spam()
+    elif distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 22 and eventPlayer.general_randomizer < 6: 
+        eventPlayer.general_randomizer = random.randint(1,2)
+        ashe_scoped()
+        eventPlayer.general_randomizer = random.randint(2,4)
+        ashe_spam()
+    else:
+        eventPlayer.general_randomizer = random.randint(2,4)
+        ashe_scoped()
+
+    eventPlayer.general_randomizer = eventPlayer.getAmmo(0)
+    while eventPlayer.general_randomizer > 0 and eventPlayer.bot_ability_signal[2] == false and eventPlayer.look_target.getNormalizedHealth() < 0.4:
+        eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
+        wait(0.33)
+        eventPlayer.general_randomizer -= 1
+
+    eventPlayer.bot_ability_lock[0] = false
+    eventPlayer.bot_ability_lock[1] = true      
+
+    if RULE_CONDITION:
+        goto RULE_START
+
+rule "Bot Abilities: Ashe Reload and Abilities Handler":
+    @Event eachPlayer
+    @Team 2
+    @Hero ashe
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.apply_pressure == true
+    @Condition eventPlayer.bot_ability_lock[0] == false
+    @Condition eventPlayer.bot_ability_lock[1] == true
+    @Condition eventPlayer.bot_ability_signal[2] == false
+
     
-    wait(random.uniform(0, 2), Wait.ABORT_WHEN_FALSE)
-    eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
-    wait(0.9, Wait.ABORT_WHEN_FALSE)
-    eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
-    if RULE_CONDITION:
-        goto RULE_START
+    if eventPlayer.getAmmo(0) < eventPlayer.getMaxAmmo(0)/random.randint(3,5):
+        eventPlayer.forceButtonPress(Button.RELOAD)
+        waitUntil(eventPlayer.getAmmo(0) == eventPlayer.getMaxAmmo(0), random.uniform(1,3))
 
+    if bot_behavior[11] >= 3 and eventPlayer.bot_ability_lock[3] == false:
+        eventPlayer.bot_ability_signal[3] = true
+        waitUntil(eventPlayer.bot_ability_signal[3] == false, 9999)
+    
+    if bot_behavior[11] >= 4 and eventPlayer.bot_ability_lock[4] == false:
+        eventPlayer.bot_ability_signal[4] = true
+        waitUntil(eventPlayer.bot_ability_signal[4] == false, 9999)
 
-rule "Bot Pressure: Ashe Primary Close (P)":
-    @Event eachPlayer
-    @Team 2
-    @Hero ashe
-    @Condition eventPlayer.apply_pressure == true
-    @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.bot_ability_lock[3] == false
-    @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) < 10
-
-    eventPlayer.ability_acc = 2
-    set_default_facing()
-    eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
-    eventPlayer.general_randomizer = random.randint(1,11)
-    while eventPlayer.getAmmo(0) >= eventPlayer.general_randomizer:
-        eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
-        wait(0.33, Wait.ABORT_WHEN_FALSE)
-    eventPlayer.forceButtonPress(Button.RELOAD)
-    wait(random.uniform(2,4), Wait.ABORT_WHEN_FALSE)
-    if RULE_CONDITION:
-        goto RULE_START
-
-
-rule "Bot Pressure: Ashe Primary Far (P)":
-    @Event eachPlayer
-    @Team 2
-    @Hero ashe
-    @Condition bot_behavior[11] >= 1
-    @Condition eventPlayer.apply_pressure == true
-    @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.bot_ability_lock[3] == false
-    @Condition distance(eventPlayer.getEyePosition(), getClosestPlayer(eventPlayer.getEyePosition(), Team.1)) >= 10
-
-    eventPlayer.ability_acc = 2
-    set_default_facing()
-    eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
-    wait(0.5)
-    eventPlayer.general_randomizer = random.randint(1,11)
-    while eventPlayer.getAmmo(0) >= eventPlayer.general_randomizer:
-        eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
-        wait(0.33, Wait.ABORT_WHEN_FALSE)
-    eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
-    eventPlayer.forceButtonPress(Button.RELOAD)
-    wait(random.uniform(2,4), Wait.ABORT_WHEN_FALSE)
-    if RULE_CONDITION:
-        goto RULE_START
-
-
-rule "Bot Abilities: Ashe Ability 1 (All)":
-    @Event eachPlayer
-    @Team 2
-    @Hero ashe
-    @Condition bots_use_abilities == true
-    @Condition bot_behavior[11] >= 2
-    @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.bot_ability_lock[2] == false
-
-    wait(random.uniform(3,7), Wait.ABORT_WHEN_FALSE)
-    #smallMessage(hostPlayer, "Debug: ashe a1 a")
-    eventPlayer.bot_ability_lock[2] = true
-    eventPlayer.startFacing(vect(random.uniform(-20,20) + eventPlayer.getEyePosition().x , random.uniform(-20,0) + eventPlayer.getEyePosition().y ,random.uniform(-20,20) + eventPlayer.getEyePosition().z), 1000, Relativity.TO_WORLD, FacingReeval.NONE)
-    wait(0.1)
-    eventPlayer.forceButtonPress(Button.ABILITY_1)
-    wait(0.1)
-    set_default_facing()
-    wait(10 / ability_freq)
-    eventPlayer.bot_ability_lock[2] = false
-    if RULE_CONDITION:
-        goto RULE_START
-
-
-rule "Bot Abilities: Ashe Ability 1 (R)":
-    @Event eachPlayer
-    @Team 2
-    @Hero ashe
-    @Condition bots_use_abilities == true
-    @Condition bots_react == true
-    @Condition bot_behavior[11] >= 2
-    @Condition eventPlayer.apply_pressure == true
-    @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.getNormalizedHealth() < 0.5
-    @Condition eventPlayer.bot_ability_lock[2] == false
-    @Condition distance(eventPlayer.getEyePosition(), eventPlayer.look_target.getEyePosition()) < 5
-
-    wait(random.uniform(1,2) / ability_freq, Wait.ABORT_WHEN_FALSE)
-    #smallMessage(hostPlayer, "Debug: ashe a1 R")
-    eventPlayer.bot_ability_lock[2] = true
-    eventPlayer.startFacing(vect(random.uniform(-20,20) + eventPlayer.getEyePosition().x , random.uniform(-20,0) + eventPlayer.getEyePosition().y ,random.uniform(-20,20) + eventPlayer.getEyePosition().z), 1000, Relativity.TO_WORLD, FacingReeval.NONE)
-    wait(0.1)
-    eventPlayer.forceButtonPress(Button.ABILITY_1)
-    wait(0.1)
-    set_default_facing()
-    wait(10 / ability_freq)
-    eventPlayer.bot_ability_lock[2] = false
+    wait(0.25)
+    eventPlayer.bot_ability_lock[1] = false  
 
     if RULE_CONDITION:
         goto RULE_START
@@ -6564,11 +6588,14 @@ rule "Bot Abilities: Ashe Ability 1 (Rd)":
 
     #smallMessage(hostPlayer, "Debug: ashe a1 Rd")
     eventPlayer.bot_ability_lock[2] = true
+    eventPlayer.bot_ability_signal[2] = true
+    waitUntil(eventPlayer.bot_ability_lock[0] == false, 1)
     eventPlayer.startFacing(vect(random.uniform(-20,20) + eventPlayer.getEyePosition().x , random.uniform(-20,0) + eventPlayer.getEyePosition().y ,random.uniform(-20,20) + eventPlayer.getEyePosition().z), 1000, Relativity.TO_WORLD, FacingReeval.NONE)
     wait(0.1)
     eventPlayer.forceButtonPress(Button.ABILITY_1)
     wait(0.1)
     set_default_facing()
+    eventPlayer.bot_ability_signal[2] = false
     wait(10 / ability_freq)
     eventPlayer.bot_ability_lock[2] = false
 
@@ -6582,21 +6609,22 @@ rule "Bot Abilities: Ashe Ability 2 (P)":
     @Hero ashe
     @Condition bots_use_abilities == true
     @Condition bot_behavior[11] >= 3
+    @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.apply_pressure == true
     @Condition eventPlayer.bot_ability_lock[3] == false
+    @Condition eventPlayer.bot_ability_signal[3] == true
 
-    wait(random.uniform(3,7) / ability_freq, Wait.ABORT_WHEN_FALSE)
     #smallMessage(hostPlayer, "Debug ashe a2")
     eventPlayer.bot_ability_lock[3] = true
     eventPlayer.bot_ability_var = eventPlayer.look_target.getEyePosition()
     eventPlayer.startFacing(directionTowards(eventPlayer.getEyePosition(), eventPlayer.bot_ability_var), 1000, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
-    eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
-    eventPlayer.stopForcingButton(Button.PRIMARY_FIRE)
     eventPlayer.forceButtonPress(Button.ABILITY_2)
     wait(0.75)
     eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
-    eventPlayer.bot_ability_lock[3] = false
+    set_default_facing()
+    eventPlayer.bot_ability_signal[3] = false
     wait(12 / ability_freq)
+    eventPlayer.bot_ability_lock[3] = false
 
     if RULE_CONDITION:
         goto RULE_START
@@ -6611,23 +6639,48 @@ rule "Bot Abilities: Ashe Ultimate (BB2)":
     @Condition eventPlayer.apply_pressure == true
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.bot_ability_lock[4] == false
+    @Condition eventPlayer.bot_ability_signal[4] == true
 
-    wait(10 / ult_freq)
-    eventPlayer.general_randomizer = random.randint(0,9) / ult_freq
+    #smallMessage(hostPlayer, "Debug: ashe ult")
+    eventPlayer.bot_ability_lock[4] = true
+    eventPlayer.general_randomizer = random.randint(0,9)/ult_freq
     if eventPlayer.general_randomizer < 3:
         eventPlayer.proj_type = 5
         set_proj_facing()
         wait(0.1)
-        eventPlayer.bot_ability_lock[4] = true
         eventPlayer.forceButtonPress(Button.ULTIMATE)
         set_default_facing()
-        wait(10 / ult_freq)
-        eventPlayer.bot_ability_lock[4] = false
+    eventPlayer.bot_ability_signal[4] = false
+    wait(15 / ult_freq)
+    eventPlayer.bot_ability_lock[4] = false
         
     if RULE_CONDITION:
         goto RULE_START
 
+        
+def ashe_scoped():
+    @Name "ashe_scoped"
 
+    eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
+    wait(0.20)
+    while eventPlayer.general_randomizer > 0 and eventPlayer.bot_ability_signal[2] == false:
+        eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
+        wait(0.70)
+        eventPlayer.general_randomizer -= 1
+
+    eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
+    wait(0.20)
+
+
+def ashe_spam():
+    @Name "ashe_spam"
+
+    while eventPlayer.general_randomizer > 0 and eventPlayer.bot_ability_signal[2] == false:
+        eventPlayer.forceButtonPress(Button.PRIMARY_FIRE)
+        wait(0.33)
+        eventPlayer.general_randomizer -= 1
+
+        
 ### Bastion Bot Abilities
 rule "Bot Abilities: Bastion Primary":
     @Event eachPlayer
