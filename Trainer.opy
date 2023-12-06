@@ -1,6 +1,6 @@
 settings {
     "main": {
-        "description": "Customizable Aim Trainer 4.3\n\nFeatures:\n◆ Customization for almost any setting\n◆ Pressure Mode: Bots shoot back at you\n◆ Multiple Bot Spawn Points\n◆ Reactive Bot AI\n◆ Choose from several different strafe patterns\n◆ And more...\n\nFind tutorials/help at workshop.codes/VXEAT\nReport bugs on my discord:discord.gg/YPQ5ETNT45\n",
+        "description": "Customizable Aim Trainer 4.3.2\n\nFeatures:\n◆ Customization for almost any setting\n◆ Pressure Mode: Bots shoot back at you\n◆ Multiple Bot Spawn Points\n◆ Reactive Bot AI\n◆ Choose from several different strafe patterns\n◆ And more...\n\nFind tutorials/help at workshop.codes/VXEAT\nReport bugs on my discord:discord.gg/YPQ5ETNT45\n",
         "modeName": "Customizable Aim Trainer - VXEAT"
     },
     "lobby": {
@@ -118,6 +118,7 @@ globalvar speed_player
 globalvar speed_max_time
 globalvar speed_kill_count
 globalvar speed_kill_target
+globalvar speed_strafe_reduction
 ## Player Settings Variables
 globalvar player_list
 globalvar dmg_to_slot_array
@@ -157,7 +158,7 @@ globalvar alt_mvmt_array
 globalvar data_loaded
 
 
-### TESTTTTT
+## Menu Variables 
 globalvar menu_label
 globalvar submenu_start_index
 globalvar menu_max_pos
@@ -196,7 +197,6 @@ playervar least_hero
 playervar curr_hero
 playervar curr_hero_index
 playervar next_hero_index
-playervar player_hero_list
 ## Player Stat Tracking Variables
 playervar stat_timer
 playervar stat_kills
@@ -212,6 +212,7 @@ playervar buff_effects
 playervar stored_vect
 playervar punish_timer
 playervar strafe_stun_timer
+playervar hs_only
 ## Player Ability Tracker
 playervar eat_cd_matrix
 playervar block_cd_matrix
@@ -342,6 +343,7 @@ subroutine menu_act_toggle_recall
 subroutine menu_act_toggle_ammo 
 subroutine menu_act_cycle_player_speed
 subroutine menu_act_strafe_stun
+subroutine menu_act_toggle_hs
 #### Submenu 3
 subroutine menu_act_cycle_pattern
 subroutine menu_act_cycle_min_dist
@@ -366,6 +368,7 @@ subroutine menu_act_toggle_speed
 subroutine menu_act_cycle_timer
 subroutine menu_act_cycle_increment
 subroutine menu_act_cycle_decrement
+subroutine menu_act_cycle_speed_kills
 ### Menu Action helpers
 subroutine menu_status_io_toggle
 subroutine menu_status_cycle
@@ -470,8 +473,8 @@ def set_map_default_spawn_pt():
         ## Sublevel
         elif getCurrentObjective() == 2:
             default_spawn_pt = vect(-78,-153,60)
-    elif getCurrentMap() == Map.BLIZZ_WORLD:
-        default_spawn_pt = vect(2.71,1.90,72.68)
+    #elif getCurrentMap() == Map.BLIZZ_WORLD:
+    #    default_spawn_pt = vect(2.71,1.90,72.68)
     elif getCurrentMap() == Map.BLIZZ_WORLD_WINTER:
         default_spawn_pt = vect(2.71,1.90,72.68)
     elif getCurrentMap() == Map.BUSAN:
@@ -579,6 +582,16 @@ def set_map_default_spawn_pt():
         default_spawn_pt = vect(56, 7, -56)
     elif getCurrentMap() == Map.ROUTE66:
         default_spawn_pt = vect(60, 10, 14)
+    elif getCurrentMap() == Map.SAMOA:
+        ## Beach
+        if getCurrentObjective() == 0:
+            default_spawn_pt = vect(-330, 3.1, -110)
+        ## Downtown
+        elif getCurrentObjective() == 1:
+            default_spawn_pt = vect(234, 7, -256)
+        ## Volcano
+        elif getCurrentObjective() == 2:
+            default_spawn_pt = vect(28, 356, 375)
     elif getCurrentMap() == Map.SHAMBALI_MONASTERY:
         default_spawn_pt = vect(-42, 32, 182)
     elif getCurrentMap() == Map.SURAVASA:
@@ -644,11 +657,12 @@ rule "Initialize: Workshop Settings":
     # Speed Mode
     speed_mode_enabled = createWorkshopSetting(bool, "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Increase Bots Movement Speed Every Elimination (JPYHG)", false, 0)
     speed_player = createWorkshopSetting(bool, "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Speed Applies to Player", false, 1)
-    speed_max_time = createWorkshopSetting(float[0:120], "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Speed Mode Timer (s)", 10, 2)
+    speed_max_time = createWorkshopSetting(float[0:300], "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Speed Mode Timer (s)", 10, 2)
     speed_base = createWorkshopSetting(int[0:1000], "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Speed Mode Base Speed (%)", 100, 3)
     speed_increment = createWorkshopSetting(int[0:100], "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Speed Mode Increment (%)", 10, 4)
     speed_decrement = createWorkshopSetting(int[0:100], "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Speed Mode Decrement (%)", 10, 5)
     speed_kill_target = createWorkshopSetting(int[1:100], "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Kills to Increment Speed", 1, 6)
+    speed_strafe_reduction = createWorkshopSetting(bool, "5. Bot Speed Mode (Overridden by in-game changes to Speed Mode)", "Reduce Strafe Distance Relative to Speed", false, 7)
     # Bot Spawn
     use_custom_spawn = createWorkshopSetting(bool, "6. Custom Bot Spawn (Overridden by in-game changes to spawn)", "Use Custom Spawn Point", false, 0)
     spawn_radius = createWorkshopSetting(int[0:100], "6. Custom Bot Spawn (Overridden by in-game changes to spawn)", "Spawn Radius (in meters)", 19, 1)
@@ -661,14 +675,15 @@ rule "Initialize: Workshop Settings":
     default_hero_array = createWorkshopSetting(bool, "7.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "D.va", false, 0)
     default_hero_array.append(createWorkshopSetting(bool, "7.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Doomfist", false, 1))
     default_hero_array.append(createWorkshopSetting(bool, "7.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Junker Queen", false, 2))
-    default_hero_array.append(createWorkshopSetting(bool, "7.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Orisa", false, 3))
-    default_hero_array.append(createWorkshopSetting(bool, "7.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Ramattra", false, 4))
-    default_hero_array.append(createWorkshopSetting(bool, "7.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Reinhardt", false, 5))
-    default_hero_array.append(createWorkshopSetting(bool, "7.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Roadhog", false, 6))
-	default_hero_array.append(createWorkshopSetting(bool, "7.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Sigma", false, 7))
-    default_hero_array.append(createWorkshopSetting(bool, "7.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Winston", false, 8))
-    default_hero_array.append(createWorkshopSetting(bool, "7.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Wrecking Ball", false, 9))
-    default_hero_array.append(createWorkshopSetting(bool, "7.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Zarya", false, 10))
+    default_hero_array.append(createWorkshopSetting(bool, "7.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Mauga", false, 3))
+    default_hero_array.append(createWorkshopSetting(bool, "7.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Orisa", false, 4))
+    default_hero_array.append(createWorkshopSetting(bool, "7.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Ramattra", false, 5))
+    default_hero_array.append(createWorkshopSetting(bool, "7.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Reinhardt", false, 6))
+    default_hero_array.append(createWorkshopSetting(bool, "7.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Roadhog", false, 7))
+	default_hero_array.append(createWorkshopSetting(bool, "7.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Sigma", false, 8))
+    default_hero_array.append(createWorkshopSetting(bool, "7.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Winston", false, 9))
+    default_hero_array.append(createWorkshopSetting(bool, "7.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Wrecking Ball", false, 10))
+    default_hero_array.append(createWorkshopSetting(bool, "7.1. Bot Tank Heroes (Overridden by in-game changes to bot heroes)", "Zarya", false, 11))
     
     ## Bot Damage Heroes Enabled
     default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Ashe", true, 0))
@@ -683,7 +698,7 @@ rule "Initialize: Workshop Settings":
     default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Reaper", true, 9))
 	default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Sojourn", true, 10))
     default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Soldier 76", true, 11))
-    default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Sombra", true, 12))
+    default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Sombra", false, 12))
     default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Symmetra", true, 13))
     default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Torbjörn", true, 14))
 	default_hero_array.append(createWorkshopSetting(bool, "7.2. Bot Damage Heroes (Overridden by in-game changes to bot heroes)", "Tracer", true, 15))
@@ -764,6 +779,7 @@ rule "Initialize: Static Global Variables":
     data_loaded[0] = false
     data_loaded[1] = false
     data_loaded[2] = false
+    data_loaded[3] = false
 
     hero_array_index = 0
     hero_array[hero_array_index] = Hero.DVA
@@ -800,6 +816,18 @@ rule "Initialize: Static Global Variables":
     hero_react_dodge[hero_array_index] = [0.00, 0.50, 0.00, 0.50, 0.90]
     hero_react_stun[hero_array_index] = [0.00, 0.00, 0.00, 0.75, 0.90]
     hero_name_array[hero_array_index] = "Hanbin"
+
+    hero_array_index += 1
+    hero_array[hero_array_index] = Hero.MAUGA
+    hero_proj_speed[hero_array_index] = [0,0,0,0,0]
+    hero_proj_gravity[hero_array_index] = [0,0,0,0,0]
+    hero_proj_delta[hero_array_index] = [0,0,0,0,0]
+    hero_react_response[hero_array_index] = [1.00, 1.00, 1.00, 1.00, 3.00]
+    hero_react_eat[hero_array_index] = [0.00, 0.00, 0.00, 0.00, 0.00]
+    hero_react_block[hero_array_index] = [0.00, 0.00, 0.00, 0.00, 0.00]
+    hero_react_dodge[hero_array_index] = [0.00, 0.00, 0.00, 0.00, 0.00]
+    hero_react_stun[hero_array_index] = [0.00, 0.00, 0.00, 0.00, 0.00]
+    hero_name_array[hero_array_index] = "Maui"
 
     hero_array_index += 1
     hero_array[hero_array_index] = Hero.ORISA
@@ -1043,7 +1071,7 @@ rule "Initialize: Static Global Variables":
 
     hero_array_index += 1
     hero_array[hero_array_index] = Hero.SOMBRA
-    hero_proj_speed[hero_array_index] = [0,0,0,25,0]
+    hero_proj_speed[hero_array_index] = [0,0,51,72,0]
     hero_proj_gravity[hero_array_index] = [0,0,0,20.20,0]
     hero_proj_delta[hero_array_index] = [0,0,0,0,0]
     hero_react_response[hero_array_index] = [1.00, 1.00, 1.00, 1.00, 1.00]
@@ -1209,6 +1237,14 @@ rule "Initialize: Static Global Variables":
     hero_react_stun[hero_array_index] = [0.00, 0.00, 0.00, 0.00, 0.00]
     hero_name_array[hero_array_index] = "Viol2t"
 
+
+    
+    data_loaded[3] = true
+    
+rule "Initialize: Static Global Variables Part 2":
+
+    waitUntil(data_loaded[3] == true, 9999)
+
     hero_array_index += 1
     hero_array[hero_array_index] = Hero.ZENYATTA
     hero_proj_speed[hero_array_index] = [90,90,90,90,0]
@@ -1220,10 +1256,10 @@ rule "Initialize: Static Global Variables":
     hero_react_dodge[hero_array_index] = [0.00, 0.00, 0.00, 0.00, 0.00]
     hero_react_stun[hero_array_index] = [0.00, 0.00, 0.00, 0.00, 0.00]
     hero_name_array[hero_array_index] = "Jjonak"
-    
-    data_loaded[0] = true
 
-    
+    data_loaded[0] = true    
+
+
 rule "Initialize Dynamic Global Variables":
         
 
@@ -1255,7 +1291,7 @@ rule "Initialize Dynamic Global Variables":
         "32.33 percentage of survival!",
         "Your gun is so cute!",
         "01100111 01100111",
-        "Enter '/log' to redeem a free skin!",
+        "I think you're neat!",
         "Boo!",
         "Also Try Risk of Rain!"
         ]
@@ -1353,9 +1389,8 @@ def stats_hud():
     "\nSpeed High Score:  {0}%".format(speed_score), HudPosition.RIGHT, -0.99, Color.BLACK, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     hudSubtext([i for i in localPlayer if speed_mode_enabled == true], 
     "Speed Multiplier:  {0}%".format(speed_multi), HudPosition.RIGHT,  -0.98, Color.LIME_GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-    if speed_kill_target > 1:
-        hudSubtext([i for i in localPlayer if speed_mode_enabled == true], 
-        "Kills:  {0} / {1}".format(speed_kill_count, speed_kill_target), HudPosition.RIGHT,  -0.97, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubtext([i for i in localPlayer if speed_mode_enabled == true], 
+    "Kills:  {0} / {1}".format(speed_kill_count, speed_kill_target), HudPosition.RIGHT,  -0.97, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     #Speed Mode Data
     hudSubtext([i for i in localPlayer if speed_mode_enabled == true], 
     "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n{0}".format(speed_timer), HudPosition.TOP, 666, Color.GREEN, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
@@ -1378,9 +1413,6 @@ rule "Player Joined: Team 1 Defaults":
     eventPlayer.disableGamemodeHud()
     default_player_menu()
 
-    smallMessage(hostPlayer, "TEST: Hello!!!!")
-    wait(5)
-    smallMessage(hostPlayer, "TEST: Hello!!!!")
     if getNumberOfPlayers(Team.2) < bot_count:
         bot_gen_index = getNumberOfPlayers(Team.2)
         create_bot()
@@ -1390,14 +1422,23 @@ rule "Player Left: Re-Add Bot":
     @Event playerLeft
     @Team 1
 
-    smallMessage(hostPlayer, "le;ftttt")
     wait(5)
-    smallMessage(hostPlayer, "le;ftttt")
-
     if getNumberOfPlayers(Team.2) < bot_count:
     #    while getNumberOfPlayers(Team.2) < bot_count - getNumberOfPlayers(Team.1) + 4:
         bot_gen_index = getNumberOfPlayers(Team.2)
         create_bot()
+
+
+rule "Enable Host Menu for New Host":
+    @Event playerLeft
+    @Condition eventPlayer == hostPlayer
+    @Condition privileged_host == true
+
+    wait(1)
+    hostPlayer.menu_label_hidden[1] = true
+    hostPlayer.menu_item_hidden[3] = true
+    hostPlayer.menu_item_hidden[4] = true
+    hostPlayer.menu_item_hidden[5] = true
 
 
 rule "Player Joined: Team 2 Defaults":
@@ -1700,156 +1741,67 @@ def new_menu_label_subtext():
 def new_menu_item_selection():
     @Name "SUB: new_menu_item_selection"
 
-    # Case: index off
     hudSubheader(
-    [i for i in localPlayer if localPlayer.menu_visible 
-        and localPlayer.menu_index != evalOnce(menu_opt_size) 
-        and localPlayer.submenu_index == evalOnce(sub_size)
-        and localPlayer.menu_item_hidden[evalOnce(menu_opt_size)] != true], 
-    "{0}".format(menu_off_opt_title[evalOnce(menu_opt_size)]),
-    HudPosition.TOP,
-    evalOnce(menu_max_pos),
-    menu_off_opt_color,
-    HudReeval.VISIBILITY_STRING_AND_COLOR,
-    SpecVisibility.DEFAULT)
-    # Case: index on
-    hudSubheader(
-    [i for i in localPlayer if localPlayer.menu_visible 
-        and localPlayer.menu_index == evalOnce(menu_opt_size) 
-        and localPlayer.submenu_index == evalOnce(sub_size)
-        and localPlayer.menu_item_hidden[evalOnce(menu_opt_size)] != true],
-    "■  {0}".format(menu_on_opt_title[evalOnce(menu_opt_size)]),
-    HudPosition.TOP,
-    evalOnce(menu_max_pos),
-    menu_on_opt_color[evalOnce(menu_opt_size)],
-    HudReeval.VISIBILITY_STRING_AND_COLOR,
+    localPlayer if localPlayer.menu_visible and localPlayer.submenu_index == evalOnce(sub_size) and localPlayer.menu_item_hidden[evalOnce(menu_opt_size)] != true else [],
+    "{0}".format(menu_off_opt_title[evalOnce(menu_opt_size)]) if localPlayer.menu_index != evalOnce(menu_opt_size) else "■  {0}".format(menu_on_opt_title[evalOnce(menu_opt_size)]), 
+    HudPosition.TOP, 
+    evalOnce(menu_max_pos), menu_off_opt_color if localPlayer.menu_index != evalOnce(menu_opt_size) else menu_on_opt_color[evalOnce(menu_opt_size)], 
+    HudReeval.VISIBILITY_STRING_AND_COLOR, 
     SpecVisibility.DEFAULT)
 
 
 def new_menu_item_toggle():
     @Name "SUB: new_menu_item_toggle"
 
-    # Case: index off
-    hudSubheader(
-    [i for i in localPlayer if localPlayer.menu_visible 
-        and localPlayer.menu_index != evalOnce(menu_opt_size) 
-        and localPlayer.submenu_index == evalOnce(sub_size)
-        and localPlayer.menu_item_hidden[evalOnce(menu_opt_size)] != true], 
-    "{0}".format(menu_off_opt_title[evalOnce(menu_opt_size)]),
-    HudPosition.TOP,
-    evalOnce(menu_max_pos),
-    menu_off_opt_color,
-    HudReeval.VISIBILITY_STRING_AND_COLOR,
-    SpecVisibility.DEFAULT)
-
-    # Case: index on, see menu_act_toggle to see how to update the menu_opt_var string.
-    hudSubheader([i for i in localPlayer if localPlayer.menu_visible 
-        and localPlayer.menu_index == evalOnce(menu_opt_size) 
-        and localPlayer.submenu_index == evalOnce(sub_size)
-        and localPlayer.menu_item_hidden[evalOnce(menu_opt_size)] != true],
-    "■  {0}{1}".format(menu_on_opt_title[evalOnce(menu_opt_size)], localPlayer.menu_opt_var[evalOnce(menu_opt_size)]), 
-    HudPosition.TOP,
-    evalOnce(menu_max_pos),
-    menu_on_opt_color[evalOnce(menu_opt_size)],
-    HudReeval.VISIBILITY_STRING_AND_COLOR,
+    hudSubheader(localPlayer if localPlayer.menu_visible and localPlayer.submenu_index == evalOnce(sub_size) and localPlayer.menu_item_hidden[evalOnce(menu_opt_size)] != true else [],
+    "{0}".format(menu_off_opt_title[evalOnce(menu_opt_size)]) if localPlayer.menu_index != evalOnce(menu_opt_size) else "■  {0}{1}".format(menu_on_opt_title[evalOnce(menu_opt_size)], 
+    localPlayer.menu_opt_var[evalOnce(menu_opt_size)]), 
+    HudPosition.TOP, 
+    evalOnce(menu_max_pos), 
+    menu_off_opt_color if localPlayer.menu_index != evalOnce(menu_opt_size) else menu_on_opt_color[evalOnce(menu_opt_size)], 
+    HudReeval.VISIBILITY_STRING_AND_COLOR, 
     SpecVisibility.DEFAULT)
 
 
 def new_menu_item_cycle():
     @Name "SUB: new_menu_item_cycle"
 
-    # Case: index off
-    hudSubheader(
-    [i for i in localPlayer if localPlayer.menu_visible
-        and localPlayer.menu_index != evalOnce(menu_opt_size) 
-        and localPlayer.submenu_index == evalOnce(sub_size)
-        and localPlayer.menu_item_hidden[evalOnce(menu_opt_size)] != true], 
-    "{0}".format(menu_off_opt_title[evalOnce(menu_opt_size)]),
-    HudPosition.TOP, 
-    evalOnce(menu_max_pos), 
-    menu_off_opt_color, 
+    hudSubheader(localPlayer if localPlayer.menu_visible and localPlayer.submenu_index == evalOnce(sub_size) and localPlayer.menu_item_hidden[evalOnce(menu_opt_size)] != true else [],
+    "{0}".format(menu_off_opt_title[evalOnce(menu_opt_size)]) if localPlayer.menu_index != evalOnce(menu_opt_size) else "■ {0} ←  {1}  → ".format(menu_on_opt_title[evalOnce(menu_opt_size)],
+    localPlayer.menu_opt_var[evalOnce(menu_opt_size)]), HudPosition.TOP, evalOnce(menu_max_pos), 
+    menu_off_opt_color if localPlayer.menu_index != evalOnce(menu_opt_size) else menu_on_opt_color[evalOnce(menu_opt_size)], 
     HudReeval.VISIBILITY_STRING_AND_COLOR, 
     SpecVisibility.DEFAULT)
 
-    # Case: index on, see menu_act_cycle to see how to update the menu_opt_var string.
-    hudSubheader(
-    [i for i in localPlayer if localPlayer.menu_visible 
-        and localPlayer.menu_index == evalOnce(menu_opt_size) 
-        and localPlayer.submenu_index == evalOnce(sub_size)
-        and localPlayer.menu_item_hidden[evalOnce(menu_opt_size)] != true], 
-    "■ {0} ←  {1}  → ".format(menu_on_opt_title[evalOnce(menu_opt_size)], localPlayer.menu_opt_var[evalOnce(menu_opt_size)]),
-    HudPosition.TOP, 
-    evalOnce(menu_max_pos), 
-    menu_on_opt_color[evalOnce(menu_opt_size)], 
-    HudReeval.VISIBILITY_STRING_AND_COLOR, 
-    SpecVisibility.DEFAULT)
 
 
 def new_menu_item_cycle_bar():
     @Name "SUB: new_menu_item_cycle_bar"
 
-    # Case: index off
-    hudSubheader(
-    [i for i in localPlayer if localPlayer.menu_visible 
-        and localPlayer.menu_index != evalOnce(menu_opt_size) 
-        and localPlayer.submenu_index == evalOnce(sub_size)
-        and localPlayer.menu_item_hidden[evalOnce(menu_opt_size)] != true], 
-    "{0}".format(menu_off_opt_title[evalOnce(menu_opt_size)]), 
-    HudPosition.TOP, 
+    hudSubheader(localPlayer if localPlayer.menu_visible and localPlayer.submenu_index == evalOnce(sub_size) and localPlayer.menu_item_hidden[evalOnce(menu_opt_size)] != true else [], 
+    "{0}".format(menu_off_opt_title[evalOnce(menu_opt_size)]) if localPlayer.menu_index != evalOnce(menu_opt_size) else "■  {0}  {1}".format(menu_on_opt_title[evalOnce(menu_opt_size)], 
+    localPlayer.menu_opt_var[evalOnce(menu_opt_size)]),
+    HudPosition.TOP,
     evalOnce(menu_max_pos), 
-    menu_off_opt_color, 
-    HudReeval.VISIBILITY_STRING_AND_COLOR, 
+    menu_off_opt_color if localPlayer.menu_index != evalOnce(menu_opt_size) else menu_on_opt_color[evalOnce(menu_opt_size)],
+    HudReeval.VISIBILITY_STRING_AND_COLOR,
     SpecVisibility.DEFAULT)
 
-    # Case: index on, see menu_act_cycle_bar to see how to update the menu_opt_var string.
-    hudSubheader(
-    [i for i in localPlayer if localPlayer.menu_visible 
-        and localPlayer.menu_index == evalOnce(menu_opt_size) 
-        and localPlayer.submenu_index == evalOnce(sub_size)
-        and localPlayer.menu_item_hidden[evalOnce(menu_opt_size)] != true], 
-    "■  {0}  {1}".format(menu_on_opt_title[evalOnce(menu_opt_size)], localPlayer.menu_opt_var[evalOnce(menu_opt_size)]), 
-    HudPosition.TOP, 
-    evalOnce(menu_max_pos), 
-    menu_on_opt_color[evalOnce(menu_opt_size)], 
-    HudReeval.VISIBILITY_STRING_AND_COLOR, 
-    SpecVisibility.DEFAULT)
-
-    # Increment Menu Position
     menu_max_pos += 1
 
-    # Submenu hudheader
-    hudHeader(
-    [i for i in localPlayer if localPlayer.menu_visible 
-    and localPlayer.menu_index == evalOnce(menu_opt_size) 
-    and localPlayer.submenu_index == evalOnce(sub_size)], 
-    "{0} ←  {1}  →".format(localPlayer.bar_title[localPlayer.menu_index], localPlayer.bar_var[localPlayer.menu_index]), 
+    hudHeader(localPlayer if localPlayer.menu_visible and localPlayer.menu_index == evalOnce(menu_opt_size) and localPlayer.submenu_index == evalOnce(sub_size) else [],
+    "{0} ←  {1}  →".format(localPlayer.bar_title[localPlayer.menu_index], localPlayer.bar_var[localPlayer.menu_index]),
     HudPosition.TOP, 
     evalOnce(menu_max_pos), 
-    localPlayer.bar_color[evalOnce(menu_opt_size)], 
-    HudReeval.VISIBILITY_STRING_AND_COLOR, 
+    localPlayer.bar_color[evalOnce(menu_opt_size)],
+    HudReeval.VISIBILITY_STRING_AND_COLOR,
     SpecVisibility.DEFAULT)
+
+
 
 
 def misc_hud():
     @Name "SUB: misc_hud"
-    # Kitty!
-    hudSubtext([i for i in localPlayer if localPlayer.menu_visible],         
-    " ∧,,,∧                   ∧,,,∧\n( •‿• )   vxeat   ( •‿• )\n/⊃    /⊃             ⊂\\    ⊂\\", 
-    HudPosition.TOP, 
-    -1, 
-    rgb(255,120,255), 
-    HudReeval.VISIBILITY_STRING_AND_COLOR, 
-    SpecVisibility.DEFAULT)
-
-    # Splash text
-    hudSubtext([i for i in localPlayer if localPlayer.menu_visible], 
-    "{0}".format(splash_text[random.randint(0, len(splash_text)-1)]), 
-    HudPosition.RIGHT, 
-    -1, 
-    rgb(random.randint(0,255), random.randint(0,255), random.randint(0,255)), 
-    HudReeval.VISIBILITY_STRING_AND_COLOR, 
-    SpecVisibility.DEFAULT)
-
     # Debug info toggled via workshop settings menu
     if show_debug_info:
         hudSubheader(localPlayer,
@@ -1880,6 +1832,7 @@ def default_player_menu():
     # Default menu action variables
     eventPlayer.infinite_ammo = false
     eventPlayer.strafe_stun_timer = 0
+    eventPlayer.hs_only = false
     eventPlayer.proj_type = 0
     eventPlayer.proj_effects = [null, null]
     eventPlayer.buff_effects = [null, null]
@@ -1920,127 +1873,133 @@ def default_player_menu():
     eventPlayer.menu_opt_var[14] = "off"
     eventPlayer.menu_opt_status[14] = 0
     ## No Strafing Stun
-    increment_for_menu_item()
     eventPlayer.menu_opt_var[15] = "off"
     eventPlayer.menu_opt_status[15] = 0
+    ## HS Only
+    eventPlayer.menu_opt_var[16] = "off"
+    eventPlayer.menu_opt_status[16] = 0
 
     if privileged_host == false or eventPlayer == hostPlayer:
         ## Return to Main Menu
-        eventPlayer.menu_opt_status[16] = 0
+        eventPlayer.menu_opt_status[17] = 0
         ## Strafe Pattern
-        eventPlayer.menu_opt_var[17] = opt_array_movement[0][default_mvmt_type]
-        eventPlayer.menu_opt_status[17] = default_mvmt_type
-        eventPlayer.menu_opt_len[17] = len(opt_array_movement[0]) - 1
+        eventPlayer.menu_opt_var[18] = opt_array_movement[0][default_mvmt_type]
+        eventPlayer.menu_opt_status[18] = default_mvmt_type
+        eventPlayer.menu_opt_len[18] = len(opt_array_movement[0]) - 1
         ## Custom Min Dist Cycle
-        eventPlayer.menu_opt_var[18] = "{0} m".format(custom_min_dist)
-        eventPlayer.menu_opt_status[18] = custom_min_dist
-        eventPlayer.menu_opt_len[18] = 200
-        eventPlayer.menu_item_hidden[18] = true
-        ## Custom Max Dist Cycle
-        increment_for_menu_item()
-        eventPlayer.menu_opt_var[19] = "{0} m".format(custom_max_dist)
-        eventPlayer.menu_opt_status[19] = custom_max_dist
+        eventPlayer.menu_opt_var[19] = "{0} m".format(custom_min_dist)
+        eventPlayer.menu_opt_status[19] = custom_min_dist
         eventPlayer.menu_opt_len[19] = 200
         eventPlayer.menu_item_hidden[19] = true
         ## Custom Max Dist Cycle
-        eventPlayer.menu_opt_var[20] = custom_strafe_points
-        eventPlayer.menu_opt_status[20] = custom_strafe_points - 1
-        eventPlayer.menu_opt_len[20] = 99
+        eventPlayer.menu_opt_var[20] = "{0} m".format(custom_max_dist)
+        eventPlayer.menu_opt_status[20] = custom_max_dist
+        eventPlayer.menu_opt_len[20] = 200
         eventPlayer.menu_item_hidden[20] = true
+        ## Custom Max Dist Cycle
+        eventPlayer.menu_opt_var[21] = custom_strafe_points
+        eventPlayer.menu_opt_status[21] = custom_strafe_points - 1
+        eventPlayer.menu_opt_len[21] = 99
+        eventPlayer.menu_item_hidden[21] = true
         ## Strafe Difficulty
-        eventPlayer.menu_opt_var[21] = opt_array_movement[1][default_bot_diff]
-        eventPlayer.menu_opt_status[21] = default_bot_diff
-        eventPlayer.menu_opt_len[21] = len(opt_array_movement[1]) - 1
+        eventPlayer.menu_opt_var[22] = opt_array_movement[1][default_bot_diff]
+        eventPlayer.menu_opt_status[22] = default_bot_diff
+        eventPlayer.menu_opt_len[22] = len(opt_array_movement[1]) - 1
         ## Custom Min Wait Cycle
-        eventPlayer.menu_opt_var[22] = "{0} s".format(custom_min_wait)
-        eventPlayer.menu_item_hidden[22] = true
-        ## Custom Max Wait Cycle
-        eventPlayer.menu_opt_var[23] = "{0} s".format(custom_max_wait)
+        eventPlayer.menu_opt_var[23] = "{0} s".format(custom_min_wait)
         eventPlayer.menu_item_hidden[23] = true
+        ## Custom Max Wait Cycle
+        eventPlayer.menu_opt_var[24] = "{0} s".format(custom_max_wait)
+        eventPlayer.menu_item_hidden[24] = true
         ## Bot Speed
-        eventPlayer.menu_index = 24
+        eventPlayer.menu_index = 25
         eventPlayer.menu_opt_value = custom_bot_speed
         menu_speed_set_text_and_color()
-        eventPlayer.menu_opt_status[24] = custom_bot_speed
-        eventPlayer.menu_opt_len[24] = 1000
+        eventPlayer.menu_opt_status[25] = custom_bot_speed
+        eventPlayer.menu_opt_len[25] = 1000
         ## Boucing Bots
         if bounce_amount == 0:
-            eventPlayer.menu_opt_var[25] = "off"
+            eventPlayer.menu_opt_var[26] = "off"
         else:
-            eventPlayer.menu_opt_var[25] = bounce_amount
-        eventPlayer.menu_opt_status[25] = bounce_amount
-        eventPlayer.menu_opt_len[25] = 100
+            eventPlayer.menu_opt_var[26] = bounce_amount
+        eventPlayer.menu_opt_status[26] = bounce_amount
+        eventPlayer.menu_opt_len[26] = 100
         ## Return to Main Menu
-        eventPlayer.menu_opt_status[26] = 0
+        eventPlayer.menu_opt_status[27] = 0
         ## Number of Bots
-        eventPlayer.menu_opt_var[27] = bot_count
-        eventPlayer.menu_opt_status[27] = bot_count
-        eventPlayer.menu_opt_len[27] = 12
+        eventPlayer.menu_opt_var[28] = bot_count
+        eventPlayer.menu_opt_status[28] = bot_count
+        eventPlayer.menu_opt_len[28] = 12
         ## Custom Spawn Toggle
-        eventPlayer.menu_opt_var[28] = opt_array_spawn_strings[spawn_type]
-        eventPlayer.menu_opt_status[28] = spawn_type
+        eventPlayer.menu_opt_var[29] = opt_array_spawn_strings[spawn_type]
+        eventPlayer.menu_opt_status[29] = spawn_type
         ## Bot Slot Cycle
-        eventPlayer.menu_opt_var[29] = 0
-        eventPlayer.menu_opt_status[29] = 0
-        eventPlayer.menu_opt_len[29] = 5
+        eventPlayer.menu_opt_var[30] = 0
+        eventPlayer.menu_opt_status[30] = 0
+        eventPlayer.menu_opt_len[30] = 5
         if spawn_type == 0:
-            eventPlayer.menu_item_hidden[29] = true
+            eventPlayer.menu_item_hidden[30] = true
         ## Slot Hero Pool
         if hero_array_status[0] != "on":
-            eventPlayer.menu_opt_var[30] = "{0} : off".format(hero_array[0])
+            eventPlayer.menu_opt_var[31] = "{0} : off".format(hero_array[0])
         else:
-            eventPlayer.menu_opt_var[30] = "{0} : on".format(hero_array[0])
-        menu_on_opt_color[30] = default_menu_on_index_color
-        eventPlayer.bar_title[30] = ""
-        eventPlayer.bar_var[30] = heroIcon(hero_array[0])
-        eventPlayer.menu_opt_status[30] = 0
-        eventPlayer.menu_opt_len[30] = len(hero_array) - 1
-        eventPlayer.menu_index = 30
+            eventPlayer.menu_opt_var[31] = "{0} : on".format(hero_array[0])
+        menu_on_opt_color[31] = default_menu_on_index_color
+        eventPlayer.bar_title[31] = ""
+        eventPlayer.bar_var[31] = heroIcon(hero_array[0])
+        eventPlayer.menu_opt_status[31] = 0
+        eventPlayer.menu_opt_len[31] = len(hero_array) - 1
+        eventPlayer.menu_index = 31
         menu_hero_bar_color_set()
-        eventPlayer.menu_opt_status[30] = 0
+        eventPlayer.menu_opt_status[31] = 0
         ## Spawn Radius Cycle
-        eventPlayer.menu_opt_var[31] = "{0} m".format(spawn_radius)
-        eventPlayer.menu_opt_status[31] = spawn_radius
-        eventPlayer.menu_opt_len[31] = 100
+        eventPlayer.menu_opt_var[32] = "{0} m".format(spawn_radius)
+        eventPlayer.menu_opt_status[32] = spawn_radius
+        eventPlayer.menu_opt_len[32] = 100
         ## Set Spawn Point
-        eventPlayer.menu_opt_status[32] = 0  
+        eventPlayer.menu_opt_status[33] = 0  
         ## Return to Main Menu
-        eventPlayer.menu_opt_status[33] = 0    
+        eventPlayer.menu_opt_status[34] = 0    
         ## Pressure Mode Toggle
-        eventPlayer.menu_opt_var[34] = opt_array_pressure[pressure_type]
-        eventPlayer.menu_opt_status[34] = pressure_type
-        eventPlayer.menu_opt_len[34] = len(opt_array_pressure) - 1
+        eventPlayer.menu_opt_var[35] = opt_array_pressure[pressure_type]
+        eventPlayer.menu_opt_status[35] = pressure_type
+        eventPlayer.menu_opt_len[35] = len(opt_array_pressure) - 1
         ## Pressure Mode Accuracy
-        eventPlayer.menu_opt_var[35] = "{0}%".format(pressure_accuracy)
-        eventPlayer.menu_index = 35
+        eventPlayer.menu_opt_var[36] = "{0}%".format(pressure_accuracy)
+        eventPlayer.menu_index = 36
         menu_pressure_cycle_color_set()
-        eventPlayer.menu_opt_status[35] = pressure_accuracy
-        eventPlayer.menu_opt_len[35] = 99
+        eventPlayer.menu_opt_status[36] = pressure_accuracy
+        eventPlayer.menu_opt_len[36] = 99
         if pressure_type == 0:
-            eventPlayer.menu_item_hidden[35] = true
+            eventPlayer.menu_item_hidden[36] = true
         ## Speed Mode Toggle
         if speed_mode_enabled == true:
-            eventPlayer.menu_opt_var[36] = "on"
-            eventPlayer.menu_opt_status[36] = 1
+            eventPlayer.menu_opt_var[37] = "on"
+            eventPlayer.menu_opt_status[37] = 1
         else:
-            eventPlayer.menu_opt_var[36] = "off"
-            eventPlayer.menu_opt_status[36] = 0
+            eventPlayer.menu_opt_var[37] = "off"
+            eventPlayer.menu_opt_status[37] = 0
 
-        eventPlayer.menu_opt_var[37] = "{0} s".format(speed_max_time)
-        if speed_mode_enabled == false:
-            eventPlayer.menu_item_hidden[37] = true
-
-        eventPlayer.menu_opt_var[38] = "{0}%".format(speed_increment)
-        eventPlayer.menu_opt_status[38] = speed_increment
-        eventPlayer.menu_opt_len[38] = 100
+        eventPlayer.menu_opt_var[38] = "{0} s".format(speed_max_time)
         if speed_mode_enabled == false:
             eventPlayer.menu_item_hidden[38] = true
 
-        eventPlayer.menu_opt_var[39] = "{0}%".format(speed_decrement)
-        eventPlayer.menu_opt_status[39] = speed_decrement
+        eventPlayer.menu_opt_var[39] = "{0}%".format(speed_increment)
+        eventPlayer.menu_opt_status[39] = speed_increment
         eventPlayer.menu_opt_len[39] = 100
         if speed_mode_enabled == false:
             eventPlayer.menu_item_hidden[39] = true
+
+        eventPlayer.menu_opt_var[40] = "{0}%".format(speed_decrement)
+        eventPlayer.menu_opt_status[40] = speed_decrement
+        eventPlayer.menu_opt_len[40] = 100
+        if speed_mode_enabled == false:
+            eventPlayer.menu_item_hidden[40] = true
+
+        eventPlayer.menu_opt_var[41] = "{0}".format(speed_kill_target)
+        eventPlayer.menu_opt_len[41] = 99
+        if speed_mode_enabled == false:
+            eventPlayer.menu_item_hidden[41] = true
 
     eventPlayer.menu_index = 0
     eventPlayer.menu_opt_value = 0
@@ -2200,12 +2159,19 @@ def menu_hud():
     menu_on_opt_color[menu_opt_size] = Color.RED
     new_menu_item_toggle()
 
-    ## Movement Speed Cycle
+    ## No Strafe Stun
     increment_for_menu_item()
     menu_off_opt_title[menu_opt_size] = "No Strafing Stun"
     menu_on_opt_title[menu_opt_size] = "Timer: "
     menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
     new_menu_item_cycle()
+
+    ## HS Only
+    increment_for_menu_item()
+    menu_off_opt_title[menu_opt_size] = "Headshot Only"
+    menu_on_opt_title[menu_opt_size] = "Headshot Only: "
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
+    new_menu_item_toggle()
 
     # Movement Submenu
     increment_for_submenu_item()
@@ -2416,6 +2382,12 @@ def menu_hud():
     menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
     new_menu_item_cycle()
 
+    increment_for_menu_item()
+    menu_off_opt_title[menu_opt_size] = "Kill Target"
+    menu_on_opt_title[menu_opt_size] = "Kills: "
+    menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
+    new_menu_item_cycle()
+
 
 
 
@@ -2542,6 +2514,8 @@ rule "Menu Actions: Input Read":
         elif eventPlayer.menu_index == 3 + eventPlayer.menu_substart_value:
             menu_act_strafe_stun()
             eventPlayer.menu_wait = 0.02
+        elif eventPlayer.menu_index == 4 + eventPlayer.menu_substart_value:   
+            menu_act_toggle_hs()
     elif eventPlayer.submenu_index == 3:
         if eventPlayer.menu_index == 0 + eventPlayer.menu_substart_value:
             menu_act_toggle_movement_menu()
@@ -2608,6 +2582,8 @@ rule "Menu Actions: Input Read":
         elif eventPlayer.menu_index == 6 + eventPlayer.menu_substart_value: 
             menu_act_cycle_decrement()
             eventPlayer.menu_wait = 0.05
+        elif eventPlayer.menu_index == 7 + eventPlayer.menu_substart_value: 
+            menu_act_cycle_speed_kills()
 
     wait(eventPlayer.menu_wait)
     if RULE_CONDITION:
@@ -2661,12 +2637,9 @@ def menu_act_change_hero():
     eventPlayer.stat_dmg_taken = 0
 
     # Allow Player to select hero
-    eventPlayer.player_hero_list = getAllHeroes()
-    eventPlayer.player_hero_list.remove(eventPlayer.getCurrentHero())
-    eventPlayer.setAllowedHeroes(eventPlayer.player_hero_list)
     player_list.remove(eventPlayer)
-    wait(0.1)
-    eventPlayer.setAllowedHeroes(getAllHeroes())     
+    eventPlayer.setAllowedHeroes(eventPlayer.getAllowedHeroes().exclude(eventPlayer.getCurrentHero()))
+    eventPlayer.resetHeroAvailability()   
 
 ### Submenu 0 - Toggle Assists
 def menu_act_toggle_assists_menu():
@@ -2835,7 +2808,7 @@ def menu_act_toggle_ammo():
         smallMessage(eventPlayer, "    Infinite ammo enabled.")
 
 
-rule "Infinite Ammo: Ammo Refresh":
+rule "Player Modifier: Infinite Ammo - Ammo Refresh":
     @Event eachPlayer
     @Team 1
     @Condition eventPlayer.infinite_ammo == true
@@ -2850,10 +2823,10 @@ rule "Infinite Ammo: Ammo Refresh":
 def menu_act_strafe_stun():
     @Name "SUB: menu_act_strafe_stun"
 
-    if eventPlayer.strafe_stun_timer > 10:
+    if eventPlayer.strafe_stun_timer > 5:
         eventPlayer.strafe_stun_timer = 0
     elif eventPlayer.strafe_stun_timer < 0:
-        eventPlayer.strafe_stun_timer = 10
+        eventPlayer.strafe_stun_timer = 5
     elif eventPlayer.menu_input == 1:
         eventPlayer.strafe_stun_timer += 0.01
     elif eventPlayer.menu_input == 0:
@@ -2867,6 +2840,34 @@ def menu_act_strafe_stun():
         eventPlayer.menu_opt_var[eventPlayer.menu_index] = "off"
     else:
         eventPlayer.menu_opt_var[eventPlayer.menu_index] = "{0} s".format(eventPlayer.strafe_stun_timer)
+
+
+def menu_act_toggle_hs():
+    @Name "SUB: menu_act_toggle_hs"
+
+    menu_status_io_toggle()
+    eventPlayer.hs_only = not eventPlayer.hs_only
+    if eventPlayer.hs_only == true:
+        eventPlayer.setDamageDealt(1)
+    else:
+        eventPlayer.setDamageDealt(100)
+
+
+
+rule "Player Modifier: Headshot Only":
+    @Event playerDealtDamage
+    @Condition eventPlayer.hs_only == true
+
+
+    if eventWasCriticalHit == true:
+        if eventDamage*99 < victim.getHealth():
+            damage(victim, null, eventDamage*99)
+        else:
+            kill(victim, eventPlayer)
+    else:
+        heal(victim, null, eventDamage)
+        
+
 
 
 def menu_act_proj_guide():
@@ -2955,7 +2956,7 @@ def menu_act_cycle_min_dist():
 
 
 def menu_act_cycle_max_dist():
-    @Name "SUB: menu_act_cycle_max_dist"
+    @Name "SUB: menu_act_cyclef_max_dist"
 
     if eventPlayer.menu_input == 0:
         custom_max_dist += 10
@@ -3001,7 +3002,7 @@ def menu_act_cycle_difficulty():
         mvmt_min_wait = opt_array_movement[3][eventPlayer.menu_opt_value]
         mvmt_max_wait = opt_array_movement[4][eventPlayer.menu_opt_value]
 
-    smallMessage(eventPlayer, "Bots will change directions every {0} - {1} seconds.".format(mvmt_min_wait, mvmt_max_wait))
+    smallMessage(eventPlayer, "    Bots will change directions every {0} - {1} seconds.".format(mvmt_min_wait, mvmt_max_wait))
 
 
 def menu_act_cycle_min_wait():
@@ -3223,11 +3224,11 @@ def menu_act_hero_pool():
         if hero_array_status[eventPlayer.menu_opt_value] == "on":
             hero_array_status[eventPlayer.menu_opt_value] = "off"
             active_hero_array.remove(hero_array[eventPlayer.menu_opt_value])
-            smallMessage(eventPlayer, "    {0}  removed from the spawn pool. Exit menu to refresh bots.".format(hero_array[eventPlayer.menu_opt_value]))
+            smallMessage(eventPlayer, "    {0} {1} removed from the spawn pool. Exit menu to refresh bots.".format(heroIcon(hero_array[eventPlayer.menu_opt_value]), hero_array[eventPlayer.menu_opt_value]))
         else:
             hero_array_status[eventPlayer.menu_opt_value] = "on"
             active_hero_array.append(hero_array[eventPlayer.menu_opt_value])
-            smallMessage(eventPlayer, "    {0}  added to the spawn pool. Exit menu to refresh bots.".format(hero_array[eventPlayer.menu_opt_value]))
+            smallMessage(eventPlayer, "    {0} {1} added to the spawn pool. Exit menu to refresh bots.".format(heroIcon(hero_array[eventPlayer.menu_opt_value]), hero_array[eventPlayer.menu_opt_value]))
         if spawn_type == 0:
             for bot_index in range(0, bot_count, 1):
                 bot_pool_array[bot_index] = active_hero_array
@@ -3339,6 +3340,7 @@ def menu_act_toggle_speed():
         eventPlayer.menu_item_hidden[eventPlayer.menu_index+1] = true
         eventPlayer.menu_item_hidden[eventPlayer.menu_index+2] = true
         eventPlayer.menu_item_hidden[eventPlayer.menu_index+3] = true
+        eventPlayer.menu_item_hidden[eventPlayer.menu_index+4] = true
         smallMessage(eventPlayer, "    Speed Mode disabled")
     else:
         speed_mode_enabled = true
@@ -3352,6 +3354,7 @@ def menu_act_toggle_speed():
         eventPlayer.menu_item_hidden[eventPlayer.menu_index+1] = false
         eventPlayer.menu_item_hidden[eventPlayer.menu_index+2] = false
         eventPlayer.menu_item_hidden[eventPlayer.menu_index+3] = false
+        eventPlayer.menu_item_hidden[eventPlayer.menu_index+4] = false
         smallMessage(eventPlayer, "    Speed Mode enabled")
         
 
@@ -3359,8 +3362,8 @@ def menu_act_cycle_timer():
     @Name "SUB: menu_act_cycle_timer"
 
     if speed_max_time < 0:
-        speed_max_time = 60
-    elif speed_max_time > 60:
+        speed_max_time = 300
+    elif speed_max_time > 300:
         speed_max_time = 0
     elif eventPlayer.menu_input == 0:
         speed_max_time += 1
@@ -3390,6 +3393,13 @@ def menu_act_cycle_decrement():
     speed_decrement = eventPlayer.menu_opt_value
     eventPlayer.menu_opt_var[eventPlayer.menu_index] = "{0}%".format(speed_decrement)
 
+
+def menu_act_cycle_speed_kills():
+    @Name "SUB: menu_act_cycle_speed_kills"
+
+    menu_status_cycle()
+    speed_kill_target = eventPlayer.menu_opt_value + 1
+    eventPlayer.menu_opt_var[eventPlayer.menu_index] = speed_kill_target
 
 # Player Abiltity Modifiers
 
@@ -3481,6 +3491,8 @@ rule "Player Ability: Punish No Strafing":
     @Event eachPlayer
     @Team 1
     @Condition eventPlayer.strafe_stun_timer > 0
+    @Condition eventPlayer.isUsingAbility1() == false
+    @Condition eventPlayer.isUsingAbility2() == false
     @Condition eventPlayer.menu_visible == false
 
     eventPlayer.stored_vect = eventPlayer.getThrottle()
@@ -3698,7 +3710,7 @@ rule "Bot Died: Swap Hero":
     eventPlayer.stopForcingButton(Button.RELOAD)
 
     # res player
-    wait(2)
+    wait(0.1)
     if getNumberOfLivingPlayers(Team.2) > 1:
         wait(2)
 
@@ -3772,11 +3784,12 @@ rule "Bot Pathing: Randomized Strafes":
         goto RULE_START
 
     
-rule "Bot Pathing: Movement Handler: Movement Type 1 default Pathing":
+rule "Bot Pathing: Movement Handler: Movement Type 1 default Pathing Speed Off":
     @Event eachPlayer
     @Team 2
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.mvmt_type == 1
+    @Condition speed_mode_enabled == false or speed_strafe_reduction == false
 
     change_pathing()
     wait(random.uniform(mvmt_min_wait, mvmt_max_wait), Wait.ABORT_WHEN_FALSE)
@@ -3784,6 +3797,19 @@ rule "Bot Pathing: Movement Handler: Movement Type 1 default Pathing":
     if RULE_CONDITION:
         goto RULE_START
 
+rule "Bot Pathing: Movement Handler: Movement Type 1 default Pathing Speed On":
+    @Event eachPlayer
+    @Team 2
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.mvmt_type == 1
+    @Condition speed_mode_enabled == true
+    @Condition speed_strafe_reduction == true
+
+    change_pathing()
+    wait(random.uniform(mvmt_min_wait, mvmt_max_wait)/speed_multi*100, Wait.ABORT_WHEN_FALSE)
+
+    if RULE_CONDITION:
+        goto RULE_START
 
 rule "Bot Pathing: Movement Handler: Movement Type 2 default Pathing + rand long strafe":
     @Event eachPlayer
@@ -4141,7 +4167,7 @@ rule "Set Look Target":
                 wait(1)
                 eventPlayer.look_target = sorted([player for player in getLivingPlayers(Team.2)], lambda i: distance(eventPlayer.getEyePosition(), i.getEyePosition()))[0]
         else:
-            eventPlayer.look_target = sorted(player_list, lambda player: distance(eventPlayer.getEyePosition(), player.getEyePosition()))[0]
+            eventPlayer.look_target = sorted(getLivingPlayers(Team.1), lambda player: distance(eventPlayer.getEyePosition(), player.getEyePosition()))[0]
         if eventPlayer.look_target == null:
             eventPlayer.look_target = eventPlayer.old_look_target
     else:
@@ -4419,6 +4445,7 @@ rule "Speed Mode: Clear Hack Lucio (JPYHG)":
 def speed_mode_timer_reset():
     @Name "SUB: speed_mode_timer_reset (JPYHG)"
     
+    #smallMessage(hostPlayer, "test3")
     if speed_player == true:
         eventPlayer.custom_speed = speed_multi
         if eventPlayer.menu_visible == false:
@@ -8180,192 +8207,14 @@ rule "Bot Abilities: Sombra Primary (P)":
     if RULE_CONDITION:
         goto RULE_START
 
-
-rule "Bot Abilities: Sombra Secondary (P + R)":
+rule "Bot Abilitiesdombra Primary (P)":
     @Event eachPlayer
     @Team 2
     @Hero sombra
-    @Condition bots_use_abilities == true
-    @Condition bots_react == true
-    @Condition bot_behavior[23] >= 2
-    @Condition eventPlayer.apply_pressure == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.bot_ability_lock[1] == false
-    @Condition distance(eventPlayer.getEyePosition(), eventPlayer.look_target.getEyePosition()) < 12
 
-    wait(random.uniform(2, 5) / ability_freq, Wait.ABORT_WHEN_FALSE)
-    #smallMessage(hostPlayer, "Debug: Sombra hack rand")
-    eventPlayer.bot_ability_lock[1] = true
-    eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
-    wait(1)
-    eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
-    wait(10 / ability_freq)
-    eventPlayer.bot_ability_lock[1] = false
-
-    if RULE_CONDITION:
-        goto RULE_START
-
-
-rule "Bot Abilities: Sombra Secondary (P + Rs)":
-    @Event eachPlayer
-    @Team 2
-    @Hero sombra
-    @Condition bots_use_abilities == true
-    @Condition bots_react == true
-    @Condition bot_behavior[23] >= 2
-    @Condition eventPlayer.apply_pressure == true
-    @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.bot_ability_lock[1] == false
-    @Condition eventPlayer.look_target.player_used_stun_cd > 0
-    @Condition eventPlayer.look_target.player_used_stun_cd >= eventPlayer.look_target.ability_react_chance 
-    @Condition distance(eventPlayer.getEyePosition(), eventPlayer.look_target.getEyePosition()) < 12
-
-    eventPlayer.bot_ability_lock[1] = true
-    #smallMessage(hostPlayer, "Debug: Sombra hack Rs")
-    eventPlayer.startForcingButton(Button.SECONDARY_FIRE)
-    wait(1)
-    eventPlayer.stopForcingButton(Button.SECONDARY_FIRE)
-    wait(10 / ability_freq)
-    eventPlayer.bot_ability_lock[1] = false
-
-    if RULE_CONDITION:
-        goto RULE_START
-
-
-rule "Bot Abilities: Sombra Ability 1 (All)":
-    @Event eachPlayer
-    @Team 2
-    @Hero sombra
-    @Condition bots_use_abilities == true
-    @Condition bot_behavior[23] >= 1
-    @Condition eventPlayer.apply_pressure == false
-    @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.bot_ability_lock[2] == false
-    
-    wait(random.uniform(5, 10) / ability_freq, Wait.ABORT_WHEN_FALSE)
-    eventPlayer.bot_ability_lock[2] = true
-    eventPlayer.forceButtonPress(Button.ABILITY_1)
-    wait(random.uniform(1, 5))
-    if eventPlayer.isUsingAbility1():
-        eventPlayer.forceButtonPress(Button.ABILITY_1)
-    wait(10 / ability_freq)
-    eventPlayer.bot_ability_lock[2] = false
-    if RULE_CONDITION:
-        goto RULE_START
-
-
-rule "Bot Abilities: Sombra Ability 1 (P)":
-    @Event eachPlayer
-    @Team 2
-    @Hero sombra
-    @Condition bots_use_abilities == true
-    @Condition bots_react == true
-    @Condition bot_behavior[23] >= 1
-    @Condition eventPlayer.apply_pressure == true
-    @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.bot_ability_lock[2] == false
-    @Condition distance(eventPlayer.getEyePosition(), eventPlayer.look_target.getEyePosition()) > 12
-
-    wait(random.uniform(1,2) / ability_freq, Wait.ABORT_WHEN_FALSE)
-    eventPlayer.bot_ability_lock[2] = true
-    eventPlayer.forceButtonPress(Button.ABILITY_1)
-    wait(random.uniform(1, 5))
-    if eventPlayer.isUsingAbility1():
-        eventPlayer.forceButtonPress(Button.ABILITY_1)
-    wait(10 / ability_freq)
-    eventPlayer.bot_ability_lock[2] = false
-    if RULE_CONDITION:
-        goto RULE_START
-
-rule "Bot Abilities: Sombra Ability 2 (All)":
-    @Event eachPlayer
-    @Team 2
-    @Hero sombra
-    @Condition bots_use_abilities == true
-    @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.bot_ability_lock[3] == false
-    
-    wait(random.uniform(5, 10) / ability_freq, Wait.ABORT_WHEN_FALSE)
-    eventPlayer.bot_ability_lock[3] = true
-    eventPlayer.startFacing(vect(random.uniform(-20,20) + eventPlayer.getEyePosition().x ,random.uniform(-5,20) + eventPlayer.getEyePosition().y ,random.uniform(-20,20) + eventPlayer.getEyePosition().z), 1000, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
+    damage(eventPlayer, null, 1)
     wait(0.1)
-    eventPlayer.forceButtonPress(Button.ABILITY_2)
-    wait(0.1)
-    set_default_facing()
-    wait(random.uniform(0.5, 3))
-    if eventPlayer.isUsingAbility2():
-        eventPlayer.general_randomizer = random.randint(0,9)
-        if eventPlayer.general_randomizer == 0:
-            eventPlayer.forceButtonPress(Button.INTERACT)
-        else:
-            eventPlayer.forceButtonPress(Button.ABILITY_2)
-    wait(10 / ability_freq)
-    eventPlayer.bot_ability_lock[3] = false
-    if RULE_CONDITION:
-        goto RULE_START
-
-rule "Bot Abilities: Sombra Ability 2 (Rd)":
-    @Event eachPlayer
-    @Team 2
-    @Hero sombra
-    @Condition bots_use_abilities == true
-    @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.bot_ability_lock[3] == false
-    @Condition eventPlayer.look_target.player_used_dodge_cd > 0
-    @Condition eventPlayer.look_target.player_used_dodge_cd >= eventPlayer.look_target.ability_react_chance
-    
-    eventPlayer.bot_ability_lock[3] = true
-    eventPlayer.startFacing(vect(random.uniform(-20,20) + eventPlayer.getEyePosition().x ,random.uniform(-5,20) + eventPlayer.getEyePosition().y ,random.uniform(-20,20) + eventPlayer.getEyePosition().z), 1000, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
-    wait(0.1)
-    eventPlayer.forceButtonPress(Button.ABILITY_2)
-    wait(0.1)
-    set_default_facing()
-    wait(random.uniform(0.5, eventPlayer.look_target.player_react_time))
-    if eventPlayer.isUsingAbility2():
-        eventPlayer.forceButtonPress(Button.ABILITY_2)
-    wait(10 / ability_freq)
-    eventPlayer.bot_ability_lock[3] = false
-    if RULE_CONDITION:
-        goto RULE_START
-
-
-rule "Bot Abilities: Sombra Ultimate (All)":
-    @Event eachPlayer
-    @Team 2
-    @Hero sombra
-    @Condition bots_use_abilities == true
-    @Condition bot_behavior[23] >= 3
-    @Condition eventPlayer.isAlive() == true
-    
-    wait(10 / ult_freq)
-    eventPlayer.general_randomizer = random.randint(0,9) / ult_freq
-    if eventPlayer.general_randomizer < 3:
-        #smallMessage(hostPlayer, "Debug: Sombra ult")
-        if eventPlayer.isUsingAbility1():
-            eventPlayer.forceButtonPress(Button.ABILITY_1)
-            wait(0.5)
-        if eventPlayer.bot_ability_lock[3] == false:
-            eventPlayer.bot_ability_lock[3] = true
-            eventPlayer.startFacing(vect(random.uniform(-20,20) + eventPlayer.getEyePosition().x ,random.uniform(-5,20) + eventPlayer.getEyePosition().y ,random.uniform(-20,20) + eventPlayer.getEyePosition().z), 1000, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
-            wait(0.1)
-            eventPlayer.forceButtonPress(Button.ABILITY_2)
-            wait(0.1)
-            set_default_facing()
-            wait(random.uniform(0.25, 0.75))
-            if eventPlayer.isUsingAbility2():
-                eventPlayer.forceButtonPress(Button.ABILITY_2)
-            wait(0.25)
-            eventPlayer.startForcingButton(Button.ULTIMATE)
-            wait(0.25)
-            eventPlayer.stopForcingButton(Button.ULTIMATE)
-            wait(10)
-            eventPlayer.bot_ability_lock[3] = false
-        else:
-            eventPlayer.startForcingButton(Button.ULTIMATE)
-            wait(0.25)
-            eventPlayer.stopForcingButton(Button.ULTIMATE)
-            wait(10 / ability_freq)
-
     if RULE_CONDITION:
         goto RULE_START
 
@@ -9500,7 +9349,7 @@ rule "Bot Abilities: Illari Ultimate ":
                     eventPlayer.startForcingButton(Button.JUMP)
                     wait(random.randint(0,0.5))
                     eventPlayer.stopForcingButton(Button.JUMP)
-        wait(10 / ult_freq)
+    wait(10 / ult_freq)
 
     if RULE_CONDITION:
         goto RULE_START
