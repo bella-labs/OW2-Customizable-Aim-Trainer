@@ -1,6 +1,6 @@
 settings {
     "main": {
-        "description": "Customizable Aim Trainer 4.4\n\nFeatures:\n◆ Customization for almost any setting\n◆ Pressure Mode: Bots shoot back at you\n◆ Multiple Bot Spawn Points\n◆ Reactive Bot AI\n◆ Choose from several different strafe patterns\n◆ And more...\n\nFind tutorials/help at workshop.codes/VXEAT\nReport bugs on my discord:discord.gg/YPQ5ETNT45\n",
+        "description": "Customizable Aim Trainer 4.5\n\nFeatures:\n◆ Customization for almost any setting\n◆ Pressure Mode: Bots shoot back at you\n◆ Multiple Bot Spawn Points\n◆ Reactive Bot AI\n◆ Choose from several different strafe patterns\n◆ And more...\n\nFind tutorials/help at workshop.codes/VXEAT\nReport bugs on my discord:discord.gg/YPQ5ETNT45\n",
         "modeName": "Customizable Aim Trainer - VXEAT"
     },
     "lobby": {
@@ -1890,18 +1890,16 @@ def default_player_menu():
     eventPlayer.custom_speed = 100
     eventPlayer.menu_reset_bots = false
 
+
     player_default_var = 1
     if privileged_host == true and eventPlayer != hostPlayer:
         eventPlayer.menu_label_hidden[player_default_var] = true
-        player_default_var += 2
-        eventPlayer.menu_item_hidden[player_default_var] = true
-        player_default_var += 1
-        eventPlayer.menu_item_hidden[player_default_var] = true
-        player_default_var += 1
-        eventPlayer.menu_item_hidden[player_default_var] = true
+        eventPlayer.menu_item_hidden[player_default_var+1] = true
+        eventPlayer.menu_item_hidden[player_default_var+2] = true
+        eventPlayer.menu_item_hidden[player_default_var+3] = true
 
-    player_default_var += 2
     # Projectile Guide
+    player_default_var = 7
     eventPlayer.menu_opt_var[player_default_var] = "Guide Off"
     eventPlayer.menu_opt_status[player_default_var] = 0
     eventPlayer.menu_opt_len[player_default_var] = len(opt_array_abilities) - 1
@@ -2283,7 +2281,7 @@ def menu_hud():
     menu_on_opt_title[menu_opt_size] = menu_off_opt_title[menu_opt_size]
     menu_on_opt_color[menu_opt_size] = default_menu_on_index_color
     new_menu_item_selection()
-    
+
     ## Strafe Pattern
     increment_for_menu_item()
     menu_off_opt_title[menu_opt_size] = "Strafe Pattern"
@@ -3056,7 +3054,7 @@ def menu_act_toggle_strafe_rel():
     else:
         strafe_relativity = 0
         eventPlayer.menu_opt_var[eventPlayer.menu_index] = "Player"
-    
+
 
 def menu_act_cycle_min_dist():
     @Name "SUB: menu_act_cycle_min_dist"
